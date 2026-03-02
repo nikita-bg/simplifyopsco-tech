@@ -26,7 +26,7 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
     const supabase = await createClient()
     const headersList = await headers()
-    const origin = headersList.get('origin') || 'http://localhost:3000'
+    const origin = headersList.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'https://simplifyopsco.tech'
 
     const data = {
         email: formData.get('email') as string,
@@ -52,7 +52,7 @@ export async function signup(formData: FormData) {
 export async function signInWithGoogle() {
     const supabase = await createClient()
     const headersList = await headers()
-    const origin = headersList.get('origin') || 'http://localhost:3000'
+    const origin = headersList.get('origin') || process.env.NEXT_PUBLIC_SITE_URL || 'https://simplifyopsco.tech'
 
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
