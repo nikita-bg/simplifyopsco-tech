@@ -29,6 +29,14 @@ from models import (  # type: ignore[import-not-found]
 )
 from config import settings  # type: ignore[import-not-found]
 from lightrag_service import rag_service  # type: ignore[import-not-found]
+from security_middleware import (  # type: ignore[import-not-found]
+    rate_limit_middleware,
+    sanitize_input,
+    sanitize_phone,
+    sanitize_email,
+    SecurityLogger,
+    verify_webhook_signature,
+)
 
 
 # Инициализира FastAPI приложението
@@ -38,18 +46,17 @@ app = FastAPI(
     version="2.0.0"
 )
 
+# Добавя Security middleware
+app.middleware("http")(rate_limit_middleware)
+
 # Добавя CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:8000",
-        "https://simplifyopsco.tech",
-    ],
+    allow_origins=settings.origins_list,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization", "X-Webhook-Secret"],
+    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
 )
 
 
@@ -67,8 +74,19 @@ async def analyze_conversation(transcript: str) -> dict[str, Any]:
     Използва OpenAI API за анализ на транскрипцията.
     Връща sentiment, lead_score, intent.
     """
+    # Sanitize input
+    transcript = sanitize_input(transcript, max_length=5000)
+
+    if not transcript:
+        return {
+            "sentiment": "Neutral",
+            "lead_score": 5.0,
+            "intent": "General",
+            "status": "Pending",
+        }
+
     if not settings.OPENAI_API_KEY:
-        # Fallback без API ключ
+        SecurityLogger.log("OpenAI API key not configured, using fallback", "WARNING")
         return {
             "sentiment": "Neutral",
             "lead_score": 5.0,
@@ -117,7 +135,7 @@ Respond with ONLY the JSON object, no other text."""
             result = json.loads(content)
             return result
     except Exception as e:
-        print(f"[WARNING] OpenAI analysis failed: {e}")
+        SecurityLogger.log_error("OpenAI analysis failed", e)
 
     return {
         "sentiment": "Neutral",
@@ -325,32 +343,46 @@ async def post_call_webhook(
     Webhook за след-разговор от ElevenLabs.
     1. Записва разговора
     2. Пуска AI анализ на транскрипцията (асинхронно)
+
+    Security: Rate limited by middleware
     """
-    call_id = payload.call_id or str(uuid.uuid4())
+    try:
+        call_id = payload.call_id or str(uuid.uuid4())
 
-    # AI анализ на транскрипцията
-    analysis = await analyze_conversation(payload.transcript)
+        # Sanitize inputs
+        transcript = sanitize_input(payload.transcript or "", max_length=10000)
+        caller_id = sanitize_phone(payload.caller_id or "")
 
-    record = ConversationRecord(
-        call_id=call_id,
-        caller_id=payload.caller_id or "Unknown",
-        timestamp=datetime.now(),
-        duration_seconds=payload.duration or 0,
-        transcript=payload.transcript,
-        sentiment=analysis.get("sentiment", "Neutral"),
-        lead_score=analysis.get("lead_score", 5.0),
-        intent=analysis.get("intent", "General"),
-        status=analysis.get("status", "Pending"),
-    )
+        # AI анализ на транскрипцията
+        analysis = await analyze_conversation(transcript)
 
-    CONVERSATIONS.append(record)
-    print(f"[OK] Post-call recorded: {call_id} | Sentiment: {record.sentiment} | Score: {record.lead_score}")
+        record = ConversationRecord(
+            call_id=call_id,
+            caller_id=caller_id or "Unknown",
+            timestamp=datetime.now(),
+            duration_seconds=payload.duration or 0,
+            transcript=transcript,
+            sentiment=analysis.get("sentiment", "Neutral"),
+            lead_score=analysis.get("lead_score", 5.0),
+            intent=analysis.get("intent", "General"),
+            status=analysis.get("status", "Pending"),
+        )
 
-    return {
-        "success": True,
-        "call_id": call_id,
-        "analysis": analysis,
-    }
+        CONVERSATIONS.append(record)
+        SecurityLogger.log(
+            f"Post-call recorded: {call_id} | Sentiment: {record.sentiment} | Score: {record.lead_score}",
+            "INFO"
+        )
+
+        return {
+            "success": True,
+            "call_id": call_id,
+            "analysis": analysis,
+        }
+
+    except Exception as e:
+        SecurityLogger.log_error("Post-call webhook error", e)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # ===========================
@@ -436,27 +468,40 @@ def check_booking_intent(user_intent: str) -> bool:
 
 
 async def send_to_crm(call_data: ProcessedCallData, client_config: ClientConfig):
+    """Send lead data to CRM with error handling"""
     crm_url = client_config.crm_api_url or settings.DEFAULT_CRM_API_URL
     bearer_token = client_config.crm_bearer_token or settings.DEFAULT_CRM_BEARER_TOKEN
+
     if not crm_url or not bearer_token:
-        print(f"[WARNING] CRM not configured for client {call_data.client_id}")
+        SecurityLogger.log(
+            f"CRM not configured for client {call_data.client_id}",
+            "WARNING"
+        )
         return
+
+    # Sanitize inputs before sending to CRM
     crm_payload = CRMPayload(
-        lead_name=call_data.lead_info.name,
-        lead_phone=call_data.lead_info.phone,
-        lead_email=call_data.lead_info.email,
-        intent=call_data.user_intent,
-        transcript=call_data.transcript,
+        lead_name=sanitize_input(call_data.lead_info.name, max_length=100),
+        lead_phone=sanitize_phone(call_data.lead_info.phone),
+        lead_email=sanitize_email(call_data.lead_info.email),
+        intent=sanitize_input(call_data.user_intent, max_length=100),
+        transcript=sanitize_input(call_data.transcript, max_length=5000),
         source="ai_voice_receptionist"
     )
+
     headers = {"Authorization": f"Bearer {bearer_token}", "Content-Type": "application/json"}
+
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(crm_url, json=crm_payload.model_dump(), headers=headers)
             response.raise_for_status()
-            print(f"[OK] CRM updated for call {call_data.call_id}")
+            SecurityLogger.log(f"CRM updated for call {call_data.call_id}", "INFO")
+    except httpx.TimeoutException:
+        SecurityLogger.log_error("CRM timeout", Exception("Request timeout"))
+    except httpx.HTTPStatusError as e:
+        SecurityLogger.log_error(f"CRM HTTP error {e.response.status_code}", e)
     except Exception as e:
-        print(f"[ERROR] CRM error: {e}")
+        SecurityLogger.log_error("CRM error", e)
 
 
 def prepare_rag_data(call_data: ProcessedCallData) -> LightRAGData:
@@ -467,12 +512,13 @@ def prepare_rag_data(call_data: ProcessedCallData) -> LightRAGData:
 
 
 async def insert_into_lightrag(rag_data: LightRAGData):
+    """Insert call data into LightRAG with error handling"""
     try:
         success = await rag_service.insert_call_data(rag_data.model_dump())
         if success:
-            print(f"[OK] LightRAG: {rag_data.call_id} stored")
+            SecurityLogger.log(f"LightRAG: {rag_data.call_id} stored", "INFO")
     except Exception as e:
-        print(f"[ERROR] LightRAG: {e}")
+        SecurityLogger.log_error("LightRAG insertion error", e)
 
 
 # Client Config endpoints
@@ -515,14 +561,26 @@ async def query_analytics(client_id: str, query: str, mode: str = "hybrid"):
 
 @app.on_event("startup")
 async def startup_event():
-    """Seed demo data on startup"""
+    """Initialize application on startup"""
     seed_demo_conversations()
+
     print("=" * 60)
     print("   AI Voice Receptionist API v2.0")
-    print(f"   OpenAI Key: {'configured' if settings.OPENAI_API_KEY else 'MISSING'}")
-    print(f"   ElevenLabs Key: {'configured' if settings.ELEVENLABS_API_KEY else 'MISSING'}")
+    print(f"   Environment: {settings.ENVIRONMENT}")
+    print(f"   Debug Mode: {settings.DEBUG}")
+    print(f"   OpenAI Key: {'✓ configured' if settings.OPENAI_API_KEY else '✗ MISSING'}")
+    print(f"   ElevenLabs Key: {'✓ configured' if settings.ELEVENLABS_API_KEY else '✗ MISSING'}")
+    print(f"   Webhook Auth: {'✓ enabled' if settings.WEBHOOK_SECRET else '✗ disabled'}")
+    print(f"   Rate Limiting: ✓ enabled")
+    print(f"   CORS Origins: {len(settings.origins_list)} configured")
     print(f"   Conversations seeded: {len(CONVERSATIONS)}")
     print("=" * 60)
+
+    if settings.is_production and settings.DEBUG:
+        SecurityLogger.log(
+            "⚠️  WARNING: DEBUG mode is ON in production!",
+            "WARNING"
+        )
 
 
 if __name__ == "__main__":

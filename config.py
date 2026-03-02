@@ -30,9 +30,31 @@ class Settings(BaseSettings):
     # Database (опционално за бъдещо разширение)
     DATABASE_URL: Optional[str] = None
 
+    # Security settings
+    WEBHOOK_SECRET: Optional[str] = None  # Secret for webhook authentication
+    ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"  # Comma-separated
+
+    # Production settings
+    ENVIRONMENT: str = "development"  # development, staging, production
+
     class Config:
         env_file = ".env"
         case_sensitive = True
+
+    @property
+    def is_production(self) -> bool:
+        """Check if running in production mode"""
+        return self.ENVIRONMENT.lower() == "production"
+
+    @property
+    def origins_list(self) -> list[str]:
+        """Get list of allowed CORS origins"""
+        origins = [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
+        # Always include localhost in development
+        if not self.is_production:
+            dev_origins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8000"]
+            origins.extend([o for o in dev_origins if o not in origins])
+        return origins
 
 
 # Singleton instance
