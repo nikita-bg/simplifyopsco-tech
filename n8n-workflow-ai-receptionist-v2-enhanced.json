@@ -1,0 +1,390 @@
+{
+  "name": "AI Voice Receptionist V2 - Enhanced (with Error Handling & Retry)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elevenlabs-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "ElevenLabs Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 400],
+      "webhookId": "elevenlabs-ai-receptionist-v2"
+    },
+    {
+      "parameters": {
+        "content": "=📥 WEBHOOK TRIGGER\nReceives call data from ElevenLabs AI widget\n\nV2 Features:\n✅ Input validation\n✅ Error handling\n✅ Retry logic\n✅ Parallel execution\n✅ Structured logging",
+        "height": 180,
+        "width": 250,
+        "color": 4
+      },
+      "id": "sticky-note-header",
+      "name": "Sticky Note - System Info",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [220, 240]
+    },
+    {
+      "parameters": {
+        "jsCode": "// INPUT VALIDATION & SANITIZATION\nconst callData = items[0].json;\n\n// Required fields validation\nconst requiredFields = ['client_id', 'call_id', 'transcript'];\nconst missingFields = requiredFields.filter(field => !callData[field]);\n\nif (missingFields.length > 0) {\n  throw new Error(`Missing required fields: ${missingFields.join(', ')}`);\n}\n\n// Sanitize and validate data\nconst sanitizedData = {\n  client_id: String(callData.client_id).trim() || 'unknown',\n  call_id: String(callData.call_id).trim(),\n  transcript: String(callData.transcript).trim(),\n  user_intent: String(callData.intent || '').toLowerCase().trim(),\n  lead_info: {\n    name: String(callData.lead_name || '').trim(),\n    phone: String(callData.lead_phone || '').replace(/[^0-9+]/g, ''),\n    email: String(callData.lead_email || '').toLowerCase().trim()\n  },\n  metadata: {\n    call_duration: parseInt(callData.duration) || 0,\n    timestamp: new Date().toISOString(),\n    language: String(callData.language || 'en').toLowerCase(),\n    received_at: new Date().toISOString()\n  },\n  // Original payload for debugging\n  _original: callData\n};\n\n// Email validation (if provided)\nif (sanitizedData.lead_info.email && !sanitizedData.lead_info.email.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/)) {\n  sanitizedData.lead_info.email = ''; // Invalid email, clear it\n}\n\nconsole.log(`[VALIDATION] Call ${sanitizedData.call_id} validated successfully`);\n\nreturn [{ json: sanitizedData }];"
+      },
+      "id": "validate-input",
+      "name": "🔍 Validate & Sanitize Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 400],
+      "continueOnFail": false
+    },
+    {
+      "parameters": {
+        "jsCode": "// STRUCTURED DATA TRANSFORMATION\nconst callData = items[0].json;\n\n// Enhanced structured data with analytics flags\nconst structuredData = {\n  ...callData,\n  // Add processing flags\n  processing: {\n    validated: true,\n    timestamp: new Date().toISOString(),\n    version: '2.0'\n  },\n  // Intent analysis flags\n  flags: {\n    is_booking: /booking|reservation|schedule|appointment/i.test(callData.user_intent),\n    has_contact: !!(callData.lead_info.phone || callData.lead_info.email),\n    is_qualified: !!(callData.lead_info.name && (callData.lead_info.phone || callData.lead_info.email)),\n    has_questions: (callData.transcript.match(/\\?/g) || []).length > 0\n  }\n};\n\nconsole.log(`[TRANSFORM] Call ${structuredData.call_id} - Booking: ${structuredData.flags.is_booking}, Qualified: ${structuredData.flags.is_qualified}`);\n\nreturn [{ json: structuredData }];"
+      },
+      "id": "transform-data",
+      "name": "🔄 Transform Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.flags.is_booking }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "routing-decision",
+      "name": "🎯 Route: Is Booking?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "content": "=🔀 ROUTING LOGIC\nIf booking intent detected:\n→ Send to CRM (with retry)\n\nAlways:\n→ Send to LightRAG analytics\n→ Return success response",
+        "height": 140,
+        "width": 200,
+        "color": 5
+      },
+      "id": "sticky-routing",
+      "name": "Sticky Note - Routing",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [820, 240]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.crm_api_url || $env.DEFAULT_CRM_API_URL }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.crm_bearer_token || $env.DEFAULT_CRM_BEARER_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Request-ID",
+              "value": "={{ $json.call_id }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  \"lead_name\": $json.lead_info.name,\n  \"lead_phone\": $json.lead_info.phone,\n  \"lead_email\": $json.lead_info.email,\n  \"intent\": $json.user_intent,\n  \"transcript\": $json.transcript,\n  \"call_duration\": $json.metadata.call_duration,\n  \"source\": \"ai_voice_receptionist\",\n  \"client_id\": $json.client_id,\n  \"call_id\": $json.call_id,\n  \"qualified\": $json.flags.is_qualified\n} }}",
+        "options": {
+          "timeout": 15000,
+          "retry": {
+            "enabled": true,
+            "maxRetries": 3,
+            "waitBetweenRetries": 2000
+          }
+        }
+      },
+      "id": "crm-api-call",
+      "name": "📤 Send to CRM (with Retry)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1050, 300],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    },
+    {
+      "parameters": {
+        "jsCode": "// CRM ERROR HANDLER\nconst item = items[0];\n\nif (item.error) {\n  const errorData = {\n    call_id: item.json.call_id,\n    client_id: item.json.client_id,\n    error: {\n      message: item.error.message || 'Unknown error',\n      type: 'CRM_API_FAILURE',\n      timestamp: new Date().toISOString(),\n      retry_count: item.json.retry_count || 0\n    },\n    // Keep original data for retry queue\n    original_data: item.json\n  };\n  \n  console.error(`[CRM ERROR] Call ${errorData.call_id}: ${errorData.error.message}`);\n  \n  // TODO: Send to error queue / dead letter queue\n  return [{ json: errorData }];\n}\n\n// Success path\nconst successData = {\n  ...item.json,\n  crm_response: {\n    success: true,\n    sent_at: new Date().toISOString(),\n    response: item.json\n  }\n};\n\nconsole.log(`[CRM SUCCESS] Call ${successData.call_id} sent to CRM`);\n\nreturn [{ json: successData }];"
+      },
+      "id": "crm-error-handler",
+      "name": "⚠️ Handle CRM Errors",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// MERGE: Combine CRM path and non-booking path\nconst allItems = $input.all();\n\n// Get the most recent/complete data\nconst mergedData = allItems.reduce((acc, item) => {\n  return { ...acc, ...item.json };\n}, {});\n\nconsole.log(`[MERGE] Processing analytics for call ${mergedData.call_id}`);\n\nreturn [{ json: mergedData }];"
+      },
+      "id": "merge-paths",
+      "name": "🔗 Merge Execution Paths",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "// LIGHTRAG DATA PREPARATION\nconst callData = items[0].json;\n\nconst ragData = {\n  client_id: callData.client_id,\n  call_id: callData.call_id,\n  timestamp: callData.metadata.timestamp,\n  \n  // Enhanced content with structure\n  content: `### Call Transcript\\n${callData.transcript}\\n\\n` +\n           `### Intent Analysis\\nUser Intent: ${callData.user_intent}\\n` +\n           `Booking Intent: ${callData.flags?.is_booking ? 'Yes' : 'No'}\\n` +\n           `Lead Qualified: ${callData.flags?.is_qualified ? 'Yes' : 'No'}\\n\\n` +\n           `### Lead Information\\n` +\n           `Name: ${callData.lead_info.name || 'Not provided'}\\n` +\n           `Phone: ${callData.lead_info.phone || 'Not provided'}\\n` +\n           `Email: ${callData.lead_info.email || 'Not provided'}\\n\\n` +\n           `### Call Metadata\\n` +\n           `Duration: ${callData.metadata.call_duration} seconds\\n` +\n           `Language: ${callData.metadata.language}`,\n  \n  // Enhanced tags\n  tags: [\n    `client:${callData.client_id}`,\n    `intent:${callData.user_intent}`,\n    `booking:${callData.flags?.is_booking}`,\n    `qualified:${callData.flags?.is_qualified}`,\n    `duration:${callData.metadata.call_duration}`,\n    `language:${callData.metadata.language}`,\n    `year:${new Date().getFullYear()}`,\n    `month:${new Date().getMonth() + 1}`\n  ],\n  \n  // Enhanced analytics\n  analytics: {\n    common_questions: (callData.transcript.match(/\\?/g) || []).length,\n    lead_qualified: callData.flags?.is_qualified || false,\n    intent_category: callData.user_intent,\n    booking_intent: callData.flags?.is_booking || false,\n    has_contact_info: callData.flags?.has_contact || false,\n    crm_sent: !!callData.crm_response,\n    call_duration_minutes: Math.round(callData.metadata.call_duration / 60)\n  }\n};\n\nconsole.log(`[RAG PREP] Prepared analytics data for call ${ragData.call_id}`);\n\nreturn [{ json: ragData }];"
+      },
+      "id": "prepare-lightrag",
+      "name": "📊 Prepare LightRAG Analytics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 500]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8000/api/lightrag/insert",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 10000,
+          "retry": {
+            "enabled": true,
+            "maxRetries": 2,
+            "waitBetweenRetries": 1000
+          }
+        }
+      },
+      "id": "lightrag-insert",
+      "name": "💾 Insert to LightRAG (with Retry)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1450, 500],
+      "continueOnFail": true,
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 1000
+    },
+    {
+      "parameters": {
+        "jsCode": "// LIGHTRAG ERROR HANDLER\nconst item = items[0];\n\nif (item.error) {\n  console.error(`[RAG ERROR] Call ${item.json.call_id}: ${item.error.message}`);\n  \n  // Continue with degraded service\n  return [{ \n    json: {\n      ...item.json,\n      rag_status: 'failed',\n      rag_error: item.error.message\n    }\n  }];\n}\n\n// Success\nconsole.log(`[RAG SUCCESS] Call ${item.json.call_id} stored in LightRAG`);\n\nreturn [{ \n  json: {\n    ...item.json,\n    rag_status: 'success',\n    rag_stored_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "lightrag-error-handler",
+      "name": "⚠️ Handle RAG Errors",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1650, 500]
+    },
+    {
+      "parameters": {
+        "jsCode": "// MERGE: Combine all execution paths for final response\nconst allItems = $input.all();\n\n// Combine all data\nconst finalData = allItems.reduce((acc, item) => {\n  return { ...acc, ...item.json };\n}, {});\n\n// Build response summary\nconst response = {\n  success: true,\n  message: 'Call processed successfully',\n  call_id: finalData.call_id,\n  client_id: finalData.client_id,\n  processing: {\n    validated: true,\n    crm_sent: !!finalData.crm_response,\n    crm_status: finalData.crm_response?.success ? 'success' : (finalData.error?.type === 'CRM_API_FAILURE' ? 'failed' : 'skipped'),\n    rag_stored: finalData.rag_status === 'success',\n    rag_status: finalData.rag_status || 'unknown',\n    completed_at: new Date().toISOString()\n  },\n  flags: finalData.flags,\n  // Errors if any\n  errors: [\n    finalData.error && { type: 'crm', message: finalData.error.message },\n    finalData.rag_error && { type: 'rag', message: finalData.rag_error }\n  ].filter(Boolean)\n};\n\nconsole.log(`[FINAL] Call ${response.call_id} processed - CRM: ${response.processing.crm_status}, RAG: ${response.processing.rag_status}`);\n\nreturn [{ json: response }];"
+      },
+      "id": "build-response",
+      "name": "📝 Build Final Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1450, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "webhook-response",
+      "name": "✅ Send Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1650, 400]
+    },
+    {
+      "parameters": {
+        "content": "=⚡ PARALLEL EXECUTION\n\nCRM path (if booking):\n→ Send to CRM with retry\n→ Handle errors gracefully\n\nAnalytics path (always):\n→ Merge execution paths\n→ Prepare RAG data\n→ Insert to LightRAG\n→ Handle errors gracefully\n\nBoth paths merge before response",
+        "height": 200,
+        "width": 280,
+        "color": 6
+      },
+      "id": "sticky-parallel",
+      "name": "Sticky Note - Parallel Processing",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1020, 580]
+    }
+  ],
+  "connections": {
+    "ElevenLabs Webhook": {
+      "main": [
+        [
+          {
+            "node": "🔍 Validate & Sanitize Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔍 Validate & Sanitize Input": {
+      "main": [
+        [
+          {
+            "node": "🔄 Transform Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Transform Data": {
+      "main": [
+        [
+          {
+            "node": "🎯 Route: Is Booking?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🎯 Route: Is Booking?": {
+      "main": [
+        [
+          {
+            "node": "📤 Send to CRM (with Retry)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "🔗 Merge Execution Paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📤 Send to CRM (with Retry)": {
+      "main": [
+        [
+          {
+            "node": "⚠️ Handle CRM Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚠️ Handle CRM Errors": {
+      "main": [
+        [
+          {
+            "node": "📝 Build Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔗 Merge Execution Paths": {
+      "main": [
+        [
+          {
+            "node": "📊 Prepare LightRAG Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Prepare LightRAG Analytics": {
+      "main": [
+        [
+          {
+            "node": "💾 Insert to LightRAG (with Retry)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💾 Insert to LightRAG (with Retry)": {
+      "main": [
+        [
+          {
+            "node": "⚠️ Handle RAG Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⚠️ Handle RAG Errors": {
+      "main": [
+        [
+          {
+            "node": "📝 Build Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 Build Final Response": {
+      "main": [
+        [
+          {
+            "node": "✅ Send Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "production",
+      "id": "prod"
+    },
+    {
+      "name": "ai-voice",
+      "id": "ai"
+    },
+    {
+      "name": "enhanced",
+      "id": "v2"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-02T09:15:00.000Z",
+  "versionId": "2.0"
+}

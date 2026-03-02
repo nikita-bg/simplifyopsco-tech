@@ -1,0 +1,21 @@
+# FastAPI и сървър
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+
+# Async HTTP клиент
+httpx
+
+# LightRAG за knowledge graph analytics
+lightrag-hku
+nano-vectordb
+
+# Environment variables
+python-dotenv
+
+# OpenAI за AI анализ
+openai
+
+# Допълнителни utilities
+python-multipart

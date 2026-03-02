@@ -1,0 +1,243 @@
+{
+  "name": "AI Voice Receptionist - B2B SaaS",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "elevenlabs-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "ElevenLabs Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "elevenlabs-ai-receptionist"
+    },
+    {
+      "parameters": {
+        "content": "={{ $json }}",
+        "height": 80,
+        "width": 150
+      },
+      "id": "sticky-note-1",
+      "name": "Sticky Note - Входни данни",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [230, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Извличане на данни от ElevenLabs webhook\nconst callData = items[0].json;\n\n// Структуриране на данните\nconst structuredData = {\n  client_id: callData.client_id || 'unknown',\n  call_id: callData.call_id,\n  transcript: callData.transcript,\n  user_intent: callData.intent || '',\n  lead_info: {\n    name: callData.lead_name || '',\n    phone: callData.lead_phone || '',\n    email: callData.lead_email || ''\n  },\n  metadata: {\n    call_duration: callData.duration,\n    timestamp: new Date().toISOString(),\n    language: callData.language || 'en'\n  }\n};\n\nreturn [{ json: structuredData }];"
+      },
+      "id": "process-webhook-data",
+      "name": "Обработка на данни",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.user_intent }}",
+              "operation": "regex",
+              "value2": "(booking|reservation|schedule|appointment)"
+            }
+          ]
+        }
+      },
+      "id": "ai-routing-decision",
+      "name": "AI Routing - Booking Intent?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.crm_api_url || $env.DEFAULT_CRM_API_URL }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.crm_bearer_token || $env.DEFAULT_CRM_BEARER_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "lead_name",
+              "value": "={{ $json.lead_info.name }}"
+            },
+            {
+              "name": "lead_phone",
+              "value": "={{ $json.lead_info.phone }}"
+            },
+            {
+              "name": "lead_email",
+              "value": "={{ $json.lead_info.email }}"
+            },
+            {
+              "name": "intent",
+              "value": "={{ $json.user_intent }}"
+            },
+            {
+              "name": "transcript",
+              "value": "={{ $json.transcript }}"
+            },
+            {
+              "name": "source",
+              "value": "ai_voice_receptionist"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "crm-connector",
+      "name": "Generic CRM API Connector",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [850, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Подготовка на данни за LightRAG knowledge graph\nconst items = $input.all();\nconst callData = items[0].json;\n\nconst ragData = {\n  client_id: callData.client_id,\n  call_id: callData.call_id,\n  timestamp: callData.metadata.timestamp,\n  \n  // Данни за анализ\n  content: `Call Transcript:\\n${callData.transcript}\\n\\nUser Intent: ${callData.user_intent}\\n\\nLead Info:\\nName: ${callData.lead_info.name}\\nPhone: ${callData.lead_info.phone}\\nEmail: ${callData.lead_info.email}`,\n  \n  // Метаданни за таговане\n  tags: [\n    `client:${callData.client_id}`,\n    `intent:${callData.user_intent}`,\n    `duration:${callData.metadata.call_duration}`,\n    `language:${callData.metadata.language}`\n  ],\n  \n  // Структурирани данни за анализ\n  analytics: {\n    common_questions: callData.transcript.split('?').length - 1,\n    lead_qualified: callData.lead_info.name && callData.lead_info.phone ? true : false,\n    intent_category: callData.user_intent\n  }\n};\n\nreturn [{ json: ragData }];"
+      },
+      "id": "prepare-rag-data",
+      "name": "Подготовка за LightRAG",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:8000/api/lightrag/insert",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "lightrag-insert",
+      "name": "LightRAG Analytics Insert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1050, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"success\": true, \"message\": \"Call processed successfully\", \"call_id\": $json.call_id } }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    }
+  ],
+  "connections": {
+    "ElevenLabs Webhook": {
+      "main": [
+        [
+          {
+            "node": "Обработка на данни",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Обработка на данни": {
+      "main": [
+        [
+          {
+            "node": "AI Routing - Booking Intent?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Routing - Booking Intent?": {
+      "main": [
+        [
+          {
+            "node": "Generic CRM API Connector",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Подготовка за LightRAG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generic CRM API Connector": {
+      "main": [
+        [
+          {
+            "node": "Подготовка за LightRAG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Подготовка за LightRAG": {
+      "main": [
+        [
+          {
+            "node": "LightRAG Analytics Insert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LightRAG Analytics Insert": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-02T00:00:00.000Z",
+  "versionId": "1"
+}

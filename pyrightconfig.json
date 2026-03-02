@@ -1,0 +1,21 @@
+{
+    "pythonVersion": "3.14",
+    "pythonPlatform": "Windows",
+    "venvPath": "",
+    "pythonPath": "C:/Python314/python.exe",
+    "include": [
+        "*.py"
+    ],
+    "exclude": [
+        "frontend",
+        "lightrag_cache",
+        "__pycache__",
+        "node_modules"
+    ],
+    "reportMissingImports": "warning",
+    "reportMissingModuleSource": "none",
+    "reportOptionalMemberAccess": "warning",
+    "reportIndexIssue": "none",
+    "reportCallIssue": "none",
+    "typeCheckingMode": "basic"
+}
