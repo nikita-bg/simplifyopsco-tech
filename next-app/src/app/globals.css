@@ -1,0 +1,146 @@
+@import "tailwindcss";
+
+/* ============================================
+   SimplifyOps / Vocalize AI - Design System
+   ============================================ */
+
+/* Custom theme tokens */
+@theme inline {
+  --color-primary: #256af4;
+  --color-primary-dark: #1a4bbd;
+  --color-primary-light: #4a8af7;
+  --color-background-light: #f5f6f8;
+  --color-background-dark: #0f1115;
+  --color-surface-dark: #181b21;
+  --color-surface-light: #ffffff;
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --font-display: "Space Grotesk", sans-serif;
+  --font-sans: var(--font-display);
+}
+
+:root {
+  --background: #f5f6f8;
+  --foreground: #0f172a;
+}
+
+.dark {
+  --background: #0f1115;
+  --foreground: #f1f5f9;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --background: #0f1115;
+    --foreground: #f1f5f9;
+  }
+}
+
+/* Base styles */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Space Grotesk", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: #256af4;
+  color: #ffffff;
+}
+
+/* Glassmorphism panels */
+.glass-panel {
+  background: rgba(24, 27, 33, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Glow effects */
+.glow-text {
+  text-shadow: 0 0 20px rgba(37, 106, 244, 0.5);
+}
+
+.glow-box {
+  box-shadow: 0 0 30px -5px rgba(37, 106, 244, 0.4);
+}
+
+.glow-box-hover:hover {
+  box-shadow: 0 0 20px -5px rgba(37, 106, 244, 0.5);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #256af4, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Audio waveform animation bars */
+@keyframes waveform {
+  0%, 100% { height: 20%; }
+  50% { height: 80%; }
+}
+
+.waveform-bar {
+  animation: waveform 1.2s ease-in-out infinite;
+}
+
+.waveform-bar:nth-child(2) { animation-delay: 0.1s; }
+.waveform-bar:nth-child(3) { animation-delay: 0.2s; }
+.waveform-bar:nth-child(4) { animation-delay: 0.3s; }
+.waveform-bar:nth-child(5) { animation-delay: 0.15s; }
+
+/* Page transition fade */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Pulse dot */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

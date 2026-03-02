@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Active AI Voice Widget Overlay</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#256af4",
+                        "background-light": "#f5f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom pulsing animation for the active state ring */
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(139, 92, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+        }
+        .animate-pulse-ring {
+            animation: pulse-ring 2s infinite;
+        }
+        
+        /* Sound wave simulation */
+        .wave-bar {
+            animation: wave 1s ease-in-out infinite;
+        }
+        @keyframes wave {
+            0%, 100% { height: 10%; }
+            50% { height: 100%; }
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 overflow-x-hidden min-h-screen relative">
+<!-- Main Page Content (Background context) -->
+<div class="flex flex-col min-h-screen">
+<!-- Header -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 px-6 py-4 bg-white/80 dark:bg-[#111318]/90 backdrop-blur-md sticky top-0 z-40">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl">graphic_eq</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-tight">Voice Copilot</h2>
+</div>
+<div class="hidden md:flex flex-1 justify-end gap-8 items-center">
+<nav class="flex items-center gap-6">
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Product</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Solutions</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Enterprise</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Pricing</a>
+</nav>
+<div class="flex gap-3">
+<button class="flex h-9 items-center justify-center rounded-lg px-4 border border-slate-300 dark:border-slate-700 bg-transparent text-sm font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        Log In
+                    </button>
+<button class="flex h-9 items-center justify-center rounded-lg px-4 bg-primary text-white text-sm font-bold shadow-lg shadow-primary/30 hover:bg-primary/90 transition-colors">
+                        Get Started
+                    </button>
+</div>
+</div>
+</header>
+<!-- Hero Section -->
+<main class="flex-1 flex flex-col items-center pt-16 px-6">
+<div class="max-w-5xl w-full flex flex-col items-center text-center gap-8">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold uppercase tracking-wider">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                    Now Live v2.0
+                </div>
+<h1 class="text-5xl md:text-7xl font-bold tracking-tight bg-gradient-to-br from-slate-900 to-slate-500 dark:from-white dark:to-slate-500 bg-clip-text text-transparent pb-2">
+                    Transform Your Website <br/> with Voice AI
+                </h1>
+<p class="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl">
+                    Enhance user engagement with our intelligent voice assistant that guides visitors seamlessly through your product offerings.
+                </p>
+<div class="flex flex-wrap gap-4 justify-center mt-4">
+<button class="h-12 px-8 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold hover:scale-105 transition-transform flex items-center gap-2">
+<span class="material-symbols-outlined">play_circle</span>
+                        View Demo
+                    </button>
+<button class="h-12 px-8 rounded-lg bg-primary/10 text-primary border border-primary/20 font-bold hover:bg-primary/20 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined">description</span>
+                        Documentation
+                    </button>
+</div>
+<!-- Abstract Dashboard Preview -->
+<div class="w-full mt-12 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden bg-slate-100 dark:bg-slate-900 aspect-video relative group">
+<div class="absolute inset-0 bg-gradient-to-t from-background-light dark:from-background-dark to-transparent opacity-20"></div>
+<!-- Placeholder Content representing a dashboard -->
+<div class="p-8 grid grid-cols-12 gap-6 h-full opacity-40 blur-[1px] group-hover:blur-0 transition-all duration-500">
+<div class="col-span-3 bg-white dark:bg-slate-800 rounded-lg h-full"></div>
+<div class="col-span-9 flex flex-col gap-6">
+<div class="flex gap-6 h-1/3">
+<div class="flex-1 bg-white dark:bg-slate-800 rounded-lg"></div>
+<div class="flex-1 bg-white dark:bg-slate-800 rounded-lg"></div>
+<div class="flex-1 bg-white dark:bg-slate-800 rounded-lg"></div>
+</div>
+<div class="flex-1 bg-white dark:bg-slate-800 rounded-lg"></div>
+</div>
+</div>
+<img alt="Abstract tech dashboard background pattern" class="absolute inset-0 w-full h-full object-cover opacity-10 mix-blend-overlay" data-alt="Abstract dark mode tech dashboard background pattern" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8_tq6GSjovHEeFVDnXbBVtz-ayj7_QCrpZE0QQQWOf--OqzuJwlDvoO-RQW91viHaoajGaBn0F_UlieAikAahtsuq_wTTIzmewmGbOgLVQgNuvS6zWT0foW0Fqbv14DWK3UX1C8BPZb9h0RPoNg6rga_8W0izUp0W_yI8PGIWxCLGnH1Q6QJazZV7UfVwQ3zrAMMqOEh_Uc6pbgNghPPMKRR0x9G_9wcFSJvTm_RThpUxb8MoAXXjQ_PVdo3Hgg-4a8W71Wv4Mg"/>
+</div>
+</div>
+</main>
+</div>
+<!-- Active AI Voice Widget Overlay -->
+<!-- Positioned fixed at bottom right -->
+<div class="fixed bottom-6 right-6 z-50 w-[360px] animate-fade-in-up">
+<!-- Glassmorphic Container -->
+<div class="relative bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 shadow-2xl rounded-2xl overflow-hidden">
+<!-- Gradient Glow Effect -->
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-primary/20 blur-[60px] rounded-full pointer-events-none"></div>
+<!-- Widget Content -->
+<div class="p-6 flex flex-col gap-6 relative">
+<!-- Status Header -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+<span class="text-xs font-semibold tracking-wider text-slate-400 uppercase">Live Session</span>
+</div>
+<span class="text-xs font-mono text-slate-500">00:42</span>
+</div>
+<!-- Main Visualizer Area -->
+<div class="flex flex-col items-center justify-center py-4 gap-6">
+<!-- Avatar/Ring Animation -->
+<div class="relative">
+<!-- Pulsing Rings -->
+<div class="absolute inset-0 rounded-full animate-pulse-ring"></div>
+<div class="absolute inset-0 rounded-full border border-primary/30 scale-125"></div>
+<!-- Center Avatar -->
+<div class="relative w-20 h-20 rounded-full bg-gradient-to-b from-slate-800 to-slate-950 border border-slate-700 flex items-center justify-center shadow-[0_0_30px_rgba(37,106,244,0.3)]">
+<span class="material-symbols-outlined text-3xl text-primary drop-shadow-[0_0_8px_rgba(37,106,244,0.8)]">smart_toy</span>
+</div>
+</div>
+<!-- Voice Text Feedback -->
+<div class="text-center space-y-1">
+<p class="text-sm text-slate-400 font-medium">Assistant is speaking...</p>
+<h3 class="text-white text-lg font-display font-bold leading-tight">
+                            "I can help you analyze that data."
+                        </h3>
+</div>
+<!-- Sound Wave Visualizer -->
+<div class="flex items-center justify-center gap-1 h-8 w-full px-8">
+<!-- Generating random heights for wave effect -->
+<div class="w-1 bg-primary/80 rounded-full wave-bar" style="animation-delay: 0.1s; height: 40%"></div>
+<div class="w-1 bg-primary/80 rounded-full wave-bar" style="animation-delay: 0.2s; height: 70%"></div>
+<div class="w-1 bg-primary/80 rounded-full wave-bar" style="animation-delay: 0.3s; height: 50%"></div>
+<div class="w-1 bg-primary/80 rounded-full wave-bar" style="animation-delay: 0.4s; height: 90%"></div>
+<div class="w-1 bg-primary/80 rounded-full wave-bar" style="animation-delay: 0.5s; height: 30%"></div>
+<div class="w-1 bg-primary/80 rounded-full wave-bar" style="animation-delay: 0.1s; height: 60%"></div>
+<div class="w-1 bg-primary/80 rounded-full wave-bar" style="animation-delay: 0.2s; height: 80%"></div>
+<div class="w-1 bg-primary/80 rounded-full wave-bar" style="animation-delay: 0.3s; height: 40%"></div>
+<div class="w-1 bg-primary/80 rounded-full wave-bar" style="animation-delay: 0.4s; height: 70%"></div>
+<div class="w-1 bg-primary/80 rounded-full wave-bar" style="animation-delay: 0.5s; height: 30%"></div>
+</div>
+</div>
+<!-- Action Bar -->
+<div class="grid grid-cols-4 gap-2 pt-2 border-t border-slate-800">
+<button class="col-span-1 h-12 flex items-center justify-center rounded-xl bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 hover:text-white transition-colors group">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">keyboard</span>
+</button>
+<button class="col-span-1 h-12 flex items-center justify-center rounded-xl bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 hover:text-white transition-colors group">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">mic_off</span>
+</button>
+<button class="col-span-2 h-12 flex items-center justify-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 font-bold hover:bg-red-500 hover:text-white transition-all duration-300">
+<span class="material-symbols-outlined text-[20px]">call_end</span>
+<span>End Call</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Floating hint tooltip (optional embellishment) -->
+<div class="absolute -left-36 top-1/2 -translate-y-1/2 bg-slate-800 text-slate-200 text-xs py-1 px-3 rounded-lg shadow-lg border border-slate-700 opacity-0 hover:opacity-100 transition-opacity pointer-events-none md:block hidden">
+            Drag to move
+        </div>
+</div>
+</body></html>
