@@ -143,16 +143,89 @@
 
 ## Traceability
 
-Requirements will be mapped to roadmap phases during roadmap creation.
+All v1 requirements mapped to roadmap phases (created 2026-03-02).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| *(To be populated by roadmapper)* | | |
+| AUTH-01 | Phase 2 | Pending |
+| AUTH-02 | Phase 2 | Pending |
+| AUTH-03 | Phase 2 | Pending |
+| AUTH-04 | Phase 2 | Pending |
+| AUTH-05 | Phase 2 | Pending |
+| VOICE-01 | Phase 3 | Pending |
+| VOICE-02 | Phase 3 | Pending |
+| VOICE-03 | Phase 3 | Pending |
+| VOICE-04 | Phase 3 | Pending |
+| VOICE-05 | Phase 3 | Pending |
+| VOICE-06 | Phase 3 | Pending |
+| VOICE-07 | Phase 3 | Pending |
+| VOICE-08 | Phase 3 | Pending |
+| INTELL-01 | Phase 4 | Pending |
+| INTELL-02 | Phase 4 | Pending |
+| INTELL-03 | Phase 4 | Pending |
+| INTELL-04 | Phase 4 | Pending |
+| INTELL-05 | Phase 4 | Pending |
+| INTELL-06 | Phase 4 | Pending |
+| KB-01 | Phase 5 | Pending |
+| KB-02 | Phase 5 | Pending |
+| KB-03 | Phase 5 | Pending |
+| KB-04 | Phase 5 | Pending |
+| KB-05 | Phase 5 | Pending |
+| KB-06 | Phase 5 | Pending |
+| KB-07 | Phase 5 | Pending |
+| KB-08 | Phase 5 | Pending |
+| WEB-01 | Phase 6 | Pending |
+| WEB-02 | Phase 6 | Pending |
+| WEB-03 | Phase 6 | Pending |
+| WEB-04 | Phase 6 | Pending |
+| WEB-05 | Phase 6 | Pending |
+| WEB-06 | Phase 6 | Pending |
+| BOOK-01 | Phase 7 | Pending |
+| BOOK-02 | Phase 7 | Pending |
+| BOOK-03 | Phase 7 | Pending |
+| BOOK-04 | Phase 7 | Pending |
+| BOOK-05 | Phase 7 | Pending |
+| BOOK-06 | Phase 7 | Pending |
+| BOOK-07 | Phase 7 | Pending |
+| DASH-01 | Phase 8 | Pending |
+| DASH-02 | Phase 8 | Pending |
+| DASH-03 | Phase 8 | Pending |
+| DASH-04 | Phase 8 | Pending |
+| DASH-05 | Phase 8 | Pending |
+| DASH-06 | Phase 8 | Pending |
+| DASH-07 | Phase 8 | Pending |
+| DASH-08 | Phase 8 | Pending |
+| DEMO-01 | Phase 9 | Pending |
+| DEMO-02 | Phase 9 | Pending |
+| DEMO-03 | Phase 9 | Pending |
+| DEMO-04 | Phase 9 | Pending |
+| DEMO-05 | Phase 9 | Pending |
+| SYS-01 | Phase 1 | Pending |
+| SYS-02 | Phase 1 | Pending |
+| SYS-03 | Phase 1 | Pending |
+| SYS-04 | Phase 10 | Pending |
+| SYS-05 | Phase 1 | Pending |
+| SYS-06 | Phase 10 | Pending |
+| SYS-07 | Phase 10 | Pending |
+| SYS-08 | Phase 10 | Pending |
+| SYS-09 | Phase 10 | Pending |
 
 **Coverage:**
-- v1 requirements: 54 total
-- Mapped to phases: (pending roadmap)
-- Unmapped: (pending roadmap)
+- v1 requirements: 62 total
+- Mapped to phases: 62 (100%)
+- Unmapped: 0 (complete coverage)
+
+**Phase Breakdown:**
+- Phase 1 (Foundation): 4 requirements
+- Phase 2 (Authentication): 5 requirements
+- Phase 3 (Voice Core): 8 requirements
+- Phase 4 (Intelligence): 6 requirements
+- Phase 5 (Knowledge Base): 8 requirements
+- Phase 6 (Web Automation): 6 requirements
+- Phase 7 (Booking): 7 requirements
+- Phase 8 (Analytics): 8 requirements
+- Phase 9 (Demo Site): 5 requirements
+- Phase 10 (Performance): 5 requirements
 
 ---
 
@@ -180,4 +253,4 @@ Requirements will be mapped to roadmap phases during roadmap creation.
 ---
 
 *Requirements defined: 2026-03-02*
-*Last updated: 2026-03-02 after initial definition*
+*Last updated: 2026-03-02 after roadmap creation (traceability added)*
