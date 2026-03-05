@@ -27,6 +27,10 @@ export interface BusinessContext {
   id: string;
   name: string;
   agent_id: string | null;
+  voice_id: string | null;
+  system_prompt: string | null;
+  branding: Record<string, any> | null;
+  working_hours: Record<string, any> | null;
   plan_tier: string;
   conversation_count: number;
   conversation_limit: number;
@@ -97,7 +101,7 @@ export async function authenticateApiKey(
     // (We can't hash the key client-side to query, so we need to check all hashes)
     const { data: businesses, error: queryError } = await supabase
       .from('businesses')
-      .select('id, name, agent_id, plan_tier, conversation_count, conversation_limit, is_active, status, api_key_hash')
+      .select('id, name, agent_id, voice_id, system_prompt, branding, working_hours, plan_tier, conversation_count, conversation_limit, is_active, status, api_key_hash')
       .eq('is_active', true);
 
     if (queryError) {
@@ -147,6 +151,10 @@ export async function authenticateApiKey(
             id: business.id,
             name: business.name,
             agent_id: business.agent_id,
+            voice_id: business.voice_id,
+            system_prompt: business.system_prompt,
+            branding: business.branding,
+            working_hours: business.working_hours,
             plan_tier: business.plan_tier,
             conversation_count: business.conversation_count,
             conversation_limit: business.conversation_limit,
