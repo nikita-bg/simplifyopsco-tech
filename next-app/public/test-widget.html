@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Widget Test - SimplifyOps</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+      }
+      p {
+        font-size: 1.125rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+      }
+      .card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .warning {
+        background: rgba(255, 193, 7, 0.2);
+        border: 1px solid rgba(255, 193, 7, 0.5);
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+      }
+      code {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
+      .section {
+        margin-top: 60px;
+      }
+      #contact {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 40px;
+        border-radius: 20px;
+        margin-top: 60px;
+      }
+    </style>
+
+    <!-- Google Material Symbols (required for widget icons) -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <h1>🎙️ SimplifyOps Widget Test</h1>
+
+    <div class="warning">
+      <strong>⚠️ Setup Required:</strong><br />
+      1. Start Next.js dev server: <code>npm run dev</code><br />
+      2. Replace <code>YOUR_API_KEY_HERE</code> below with real API key<br />
+      3. Ensure you have a business in database with this API key
+    </div>
+
+    <div class="card">
+      <h2>📋 What to test:</h2>
+      <ul>
+        <li>Click the floating voice button (bottom-right)</li>
+        <li>Widget should expand to full size</li>
+        <li>Click "Start Conversation" and allow microphone access</li>
+        <li>Say: "Scroll to the contact section"</li>
+        <li>Widget should scroll page to #contact section</li>
+        <li>Test expand/minimize/close buttons</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>About SimplifyOps</h2>
+      <p>
+        SimplifyOps is a voice-controlled AI assistant that helps customers navigate your website,
+        answer questions, and complete actions—all through natural conversation.
+      </p>
+      <p>
+        Unlike traditional chatbots, SimplifyOps can control the webpage: scrolling to sections,
+        highlighting elements, filling forms, and booking appointments—all via voice commands.
+      </p>
+    </div>
+
+    <div class="section">
+      <h2>Features</h2>
+      <div class="card">
+        <h3>🎯 Web Automation</h3>
+        <p>Voice-controlled scrolling, navigation, and form filling. The only AI that truly understands your site structure.</p>
+      </div>
+      <div class="card">
+        <h3>🚀 2-Minute Setup</h3>
+        <p>Copy-paste a script tag. No complex integrations, no coding required.</p>
+      </div>
+      <div class="card">
+        <h3>🎨 Fully Customizable</h3>
+        <p>Choose your voice, customize colors, upload your knowledge base—all through our dashboard.</p>
+      </div>
+    </div>
+
+    <div id="contact" class="section">
+      <h2>📞 Contact Us</h2>
+      <p>Ready to add voice AI to your website? Let's talk!</p>
+      <p>
+        <strong>Email:</strong> hello@simplifyops.tech<br />
+        <strong>Book a Demo:</strong> Try saying "Schedule a booking" to the voice widget!
+      </p>
+    </div>
+
+    <!-- SimplifyOps Widget -->
+    <script>
+      // Configuration
+      window.SimplifyOpsConfig = {
+        apiKey: 'YOUR_API_KEY_HERE', // ⚠️ REPLACE WITH REAL API KEY
+        position: 'bottom-right', // bottom-right, bottom-left, top-right, top-left
+      };
+    </script>
+
+    <!-- Widget Loader -->
+    <script src="/widget.js" async></script>
+
+    <!-- Listen for widget events (optional - for debugging) -->
+    <script>
+      window.addEventListener('message', (event) => {
+        console.log('[Test Page] Widget event:', event.data);
+
+        // Handle web automation commands from widget
+        const { type, data } = event.data;
+
+        switch (type) {
+          case 'widget:scrollToSection':
+            const section = document.getElementById(data.sectionId);
+            if (section) {
+              section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              console.log('[Test Page] Scrolled to:', data.sectionId);
+            }
+            break;
+
+          case 'widget:navigateTo':
+            console.log('[Test Page] Navigate to:', data.path);
+            // Implement navigation logic
+            break;
+
+          case 'widget:highlightElement':
+            const element = document.querySelector(data.selector);
+            if (element) {
+              element.style.outline = '3px solid #256AF4';
+              element.style.outlineOffset = '4px';
+              setTimeout(() => {
+                element.style.outline = '';
+                element.style.outlineOffset = '';
+              }, 3000);
+              console.log('[Test Page] Highlighted:', data.selector);
+            }
+            break;
+        }
+      });
+    </script>
+  </body>
+</html>
