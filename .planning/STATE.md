@@ -1,186 +1,82 @@
-# Project State
+# SimplifyOps - Current State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-02)
+See: [.planning/PROJECT.md](PROJECT.md) (updated 2026-03-05)
 
-**Core value:** Businesses can offer sophisticated voice-powered customer experiences on their websites without building AI infrastructure
-**Current focus:** Final QA & Deployment (Phase 10)
+**Core value:** Businesses can offer sophisticated voice-powered customer experiences on their websites without building AI infrastructure, giving them a competitive edge through conversational interfaces that guide visitors, answer questions, and convert leads.
+
+**Current focus:** v2.0 B2B2C Platform Launch — Multi-tenancy, Widget Distribution, Monetization
 
 ## Current Position
 
-Phase: 10 of 10 (Final QA & Deploy)
-Plan: Phase 1-9 complete, Phase 10 remaining
-Status: In progress
-Last activity: 2026-03-02 — Phases 6-9 complete (Web Automation, Booking, Analytics, Demo Polish)
-
-Progress: [█████████░] 90%
-
-## Performance Metrics
-
-**Velocity:**
-- Total plans completed: 5 (Phase 1-5)
-- Average duration: ~12 min
-- Total execution time: ~60 min
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 1. Foundation | 1/1 | ~25 min | ~25 min |
-| 2. Authentication | 1/1 | ~10 min | ~10 min |
-| 3. Voice Core | 1/1 | ~10 min | ~10 min |
-| 4. LLM Intelligence | 1/1 | ~8 min | ~8 min |
-| 5. Knowledge Base | 1/1 | ~7 min | ~7 min |
-| 6. Web Automation | 1/1 | ~5 min | ~5 min |
-| 7. Booking System | 1/1 | ~6 min | ~6 min |
-| 8. Analytics Dashboard | 1/1 | ~8 min | ~8 min |
-| 9. Demo Site Polish | 1/1 | ~5 min | ~5 min |
-
-**Recent Trend:**
-- Last 5 plans: Phase 1 Foundation ✅
-- Trend: Starting velocity
-
-*Updated after each plan completion*
+**Phase:** Not started (defining requirements)
+**Plan:** —
+**Status:** Defining requirements for milestone v2.0
+**Last activity:** 2026-03-05 — Milestone v2.0 started
 
 ## Accumulated Context
 
-### Decisions
+### v1.0 Milestone Summary (Phases 1-9 Complete)
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
+**What Shipped:**
+- ✅ Complete Next.js 15 + Supabase + Vercel infrastructure
+- ✅ Authentication system (Email/password + Google OAuth)
+- ✅ Voice engine with ElevenLabs integration (<1000ms latency)
+- ✅ LLM intelligence with context injection
+- ✅ Knowledge Base & RAG (vector search, OpenAI embeddings)
+- ✅ Web automation (voice-controlled scrolling, navigation, forms)
+- ✅ Booking system with voice scheduling
+- ✅ Analytics dashboard with real-time metrics
+- ✅ Demo site polish with chat widget (Leo AI)
 
-- Roadmap structure: 10 phases derived from requirement categories, comprehensive depth
-- Phase 1 dependencies: Must complete infrastructure before authentication
-- Critical path: Voice Core (Phase 3) enables both Web Automation (Phase 6) and Demo Polish (Phase 9)
-- **Supabase shared instance**: The Supabase project (rhwgjtawyxwqaippjxlj) is shared with the user's main business site (SimplifyOpsCo). Must NOT drop or modify existing tables (blog_posts, etc.)
-- **Next.js 16**: Project uses Next.js 16.1.6 with Turbopack. `middleware.ts` convention is deprecated → `proxy` preferred, but middleware still works.
+**Phase 10 Status:** Pending final QA & deployment
 
-### Phase 1 Deliverables (Complete)
+**Key Technical Assets:**
+- Next.js 16.1.6 app in `next-app/` directory
+- Supabase project: rhwgjtawyxwqaippjxlj (shared with main business site)
+- Database schema: profiles, conversations, messages, knowledge_base (pgvector), bookings, available_slots
+- n8n workflows: RAG pipeline, Google Drive sync, lead scoring
+- ElevenLabs API integration with client tools
+- Glassmorphic dark mode design system
 
-- ✅ Next.js 16.1.6 app with App Router + TypeScript + Tailwind v4
-- ✅ Supabase client initialization (browser, server, admin)
-- ✅ Auth middleware with cookie-based sessions (graceful degradation when unconfigured)
-- ✅ SQL migration executed: profiles, conversations, messages, knowledge_base (pgvector), bookings, available_slots
-- ✅ RLS policies on all tables
-- ✅ HNSW vector index on knowledge_base
-- ✅ Auto-profile creation trigger on auth.users
-- ✅ match_documents() function for RAG queries
-- ✅ Landing page migrated to Next.js (glassmorphic dark mode design)
-- ✅ Dashboard layout with sidebar navigation
-- ✅ Login/Signup page UI (visual, needs Phase 2 for functionality)
-- ✅ API routes: /api/health, /api/webhooks/n8n
-- ✅ vercel.json with security headers
-- ✅ .env.local configured with Supabase + ElevenLabs keys
-- ✅ TypeScript database types
-- ✅ Build passes successfully
+**Critical Constraints:**
+- Supabase shared with main business site — DO NOT drop existing tables (blog_posts, etc.)
+- Next.js 16.1.6 with Turbopack
+- ElevenLabs API key: sk_371b4c3461eab91f33b4b61f54eedabe913513845349bae3
 
-### Phase 2 Deliverables (Complete)
+### v2.0 Gap Analysis
 
-- ✅ Server Actions for login, signup, signOut, signInWithGoogle
-- ✅ Auth callback route (/auth/callback) for PKCE flow
-- ✅ Login page wired to Supabase Auth (email/password + Google OAuth button)
-- ✅ Signup page with name/email/password + Google OAuth
-- ✅ Error message display from URL params
-- ✅ Dashboard shows real user data (name, email, initial avatar)
-- ✅ Sign Out button functional in dashboard sidebar
-- ✅ Middleware protects /dashboard routes (redirects to /login)
-- ✅ Middleware redirects authenticated users away from /login, /signup
-- ✅ Email confirmation disabled for development
-- ✅ Test account created: nikita@simplifyopsco.tech
+**Current State:** Single-tenant demo hardcoded into one website
+**Target State:** Multi-tenant B2B2C platform where businesses can purchase and install widgets
 
-### Phase 4 Deliverables (Complete)
+**Critical Gaps:**
+1. ❌ No multi-tenancy (all data belongs to one "business")
+2. ❌ No widget distribution system (can't embed on external sites)
+3. ❌ No per-business configuration UI
+4. ❌ No billing system (can't charge customers)
+5. ❌ No usage tracking per business
+6. ❌ No API key authentication system
+7. ❌ No data isolation between customers
 
-- ✅ Conversation logging API (/api/conversations) — saves messages, duration, sentiment to Supabase
-- ✅ Context injection — voice widget sends page context to ElevenLabs agent on connect
-- ✅ Session tracking with start time, duration calculation
-- ✅ Message history maintained via useRef for reliable disconnect logging
-- ✅ n8n RAG Agent integration — Leo AI assistant via webhook proxy
-- ✅ Lead scoring pipeline (n8n → GPT-4.1-mini → Google Sheets)
-- ✅ Chat proxy API (/api/chat) — server-side webhook forwarding for security
+**Research Assets:**
+- Comprehensive implementation plan: `.planning/FINAL_IMPLEMENTATION_PLAN.md` (1,060 lines)
+- NotebookLM research report with ElevenLabs patterns and widget best practices
+- Market analysis (TAM: $12.8B, 83.6% greenfield opportunity)
+- Competitive landscape (Voiceflow, Vapi.ai, Synthflow, Air.ai)
+- Financial projections (Year 3: $11.2M ARR, 10K customers)
+- 3-Sprint roadmap: Platform Stabilization (2w), Widget Distribution (3w), Monetization (2w)
 
-### Phase 5 Deliverables (Complete)
+### Key Architectural Decisions for v2.0
 
-- ✅ Knowledge Base CRUD API (/api/knowledge) — GET, POST, DELETE with auth
-- ✅ OpenAI text-embedding-3-small embeddings on document upload
-- ✅ Knowledge Base dashboard page (/dashboard/knowledge) with full UI
-- ✅ Add document form with title, source type, content, word count
-- ✅ Document listing with metadata (type, date, word count)
-- ✅ Delete with confirmation
-- ✅ Empty state UI
-- ✅ n8n Google Drive auto-sync for Knowledge Base folder
-- ✅ Supabase `documents` vector store integration via n8n
-- ✅ Text Chat Widget (Leo) — glassmorphic chat UI on all pages
-- ✅ Quick suggestion buttons for common questions
-- ✅ Typing indicator animation
-- ✅ Session-based memory via n8n buffer window
+| Decision | Rationale |
+|----------|-----------|
+| Shadow DOM for widget | Style isolation without cross-origin iframe issues |
+| Supabase RLS for multi-tenancy | 100% database-level data isolation |
+| Signed URLs for ElevenLabs auth | Per-business agent access without exposing API keys |
+| Stripe hybrid pricing | Base tier + overage = predictable + scalable revenue |
+| <50KB widget bundle | Host site performance constraint |
+| CSP nonce support | Strict security site compatibility |
 
-### Phase 6 Deliverables (Complete)
-
-- ✅ Voice client tools — scrollToSection, navigateTo, highlightElement, openContactForm
-- ✅ DOM interaction via voice commands
-- ✅ Section fallback search via heading text content
-- ✅ Security: external navigation blocked
-- ✅ data-section attributes on landing page for voice targeting
-
-### Phase 7 Deliverables (Complete)
-
-- ✅ Bookings CRUD API (/api/bookings) — GET, POST, DELETE
-- ✅ scheduleBooking voice client tool — book demos via voice
-- ✅ Bookings dashboard page (/dashboard/bookings)
-- ✅ Create booking form — name, email, phone, date, time, type, duration, notes
-- ✅ Upcoming vs Past/Cancelled separation
-- ✅ Status badges (confirmed, pending, cancelled, completed)
-- ✅ Source badges (voice, chat, website, manual)
-- ✅ Supabase migration for bookings table with RLS
-
-### Phase 8 Deliverables (Complete)
-
-- ✅ Analytics API (/api/analytics) — aggregates from Supabase
-- ✅ Live dashboard with 30s auto-refresh
-- ✅ 4 stat cards: Total Conversations, Sentiment, Conversion, Duration
-- ✅ 14-day timeline bar chart
-- ✅ Sentiment breakdown with progress bars
-- ✅ Intent distribution
-- ✅ Recent conversations list
-- ✅ Skeleton loading states
-- ✅ Conversations list API (/api/conversations/list)
-- ✅ Messages fetch API (/api/conversations/messages)
-
-### Phase 9 Deliverables (Complete)
-
-- ✅ "Try Live Demo" button opens voice widget
-- ✅ "Try Voice Demo" CTA button opens voice widget
-- ✅ Social proof strip: 2M+, 98%, 40+, <200ms
-- ✅ Use Cases section: E-Commerce, Healthcare, Real Estate, Education
-- ✅ "Ask Leo About Your Use Case" button opens chat widget
-- ✅ data-section attributes for voice navigation
-- ✅ Nav links: Features, Use Cases, Pricing, Docs
-
-### Pending Todos
-
-- Phase 10: Final QA & Deployment — end-to-end testing, Vercel deploy, performance audit
-
-### Blockers/Concerns
-
-**From Research:**
-- ElevenLabs Conversational AI API is new with limited documentation (fallback: manual WebSocket orchestration)
-- n8n deployment decision needed: cloud vs self-hosted (recommend cloud for v1)
-- Latency target <1000ms is aggressive (requires streaming optimizations from start)
-
-**From Phase 1:**
-- Next.js 16 deprecated `middleware.ts` → `proxy` convention (middleware still works, address in Phase 10)
-- Supabase shared with main business site — be cautious with schema changes
-
-**Traceability:**
-- All 62 v1 requirements mapped to phases
-- No orphaned requirements
-- Coverage validated: 100%
-
-## Session Continuity
-
-Last session: 2026-03-02 (Phases 6-9 complete)
-Stopped at: Phase 9 delivered, Phase 10 (Final QA) remaining
-Resume file: None
-
-**Next step:** Phase 10 — end-to-end testing, Supabase migration run, Vercel deploy, performance audit
+---
+*Last updated: 2026-03-05*

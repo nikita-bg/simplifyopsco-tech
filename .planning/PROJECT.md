@@ -1,10 +1,21 @@
 # SimplifyOps Voice AI Platform
 
+## Current Milestone: v2.0 B2B2C Platform Launch
+
+**Goal:** Transform SimplifyOps from impressive demo to revenue-generating multi-tenant platform
+
+**Target features:**
+- Multi-tenant architecture with Supabase RLS data isolation
+- Widget distribution system (embeddable <script> tag)
+- Self-service configuration dashboard
+- Stripe billing with usage-based pricing
+- Production monitoring and cost controls
+
 ## What This Is
 
 A B2B2C SaaS platform that enables businesses to add intelligent voice AI assistants to their websites. The AI assistant can understand speech, navigate the website, answer questions, book appointments, and provide personalized customer service - all through natural voice conversation powered by ElevenLabs and LLM reasoning.
 
-The current site serves as a **working demo** to showcase the product's capabilities to potential business customers.
+v1.0 delivered a **working demo**. v2.0 transforms this into a platform businesses can actually purchase and install.
 
 ## Core Value
 
@@ -18,70 +29,66 @@ Businesses can offer sophisticated voice-powered customer experiences on their w
 
 ### Active
 
-**v1 - Working Demo (Priority)**
+**v2.0 - B2B2C Platform (Current Milestone)**
 
-**Voice AI Assistant:**
-- [ ] User can activate voice assistant on demo site (configurable: auto/button)
-- [ ] Assistant can listen and transcribe speech (ElevenLabs Speech-to-Text)
-- [ ] Assistant can understand intent and context (LLM reasoning)
-- [ ] Assistant can respond with natural voice (ElevenLabs Text-to-Speech)
-- [ ] Assistant can play multiple roles (receptionist, sales consultant, support agent)
-- [ ] Assistant personality is configurable
+**Multi-Tenancy & Security:**
+- [ ] Supabase RLS enforces 100% data isolation between businesses
+- [ ] Each business has unique API key for widget authentication
+- [ ] PII redaction in conversation transcripts (SSN, credit cards)
+- [ ] Rate limiting prevents abuse (100 req/min per business)
+- [ ] GDPR-compliant data deletion system
 
-**Web Automation:**
-- [ ] Assistant can scroll page to relevant sections on voice command
-- [ ] Assistant can navigate between pages
-- [ ] Assistant can open modals/popups
-- [ ] Assistant can fill forms with voice-provided data
-- [ ] Assistant can read and synthesize page content
+**Widget Distribution:**
+- [ ] Businesses can copy <script> tag and install on any website
+- [ ] Widget loads from CDN with Shadow DOM isolation
+- [ ] Widget fetches business-specific configuration via API key
+- [ ] Widget integrates ElevenLabs @elevenlabs/react SDK
+- [ ] Widget has text input fallback when voice fails
 
-**Knowledge Base (RAG):**
-- [ ] Assistant can answer questions from knowledge base
-- [ ] Admin can manually add documents to knowledge base
-- [ ] Knowledge base auto-syncs from Google Drive
-- [ ] Knowledge base uses vector search (RAG pattern)
+**Configuration Dashboard:**
+- [ ] Business can select ElevenLabs voice (50+ options with preview)
+- [ ] Business can customize agent personality (system prompt templates)
+- [ ] Business can set working hours (outside hours = message mode)
+- [ ] Business can upload knowledge base documents (PDF/DOCX/TXT)
+- [ ] Business can customize widget branding (color, logo, position)
 
-**Booking System:**
-- [ ] User can book appointments via voice
-- [ ] Internal calendar system stores appointments
-- [ ] Business owner can configure available time slots
-- [ ] Business owner can configure booking duration
+**Voice Reliability:**
+- [ ] Echo cancellation prevents self-triggering
+- [ ] WebSocket auto-reconnects with exponential backoff
+- [ ] Barge-in allows user to interrupt AI mid-sentence
+- [ ] Connection quality indicator (green/yellow/red)
+- [ ] <1000ms target latency maintained under load
 
-**Analytics Dashboard:**
-- [ ] Dashboard shows total conversation count
-- [ ] Dashboard shows sentiment analysis (positive/neutral/negative)
-- [ ] Dashboard shows intent analysis (what users are asking about)
-- [ ] Dashboard shows conversion rate (leads/bookings from conversations)
-- [ ] Dashboard shows conversation history with transcripts
-- [ ] Dashboard shows call duration metrics
+**Monetization:**
+- [ ] Stripe subscription management (Starter/Pro/Business tiers)
+- [ ] Usage tracking counts conversations per business
+- [ ] Overage billing for conversations beyond plan limit
+- [ ] Hard limit blocks sessions at 2x plan (prevent abuse)
+- [ ] Billing dashboard shows usage and costs
 
-**Authentication:**
-- [ ] Business owner can sign up with email/password
-- [ ] Business owner can sign in with Google OAuth
-- [ ] Business owner can access protected dashboard
-- [ ] Sessions persist securely
-
-**Demo Site:**
-- [ ] Landing page showcases voice assistant capabilities
-- [ ] Voice widget displays beautifully (glassmorphic design)
-- [ ] Voice widget shows active state (waveform, speaking indicator)
-- [ ] Demo site explains product value to potential customers
+**Monitoring:**
+- [ ] Real-time cost tracking per conversation
+- [ ] Latency monitoring (P50/P95/P99 for STT/LLM/TTS/RAG)
+- [ ] Error tracking with Sentry integration
+- [ ] Usage alerts at 50%/80%/100% of plan limits
+- [ ] Circuit breaker pauses system if monthly cost exceeds $10K
 
 ### Out of Scope
 
-**Deferred to v2 (Multi-tenant Platform):**
-- Multiple business accounts with isolation
-- Widget installation system (embed code, NPM, WordPress plugin)
-- Per-business configuration UI (voice selection, personality, knowledge base)
-- Per-business analytics and data isolation
-- Billing and subscription management
-- White-label options
+**Deferred to v3.0+ (Post-Launch Features):**
+- Phone call integration (Twilio PSTN) — wait for 30%+ customer requests
+- NPM package (@simplifyops/react) — v2.1 if demand exists
+- WordPress plugin — v2.2 based on market feedback
+- Agency white-label portal — wait for first 5 agencies
+- Multi-language support — v2.5 if international demand >25%
+- Custom ASR/TTS models — v3.0 cost optimization at 10K+ customers
+- No-code flow builder (Voiceflow-style) — v3.0 if enterprise deals require
+- SSO/SAML authentication — v2.5 when first enterprise deal needs it
 
-**Explicitly Excluded:**
-- Mobile native apps (web-first approach)
-- Video calls (voice only)
-- Real-time chat fallback (voice-only interaction)
-- Multi-language support in v1 (English first)
+**Explicitly Excluded (Never):**
+- Mobile native apps (web-first, responsive design sufficient)
+- Video calling (voice-only focus, different product category)
+- Live chat fallback (reduces voice adoption, conflicting UX)
 
 ## Context
 
@@ -126,4 +133,4 @@ Businesses can offer sophisticated voice-powered customer experiences on their w
 | n8n for RAG workflows | Already designed, visual workflow management for non-code changes | — Pending |
 
 ---
-*Last updated: 2026-03-02 after initial project definition*
+*Last updated: 2026-03-05 after starting milestone v2.0 (B2B2C Platform Launch)*
