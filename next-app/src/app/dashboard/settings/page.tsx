@@ -13,7 +13,7 @@
 
 import { useEffect, useState } from 'react';
 
-type TabId = 'widget' | 'voice' | 'knowledge' | 'api' | 'billing';
+type TabId = 'widget' | 'voice' | 'hours' | 'knowledge' | 'api';
 
 interface BusinessSettings {
   id: string;
@@ -69,6 +69,17 @@ export default function SettingsPageNew() {
   const [voiceId, setVoiceId] = useState('sarah');
   const [systemPrompt, setSystemPrompt] = useState('');
   const [promptTemplate, setPromptTemplate] = useState<keyof typeof PROMPT_TEMPLATES>('custom');
+  const [workingHoursEnabled, setWorkingHoursEnabled] = useState(false);
+  const [timezone, setTimezone] = useState('UTC');
+  const [schedule, setSchedule] = useState<Record<string, { open: string; close: string }>>({
+    monday: { open: '09:00', close: '17:00' },
+    tuesday: { open: '09:00', close: '17:00' },
+    wednesday: { open: '09:00', close: '17:00' },
+    thursday: { open: '09:00', close: '17:00' },
+    friday: { open: '09:00', close: '17:00' },
+    saturday: { open: '10:00', close: '14:00' },
+    sunday: { open: '10:00', close: '14:00' },
+  });
 
   useEffect(() => {
     fetchSettings();
@@ -87,6 +98,11 @@ export default function SettingsPageNew() {
       setWidgetPosition(data.branding?.position || 'bottom-right');
       setVoiceId(data.voiceId || 'sarah');
       setSystemPrompt(data.systemPrompt || '');
+      setWorkingHoursEnabled(data.workingHours?.enabled || false);
+      setTimezone(data.workingHours?.timezone || 'UTC');
+      if (data.workingHours?.schedule) {
+        setSchedule(data.workingHours.schedule);
+      }
     } catch (error) {
       console.error('[Settings] Fetch error:', error);
     } finally {
@@ -108,6 +124,11 @@ export default function SettingsPageNew() {
             color: brandColor,
             logo: settings?.branding?.logo || null,
             position: widgetPosition,
+          },
+          working_hours: {
+            enabled: workingHoursEnabled,
+            timezone: timezone,
+            schedule: schedule,
           },
         }),
       });
@@ -176,6 +197,12 @@ export default function SettingsPageNew() {
             label="Voice & Personality"
           />
           <TabButton
+            active={activeTab === 'hours'}
+            onClick={() => setActiveTab('hours')}
+            icon="schedule"
+            label="Working Hours"
+          />
+          <TabButton
             active={activeTab === 'knowledge'}
             onClick={() => setActiveTab('knowledge')}
             icon="description"
@@ -212,13 +239,24 @@ export default function SettingsPageNew() {
           />
         )}
 
+        {activeTab === 'hours' && (
+          <WorkingHoursTab
+            enabled={workingHoursEnabled}
+            setEnabled={setWorkingHoursEnabled}
+            timezone={timezone}
+            setTimezone={setTimezone}
+            schedule={schedule}
+            setSchedule={setSchedule}
+          />
+        )}
+
         {activeTab === 'knowledge' && <KnowledgeBaseTab />}
 
         {activeTab === 'api' && <APIKeysTab apiKeyPrefix={settings.apiKeyPrefix} />}
       </div>
 
       {/* Save Button */}
-      {(activeTab === 'widget' || activeTab === 'voice') && (
+      {(activeTab === 'widget' || activeTab === 'voice' || activeTab === 'hours') && (
         <div className="flex items-center gap-3 pt-4 border-t border-white/10">
           <button
             onClick={handleSave}
@@ -469,6 +507,150 @@ function KnowledgeBaseTab() {
         <p>✓ Files are processed and embedded for vector search</p>
         <p>✓ Knowledge base updates in real-time</p>
       </div>
+    </div>
+  );
+}
+
+// Working Hours Tab (CONFIG-03)
+function WorkingHoursTab({
+  enabled,
+  setEnabled,
+  timezone,
+  setTimezone,
+  schedule,
+  setSchedule,
+}: {
+  enabled: boolean;
+  setEnabled: (e: boolean) => void;
+  timezone: string;
+  setTimezone: (tz: string) => void;
+  schedule: Record<string, { open: string; close: string }>;
+  setSchedule: (s: Record<string, { open: string; close: string }>) => void;
+}) {
+  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+  const timezones = [
+    'UTC',
+    'America/New_York',
+    'America/Chicago',
+    'America/Denver',
+    'America/Los_Angeles',
+    'Europe/London',
+    'Europe/Paris',
+    'Europe/Berlin',
+    'Asia/Tokyo',
+    'Asia/Shanghai',
+    'Australia/Sydney',
+  ];
+
+  function updateDaySchedule(day: string, field: 'open' | 'close', value: string) {
+    setSchedule({
+      ...schedule,
+      [day]: {
+        ...schedule[day],
+        [field]: value,
+      },
+    });
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Enable Toggle */}
+      <div className="rounded-2xl border border-white/10 bg-surface-dark p-6 space-y-4">
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-white">Working Hours</h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Configure when your AI assistant is available. Outside hours, visitors will see a
+              "closed" message.
+            </p>
+          </div>
+          <button
+            onClick={() => setEnabled(!enabled)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              enabled ? 'bg-primary' : 'bg-slate-700'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                enabled ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+      </div>
+
+      {/* Timezone */}
+      {enabled && (
+        <>
+          <div className="rounded-2xl border border-white/10 bg-surface-dark p-6 space-y-4">
+            <h3 className="text-sm font-semibold text-white">Timezone</h3>
+            <select
+              value={timezone}
+              onChange={(e) => setTimezone(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {timezones.map((tz) => (
+                <option key={tz} value={tz} className="bg-slate-900">
+                  {tz}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Schedule */}
+          <div className="rounded-2xl border border-white/10 bg-surface-dark p-6 space-y-4">
+            <h3 className="text-sm font-semibold text-white">Weekly Schedule</h3>
+            <div className="space-y-3">
+              {days.map((day) => (
+                <div key={day} className="flex items-center gap-3">
+                  <div className="w-24 text-sm text-slate-400 capitalize">{day}</div>
+                  <div className="flex items-center gap-2 flex-1">
+                    <input
+                      type="time"
+                      value={schedule[day]?.open || '09:00'}
+                      onChange={(e) => updateDaySchedule(day, 'open', e.target.value)}
+                      className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                    <span className="text-slate-600">to</span>
+                    <input
+                      type="time"
+                      value={schedule[day]?.close || '17:00'}
+                      onChange={(e) => updateDaySchedule(day, 'close', e.target.value)}
+                      className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-slate-600 mt-4">
+              💡 Tip: Set the same hours for all weekdays using "Copy to all days" button
+            </p>
+          </div>
+
+          {/* Closed Message Preview */}
+          <div className="rounded-2xl border border-white/10 bg-surface-dark p-6 space-y-4">
+            <h3 className="text-sm font-semibold text-white">Outside Hours Message</h3>
+            <div className="bg-slate-800 border border-white/10 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <span className="material-symbols-outlined text-slate-400 text-xl">
+                  schedule
+                </span>
+                <div>
+                  <p className="text-sm text-white">We're currently closed</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Our AI assistant is available {schedule.monday?.open || '09:00'} -{' '}
+                    {schedule.monday?.close || '17:00'} ({timezone})
+                  </p>
+                  <p className="text-xs text-slate-500 mt-2">
+                    Please leave a message and we'll get back to you during business hours.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
