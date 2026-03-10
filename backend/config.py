@@ -1,5 +1,5 @@
 """
-Конфигурация на приложението
+Configuration for AI Voice Shopping Assistant
 """
 from pydantic_settings import BaseSettings
 from typing import Optional
@@ -10,29 +10,35 @@ class Settings(BaseSettings):
 
     # ElevenLabs
     ELEVENLABS_API_KEY: Optional[str] = None
+    ELEVENLABS_AGENT_ID: Optional[str] = None
 
-    # OpenAI API (изисква се за LightRAG)
+    # OpenAI API (for conversation analysis & embeddings)
     OPENAI_API_KEY: Optional[str] = None
 
-    # LightRAG конфигурация
-    LIGHTRAG_WORKING_DIR: str = "./lightrag_cache"
-    LIGHTRAG_MODEL_NAME: str = "gpt-4o-mini"
+    # Shopify App credentials
+    SHOPIFY_API_KEY: Optional[str] = None
+    SHOPIFY_API_SECRET: Optional[str] = None
+    SHOPIFY_SCOPES: str = "read_products,read_orders,read_customers"
+    SHOPIFY_APP_URL: str = "http://localhost:8000"
 
-    # Default CRM настройки
-    DEFAULT_CRM_API_URL: Optional[str] = None
-    DEFAULT_CRM_BEARER_TOKEN: Optional[str] = None
-
-    # Сървър настройки
+    # Server settings
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     DEBUG: bool = True
 
-    # Database (опционално за бъдещо разширение)
-    DATABASE_URL: Optional[str] = None
+    # Database — Neon PostgreSQL (use pooled URL for app, direct for migrations)
+    DATABASE_URL: Optional[str] = None           # Pooled connection (-pooler)
+    DATABASE_URL_DIRECT: Optional[str] = None    # Direct connection (for migrations)
+
+    # Redis (Upstash) — caching and session management
+    REDIS_URL: Optional[str] = None
+
+    # Encryption key for Shopify access tokens (Fernet)
+    ENCRYPTION_KEY: Optional[str] = None
 
     # Security settings
-    WEBHOOK_SECRET: Optional[str] = None  # Secret for webhook authentication
-    ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"  # Comma-separated
+    WEBHOOK_SECRET: Optional[str] = None
+    ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     # Production settings
     ENVIRONMENT: str = "development"  # development, staging, production

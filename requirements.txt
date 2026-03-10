@@ -1,21 +1,26 @@
 # FastAPI и сървър
+# Web Framework
 fastapi
 uvicorn[standard]
 pydantic
 pydantic-settings
 
-# Async HTTP клиент
+# HTTP Client
 httpx
 
-# LightRAG за knowledge graph analytics
-lightrag-hku
-nano-vectordb
+# Database — Neon PostgreSQL
+asyncpg
+pgvector
 
-# Environment variables
-python-dotenv
+# Redis — Caching & Session Management (Upstash)
+redis[hiredis]
 
-# OpenAI за AI анализ
+# Encryption — Shopify access tokens
+cryptography
+
+# AI
 openai
 
-# Допълнителни utilities
+# Environment
+python-dotenv
 python-multipart

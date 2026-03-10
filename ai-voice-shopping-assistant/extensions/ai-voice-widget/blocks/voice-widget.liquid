@@ -1,0 +1,71 @@
+{% comment %}
+  AI Voice Shopping Assistant — Theme App Extension Block
+  
+  This app block injects the voice shopping widget into any Shopify storefront.
+  Merchants can add this block to any page via the Theme Editor (Online Store > Customize).
+  
+  Settings available:
+  - widget_color: Primary button/accent color
+  - widget_position: bottom-left or bottom-right
+  - welcome_message: Text shown when panel opens
+{% endcomment %}
+
+{% if shop.metafields.ai-voice-assistant.store_id %}
+  <div id="ai-voice-shopping-assistant-root" style="display:none;"
+    data-store-id="{{ shop.metafields.ai-voice-assistant.store_id }}"
+    data-api-url="{{ block.settings.api_url }}"
+    data-color="{{ block.settings.widget_color }}"
+    data-position="{{ block.settings.widget_position }}"
+  ></div>
+
+  <script
+    src="{{ block.settings.api_url }}/widget-embed.js"
+    data-store-id="{{ shop.metafields.ai-voice-assistant.store_id }}"
+    data-api-url="{{ block.settings.api_url }}"
+    data-color="{{ block.settings.widget_color }}"  
+    data-position="{{ block.settings.widget_position }}"
+    defer
+  ></script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "AI Voice Assistant",
+  "target": "body",
+  "stylesheet": "voice-widget.css",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Voice Shopping Assistant"
+    },
+    {
+      "type": "paragraph",
+      "content": "Add an AI-powered voice assistant to help customers find and buy products through natural conversation."
+    },
+    {
+      "type": "url",
+      "id": "api_url",
+      "label": "API URL",
+      "default": "https://your-app.railway.app",
+      "info": "Your backend API URL (e.g., https://yourapp.railway.app)"
+    },
+    {
+      "type": "color",
+      "id": "widget_color",
+      "label": "Widget Color",
+      "default": "#6366f1",
+      "info": "Primary color for the voice button and accents"
+    },
+    {
+      "type": "select",
+      "id": "widget_position",
+      "label": "Button Position",
+      "default": "bottom-right",
+      "options": [
+        { "value": "bottom-right", "label": "Bottom Right" },
+        { "value": "bottom-left", "label": "Bottom Left" }
+      ]
+    }
+  ]
+}
+{% endschema %}

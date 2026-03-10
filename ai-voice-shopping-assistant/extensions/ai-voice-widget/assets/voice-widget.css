@@ -1,0 +1,9 @@
+/* AI Voice Shopping Assistant — Theme Extension Styles */
+/* Minimal CSS since most styling is in widget-embed.js */
+
+/* Ensure the widget container doesn't interfere with theme layout */
+#ai-voice-shopping-assistant-root {
+  position: fixed;
+  z-index: 999999;
+  pointer-events: none;
+}

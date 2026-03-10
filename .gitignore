@@ -15,8 +15,8 @@ env/
 .env
 .env.local
 
-# LightRAG cache
-lightrag_cache/
+# Neon CLI context
+.neon
 
 # IDEs
 .vscode/
@@ -29,15 +29,21 @@ lightrag_cache/
 .DS_Store
 Thumbs.db
 
-# Node (if frontend has node_modules)
+# Node
 node_modules/
 .next/
 out/
 build/
 dist/
 
+# Prisma (SQLite session storage for Shopify dev)
+prisma/migrations/
+*.sqlite
+*.sqlite-journal
+
 # Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+

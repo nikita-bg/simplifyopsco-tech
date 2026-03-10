@@ -1,141 +1,176 @@
 """
-Pydantic модели за AI Voice Receptionist API
+Pydantic models for AI Voice Shopping Assistant API
 """
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Any
 from datetime import datetime
 
 
-class LeadInfo(BaseModel):
-    """Информация за потенциалния клиент (lead)"""
-    name: Optional[str] = Field(None, description="Име на клиента")
-    phone: Optional[str] = Field(None, description="Телефонен номер")
-    email: Optional[str] = Field(None, description="Имейл адрес")
+# ==========================================
+# Shopify Store Models
+# ==========================================
+
+class StoreInfo(BaseModel):
+    """Shopify store information"""
+    id: str
+    shop_domain: str
+    subscription_tier: str = "trial"
+    settings: dict = {}
+    created_at: datetime = Field(default_factory=datetime.now)
 
 
-class CallMetadata(BaseModel):
-    """Метаданни за обаждането"""
-    call_duration: Optional[int] = Field(None, description="Продължителност в секунди")
-    timestamp: datetime = Field(default_factory=datetime.now, description="Timestamp на обаждането")
-    language: str = Field(default="en", description="Език на разговора")
-
-
-class ElevenLabsWebhookPayload(BaseModel):
-    """Webhook payload от ElevenLabs"""
-    client_id: str = Field(default="default", description="Уникален идентификатор на клиента")
-    call_id: str = Field(..., description="Уникален идентификатор на обаждането")
-    transcript: str = Field(..., description="Транскрипция на разговора")
-    intent: Optional[str] = Field(None, description="Разпознат intent от AI")
-    lead_name: Optional[str] = None
-    lead_phone: Optional[str] = None
-    lead_email: Optional[str] = None
-    duration: Optional[int] = None
-    language: Optional[str] = "en"
-
-
-class ProcessedCallData(BaseModel):
-    """Обработени данни от обаждането"""
-    client_id: str
-    call_id: str
-    transcript: str
-    user_intent: str
-    lead_info: LeadInfo
-    metadata: CallMetadata
-
-
-class CRMPayload(BaseModel):
-    """Payload за изпращане към CRM система"""
-    lead_name: Optional[str]
-    lead_phone: Optional[str]
-    lead_email: Optional[str]
-    intent: str
-    transcript: str
-    source: str = "ai_voice_receptionist"
-
-
-class LightRAGData(BaseModel):
-    """Данни за вмъкване в LightRAG knowledge graph"""
-    client_id: str
-    call_id: str
-    timestamp: datetime
-    content: str
-    tags: List[str]
-    analytics: dict
-
-
-class WebhookResponse(BaseModel):
-    """Отговор на webhook заявката"""
-    success: bool
-    message: str
-    call_id: str
-    crm_sent: bool = False
-    rag_stored: bool = False
-
-
-class ClientConfig(BaseModel):
-    """Конфигурация за конкретен клиент"""
-    client_id: str
-    crm_api_url: Optional[str] = None
-    crm_bearer_token: Optional[str] = None
-    enable_crm_integration: bool = True
-    booking_keywords: List[str] = ["booking", "reservation", "schedule", "appointment"]
+class StoreSettings(BaseModel):
+    """Configurable settings for a store's voice widget"""
+    widget_color: str = "#6366f1"  # Indigo
+    widget_position: str = "bottom-right"  # bottom-right, bottom-left
+    voice_id: Optional[str] = None  # ElevenLabs voice ID
+    greeting_message: str = "Hi! I can help you find the perfect product. What are you looking for?"
+    language: str = "en"
+    enabled: bool = True
 
 
 # ==========================================
-# Нови модели за Dynamic Dashboard
+# Product Models
+# ==========================================
+
+class ProductInfo(BaseModel):
+    """Product synced from Shopify"""
+    id: int
+    store_id: str
+    title: str
+    description: Optional[str] = None
+    product_type: Optional[str] = None
+    category: str = "general"
+    subcategory: Optional[str] = None
+    tags: List[str] = []
+    price_min: float = 0
+    price_max: float = 0
+    images: List[dict] = []
+
+
+class ProductRecommendation(BaseModel):
+    """A product recommendation result"""
+    id: int
+    title: str
+    product_type: Optional[str] = None
+    category: Optional[str] = None
+    price: float = 0
+    price_max: float = 0
+    image: str = ""
+    recommendation_type: str = "similar"  # similar, complementary, popular, search
+
+
+# ==========================================
+# Conversation Models
 # ==========================================
 
 class ConversationRecord(BaseModel):
-    """Запис от единичен разговор с AI"""
-    call_id: str
-    caller_id: str = "Unknown"
-    timestamp: datetime = Field(default_factory=datetime.now)
-    duration_seconds: int = 0
+    """Voice conversation session record"""
+    id: str = ""
+    store_id: str = ""
+    session_id: str = ""
+    customer_id: Optional[str] = None
     transcript: str = ""
-    sentiment: str = "Neutral"  # Positive, Neutral, Negative, Very Positive
-    lead_score: float = 5.0     # 1.0 - 10.0
-    intent: str = "General"     # Sales, Support, Demo, Pricing, General
-    status: str = "Pending"     # Qualified, Pending, Rejected
+    intent: str = "General"
+    sentiment: str = "Neutral"
+    products_discussed: List[int] = []
+    products_recommended: List[int] = []
+    cart_actions: List[dict] = []
+    duration_seconds: int = 0
+    started_at: datetime = Field(default_factory=datetime.now)
 
 
-class CallDataPoint(BaseModel):
-    """Точка от графиката на обажданията"""
-    name: str  # напр. "Mon", "Tue", ...
-    calls: int
+# ==========================================
+# Webhook Payloads
+# ==========================================
 
-
-class IntentDataPoint(BaseModel):
-    """Разпределение по intent"""
-    name: str
-    value: int
-
-
-class ConversationSummary(BaseModel):
-    """Резюме на разговор за таблицата"""
-    caller_id: str
-    time_ago: str
-    duration: str
-    sentiment: str
-    status: str
-
-
-class DashboardStats(BaseModel):
-    """Пълна статистика за Dashboard-а"""
-    total_calls: int = 0
-    avg_lead_score: float = 0.0
-    conversion_rate: float = 0.0
-    call_data: List[CallDataPoint] = []
-    intent_data: List[IntentDataPoint] = []
-    recent_conversations: List[ConversationSummary] = []
-
-
-class PostCallPayload(BaseModel):
-    """Payload за post-call webhook от ElevenLabs"""
+class ElevenLabsPostCallPayload(BaseModel):
+    """Post-call webhook from ElevenLabs Conversational AI"""
     call_id: str = Field(default="")
     agent_id: Optional[str] = None
     transcript: str = Field(default="")
     caller_id: Optional[str] = None
     duration: Optional[int] = None
     language: Optional[str] = "en"
-    # ElevenLabs може да изпрати допълнителни полета
     metadata: Optional[dict] = None
+    # Shopping-specific fields
+    store_id: Optional[str] = None
+    products_discussed: Optional[List[int]] = None
+    cart_actions: Optional[List[dict]] = None
+
+
+class ShopifyProductWebhook(BaseModel):
+    """Shopify product webhook payload"""
+    id: int
+    title: str = ""
+    body_html: Optional[str] = None
+    vendor: Optional[str] = None
+    product_type: Optional[str] = None
+    tags: Optional[str] = None
+    variants: List[dict] = []
+    images: List[dict] = []
+
+
+class ShopifyGDPRPayload(BaseModel):
+    """Shopify mandatory GDPR webhook payload"""
+    shop_id: Optional[int] = None
+    shop_domain: Optional[str] = None
+    customer: Optional[dict] = None
+    orders_requested: Optional[List[int]] = None
+
+
+# ==========================================
+# API Request/Response Models
+# ==========================================
+
+class RecommendationRequest(BaseModel):
+    """Request for product recommendations"""
+    product_id: int
+    store_id: str
+    limit: int = 5
+    query: Optional[str] = None  # Natural language filter
+
+
+class CartAddRequest(BaseModel):
+    """Request to add product to cart"""
+    product_id: int
+    variant_id: Optional[int] = None
+    quantity: int = 1
+
+
+# ==========================================
+# Dashboard Models
+# ==========================================
+
+class CallDataPoint(BaseModel):
+    """Data point for conversation chart"""
+    name: str
+    calls: int
+
+
+class IntentDataPoint(BaseModel):
+    """Intent distribution data"""
+    name: str
+    value: int
+
+
+class ConversationSummary(BaseModel):
+    """Conversation summary for dashboard table"""
+    session_id: str = ""
+    time_ago: str = ""
+    duration: str = ""
+    sentiment: str = "Neutral"
+    products_count: int = 0
+    cart_actions_count: int = 0
+
+
+class DashboardStats(BaseModel):
+    """Complete dashboard statistics"""
+    total_conversations: int = 0
+    total_products_recommended: int = 0
+    add_to_cart_rate: float = 0.0
+    conversion_rate: float = 0.0
+    call_data: List[CallDataPoint] = []
+    intent_data: List[IntentDataPoint] = []
+    recent_conversations: List[ConversationSummary] = []
+

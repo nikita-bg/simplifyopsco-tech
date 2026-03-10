@@ -1,0 +1,50 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "9db2313a78585eb57a2cc2b321919b41"
+name = "ai-voice-shopping-assistant"
+application_url = "https://example.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+include_config_on_deploy = true
+
+[webhooks]
+api_version = "2026-04"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+  # Product sync webhooks — keeps our catalog in sync with Shopify
+  [[webhooks.subscriptions]]
+  topics = [ "products/create" ]
+  uri = "/shopify/webhooks/products/create"
+
+  [[webhooks.subscriptions]]
+  topics = [ "products/update" ]
+  uri = "/shopify/webhooks/products/update"
+
+  [[webhooks.subscriptions]]
+  topics = [ "products/delete" ]
+  uri = "/shopify/webhooks/products/delete"
+
+[access_scopes]
+# Product catalog access for sync + recommendations
+# Order access for analytics + collaborative filtering
+# Customer access for personalization
+scopes = "read_products,read_orders,read_customers"
+
+[auth]
+redirect_urls = [ "https://example.com/api/auth" ]
+
+# GDPR mandatory webhooks — required for Shopify App Store
+[privacy_compliance]
+customer_data_request_url = "/shopify/gdpr/customers/data-request"
+customer_deletion_url = "/shopify/gdpr/customers/redact"
+shop_deletion_url = "/shopify/gdpr/shop/redact"
+

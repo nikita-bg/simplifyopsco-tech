@@ -18,6 +18,7 @@
 | **Firecrawl** | ✅ ГОТОВ | (configured in mcp.json) |
 | **Stitch** | ✅ ГОТОВ | (configured in mcp.json) |
 
+
 ### 🛠️ ИНСТАЛИРАНИ CLI & MCP SERVERS:
 
 | Инструмент | Версия | Тип | Статус |
