@@ -2,7 +2,7 @@
 # Quick Netlify Deploy Script
 
 echo "🚀 Building frontend..."
-cd frontend
+cd ../frontend
 npm run build
 
 echo ""

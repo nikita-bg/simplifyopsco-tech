@@ -4,7 +4,7 @@ LightRAG Knowledge Graph сервиз за съхранение и анализ 
 """
 import os
 from typing import List, Dict, Any, Optional
-from config import settings  # type: ignore[import-not-found]
+from backend.config import settings  # type: ignore[import-not-found]
 
 
 class LightRAGService:

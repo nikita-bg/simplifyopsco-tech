@@ -11,7 +11,7 @@ import random
 from datetime import datetime, timedelta
 from typing import Optional, Any
 
-from models import (  # type: ignore[import-not-found]
+from backend.models import (  # type: ignore[import]
     ElevenLabsWebhookPayload,
     ProcessedCallData,
     LeadInfo,
@@ -27,9 +27,9 @@ from models import (  # type: ignore[import-not-found]
     ConversationSummary,
     PostCallPayload,
 )
-from config import settings  # type: ignore[import-not-found]
-from lightrag_service import rag_service  # type: ignore[import-not-found]
-from security_middleware import (  # type: ignore[import-not-found]
+from backend.config import settings  # type: ignore[import]
+from backend.lightrag_service import rag_service  # type: ignore[import]
+from backend.security_middleware import (  # type: ignore[import]
     rate_limit_middleware,
     sanitize_input,
     sanitize_phone,
@@ -322,8 +322,8 @@ async def get_dashboard_stats():
 
     return DashboardStats(
         total_calls=total,
-        avg_lead_score=round(float(avg_score), 1),
-        conversion_rate=round(float(conv_rate), 1),
+        avg_lead_score=float(round(float(avg_score), 1)),  # type: ignore[call-overload]
+        conversion_rate=float(round(float(conv_rate), 1)),  # type: ignore[call-overload]
         call_data=call_data,
         intent_data=intent_data,
         recent_conversations=recent,
@@ -585,4 +585,4 @@ async def startup_event():
 
 if __name__ == "__main__":
     import uvicorn  # type: ignore[import-not-found]
-    uvicorn.run("main:app", host=settings.HOST, port=settings.PORT, reload=settings.DEBUG)
+    uvicorn.run("backend.main:app", host=settings.HOST, port=settings.PORT, reload=settings.DEBUG)

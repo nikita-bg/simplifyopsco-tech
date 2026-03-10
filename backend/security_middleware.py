@@ -8,7 +8,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 import re
 
-from config import settings
+from backend.config import settings
 
 
 # Simple in-memory rate limiter

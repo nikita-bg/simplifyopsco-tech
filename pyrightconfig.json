@@ -4,7 +4,10 @@
     "venvPath": "",
     "pythonPath": "C:/Python314/python.exe",
     "include": [
-        "*.py"
+        "."
+    ],
+    "extraPaths": [
+        "."
     ],
     "exclude": [
         "frontend",

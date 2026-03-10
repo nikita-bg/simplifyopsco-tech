@@ -2,7 +2,7 @@
 REM Quick Netlify Deploy Script for Windows
 
 echo 🚀 Building frontend...
-cd frontend
+cd ../frontend
 call npm run build
 
 echo.
