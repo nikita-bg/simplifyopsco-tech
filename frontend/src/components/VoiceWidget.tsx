@@ -58,7 +58,7 @@ export function FloatingVoiceWidget() {
             await navigator.mediaDevices.getUserMedia({ audio: true });
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             await conversation.startSession({
-                agentId: "agent_6401kec12s0ff6hbwjmgdw2s0kt0",
+                agentId: process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || "agent_6401kec12s0ff6hbwjmgdw2s0kt0",
                 connectionType: "webrtc",
                 clientTools: {
                     navigateToPricing,
