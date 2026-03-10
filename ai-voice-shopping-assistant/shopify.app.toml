@@ -42,9 +42,8 @@ scopes = "read_products,read_orders,read_customers"
 [auth]
 redirect_urls = [ "https://example.com/api/auth" ]
 
-# GDPR mandatory webhooks — required for Shopify App Store
-[privacy_compliance]
-customer_data_request_url = "/shopify/gdpr/customers/data-request"
-customer_deletion_url = "/shopify/gdpr/customers/redact"
-shop_deletion_url = "/shopify/gdpr/shop/redact"
+  # GDPR mandatory compliance webhooks — required for Shopify App Store
+  [[webhooks.subscriptions]]
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
+  uri = "/shopify/gdpr"
 

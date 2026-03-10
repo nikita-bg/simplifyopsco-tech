@@ -1,5 +1,6 @@
 name = "ai-voice-widget"
 type = "theme"
+api_version = "2026-04"
 
 [[metafields]]
 namespace = "ai-voice-assistant"

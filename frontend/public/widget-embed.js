@@ -1,13 +1,8 @@
 /**
  * AI Voice Shopping Assistant — Storefront Widget Embed Script
  *
- * This is a standalone vanilla JS widget that can be injected into any Shopify
- * storefront via Theme App Extension or script tag. It provides:
- *
- * - Floating voice button (configurable position/color)
- * - ElevenLabs Conversational AI voice interaction
- * - Product recommendation overlay
- * - Shopify AJAX Cart API integration (add-to-cart from voice)
+ * Standalone vanilla JS widget for Shopify storefronts via Theme App Extension.
+ * Uses ElevenLabs Conversational AI SDK for real voice conversations.
  *
  * Usage: <script src="https://your-app.com/widget-embed.js" data-store-id="xxx"></script>
  */
@@ -21,11 +16,15 @@
   const SCRIPT_TAG = document.currentScript;
   const STORE_ID = SCRIPT_TAG?.getAttribute("data-store-id") || "";
   const API_BASE =
-    SCRIPT_TAG?.getAttribute("data-api-url") || "http://localhost:8000";
+    SCRIPT_TAG?.getAttribute("data-api-url") || "https://ai-voice-shopping-assistant-production.up.railway.app";
   const WIDGET_COLOR =
     SCRIPT_TAG?.getAttribute("data-color") || "#6366f1";
   const WIDGET_POSITION =
     SCRIPT_TAG?.getAttribute("data-position") || "bottom-right";
+
+  // ElevenLabs SDK CDN
+  const ELEVENLABS_SDK_URL =
+    "https://cdn.jsdelivr.net/npm/@elevenlabs/client@latest/dist/index.umd.js";
 
   // ==============================
   // Styles
@@ -88,8 +87,8 @@
       ${WIDGET_POSITION === "bottom-left" ? "left: 24px" : "right: 24px"};
       bottom: 100px;
       width: 380px;
-      max-height: 520px;
-      background: rgba(15, 15, 25, 0.95);
+      max-height: 560px;
+      background: rgba(15, 15, 25, 0.97);
       backdrop-filter: blur(20px);
       border-radius: 20px;
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -113,18 +112,27 @@
     .avsa-header {
       padding: 20px 24px 16px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
-    .avsa-header h3 {
+    .avsa-header-text h3 {
       color: #fff;
       font-size: 16px;
       font-weight: 600;
       margin-bottom: 4px;
     }
 
-    .avsa-header p {
+    .avsa-header-text p {
       color: rgba(255, 255, 255, 0.5);
       font-size: 13px;
+    }
+
+    .avsa-powered-by {
+      font-size: 10px;
+      color: rgba(255,255,255,0.25);
+      text-align: right;
     }
 
     /* Voice Visualizer */
@@ -151,25 +159,48 @@
       transition: height 0.1s ease;
     }
 
+    .avsa-waveform.speaking .bar {
+      background: #6366f1;
+    }
+
+    .avsa-waveform.listening .bar {
+      background: #22c55e;
+    }
+
     .avsa-status {
       color: rgba(255, 255, 255, 0.7);
       font-size: 14px;
       text-align: center;
     }
 
-    .avsa-status.listening {
-      color: #22c55e;
+    .avsa-status.listening { color: #22c55e; }
+    .avsa-status.speaking { color: ${WIDGET_COLOR}; }
+    .avsa-status.error { color: #ef4444; }
+    .avsa-status.connecting { color: rgba(255,255,255,0.5); }
+
+    /* Transcript */
+    .avsa-transcript {
+      padding: 0 20px 16px;
+      max-height: 120px;
+      overflow-y: auto;
+      display: none;
     }
 
-    .avsa-status.speaking {
-      color: ${WIDGET_COLOR};
+    .avsa-transcript-bubble {
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: rgba(255,255,255,0.8);
+      font-size: 13px;
+      line-height: 1.5;
+      border-left: 3px solid ${WIDGET_COLOR};
     }
 
     /* Recommendations Area */
     .avsa-recs {
       padding: 0 16px 16px;
       overflow-y: auto;
-      max-height: 280px;
+      max-height: 260px;
     }
 
     .avsa-recs-title {
@@ -207,10 +238,7 @@
       background: rgba(255, 255, 255, 0.05);
     }
 
-    .avsa-rec-info {
-      flex: 1;
-      min-width: 0;
-    }
+    .avsa-rec-info { flex: 1; min-width: 0; }
 
     .avsa-rec-info .title {
       color: #fff;
@@ -247,13 +275,8 @@
       white-space: nowrap;
     }
 
-    .avsa-add-btn:hover {
-      opacity: 0.85;
-    }
-
-    .avsa-add-btn.added {
-      background: #22c55e;
-    }
+    .avsa-add-btn:hover { opacity: 0.85; }
+    .avsa-add-btn.added { background: #22c55e; }
 
     /* Responsive */
     @media (max-width: 440px) {
@@ -271,16 +294,13 @@
   // ==============================
 
   function createWidget() {
-    // Inject styles
     const styleEl = document.createElement("style");
     styleEl.textContent = STYLES;
     document.head.appendChild(styleEl);
 
-    // Container
     const container = document.createElement("div");
     container.id = "avsa-widget-container";
 
-    // Floating button
     container.innerHTML = `
       <button id="avsa-trigger-btn" aria-label="Voice Shopping Assistant">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -291,13 +311,20 @@
 
       <div id="avsa-panel">
         <div class="avsa-header">
-          <h3>🎙️ Voice Shopping Assistant</h3>
-          <p>Tap to speak — I'll help you find products</p>
+          <div class="avsa-header-text">
+            <h3>🎙️ Voice Shopping Assistant</h3>
+            <p>Tap to speak — I'll help you find products</p>
+          </div>
+          <div class="avsa-powered-by">Powered by<br>ElevenLabs AI</div>
         </div>
 
         <div class="avsa-voice-area">
           <div class="avsa-waveform" id="avsa-waveform"></div>
           <div class="avsa-status" id="avsa-status">Tap the mic to start talking</div>
+        </div>
+
+        <div class="avsa-transcript" id="avsa-transcript">
+          <div class="avsa-transcript-bubble" id="avsa-transcript-text"></div>
         </div>
 
         <div class="avsa-recs" id="avsa-recs" style="display:none;">
@@ -322,13 +349,133 @@
   }
 
   // ==============================
-  // Voice Interaction
+  // ElevenLabs Conversational AI
   // ==============================
 
+  let conversation = null;   // ElevenLabs Conversation instance
+  let agentId = null;        // Fetched from /api/voice/config
   let isActive = false;
-  let mediaRecorder = null;
+  let animationFrame = null;
   let audioContext = null;
   let analyser = null;
+
+  /**
+   * Load ElevenLabs SDK from CDN, then fetch agent config.
+   */
+  function initElevenLabs() {
+    // Fetch agent ID from our backend (keeps it out of client-side code)
+    fetch(`${API_BASE}/api/voice/config?store_id=${STORE_ID}`)
+      .then((r) => r.json())
+      .then((cfg) => {
+        agentId = cfg.agent_id || null;
+        if (!agentId) {
+          console.warn("[AVSA] ElevenLabs Agent ID not configured. Voice AI disabled.");
+          return;
+        }
+        // Dynamically load the ElevenLabs SDK
+        const script = document.createElement("script");
+        script.src = ELEVENLABS_SDK_URL;
+        script.onload = () => {
+          console.log("[AVSA] ElevenLabs SDK loaded. Agent ID:", agentId);
+        };
+        script.onerror = () => {
+          console.error("[AVSA] Failed to load ElevenLabs SDK from CDN.");
+        };
+        document.head.appendChild(script);
+      })
+      .catch((err) => {
+        console.warn("[AVSA] Could not fetch voice config:", err);
+      });
+  }
+
+  async function startElevenLabsConversation() {
+    if (!agentId) {
+      updateStatus("⚙️ Voice AI not configured yet", "error");
+      return;
+    }
+
+    // Check if SDK is loaded
+    const ElevenLabs = window.ElevenLabs || window.ElevenLabsClient;
+    if (!ElevenLabs || !ElevenLabs.Conversation) {
+      updateStatus("⏳ Loading voice AI...", "connecting");
+      // Retry after SDK loads
+      setTimeout(startElevenLabsConversation, 1500);
+      return;
+    }
+
+    updateStatus("🔌 Connecting...", "connecting");
+
+    try {
+      // Request microphone
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      // Start ElevenLabs conversation session
+      conversation = await ElevenLabs.Conversation.startSession({
+        agentId: agentId,
+
+        onConnect: ({ conversationId }) => {
+          console.log("[AVSA] Connected. Session:", conversationId);
+          updateStatus("🎤 Listening... Speak now!", "listening");
+          setWaveformMode("listening");
+        },
+
+        onDisconnect: () => {
+          console.log("[AVSA] Disconnected.");
+          stopVoice();
+        },
+
+        onError: (message, context) => {
+          console.error("[AVSA] Error:", message, context);
+          updateStatus("⚠️ Voice error — please try again", "error");
+          stopVoice();
+        },
+
+        onModeChange: ({ mode }) => {
+          // mode: "listening" | "speaking"
+          if (mode === "speaking") {
+            updateStatus("🔊 Thinking...", "speaking");
+            setWaveformMode("speaking");
+            animateSpeakingWaveform();
+          } else {
+            updateStatus("🎤 Listening...", "listening");
+            setWaveformMode("listening");
+          }
+        },
+
+        onMessage: ({ message, source }) => {
+          // source: "ai" | "user"
+          if (source === "ai") {
+            showTranscript(message);
+            // Trigger product search based on what the AI says
+            const keywords = extractProductKeywords(message);
+            if (keywords) {
+              fetchRecommendationsByQuery(keywords);
+            }
+          }
+        },
+      });
+
+    } catch (err) {
+      if (err.name === "NotAllowedError") {
+        updateStatus("⚠️ Microphone access denied", "error");
+      } else {
+        console.error("[AVSA] Failed to start conversation:", err);
+        updateStatus("⚠️ Could not connect to Voice AI", "error");
+      }
+      stopVoice();
+    }
+  }
+
+  function stopElevenLabsConversation() {
+    if (conversation) {
+      conversation.endSession().catch(() => {});
+      conversation = null;
+    }
+  }
+
+  // ==============================
+  // Toggle
+  // ==============================
 
   function toggleVoice() {
     const btn = document.getElementById("avsa-trigger-btn");
@@ -350,84 +497,82 @@
   }
 
   async function startVoice() {
-    updateStatus("Connecting...", "");
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-      // Audio visualizer
-      audioContext = new AudioContext();
-      analyser = audioContext.createAnalyser();
-      analyser.fftSize = 64;
-      const source = audioContext.createMediaStreamSource(stream);
-      source.connect(analyser);
-
-      animateWaveform();
-      updateStatus("🎤 Listening... Speak now!", "listening");
-
-      // Fetch product context (current page product)
-      const productContext = getCurrentProductContext();
-
-      // Fetch recommendations based on current product
-      if (productContext.productId) {
-        fetchRecommendations(productContext.productId);
-      }
-
-      // In production, this connects to ElevenLabs Conversational AI
-      // For now, simulate listening
-      mediaRecorder = new MediaRecorder(stream);
-      mediaRecorder.start();
-
-    } catch (err) {
-      console.error("Voice error:", err);
-      updateStatus("⚠️ Microphone access denied", "");
+    // Fetch product context for initial recommendations
+    const productContext = getCurrentProductContext();
+    if (productContext.productId) {
+      fetchRecommendations(productContext.productId);
     }
+    // Start AI conversation
+    await startElevenLabsConversation();
   }
 
   function stopVoice() {
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-      mediaRecorder.stop();
-      mediaRecorder.stream.getTracks().forEach((t) => t.stop());
-    }
-    if (audioContext) {
-      audioContext.close();
-      audioContext = null;
-    }
+    stopElevenLabsConversation();
+    stopWaveformAnimation();
     updateStatus("Tap the mic to start talking", "");
     resetWaveform();
+
+    const btn = document.getElementById("avsa-trigger-btn");
+    const panel = document.getElementById("avsa-panel");
+    if (btn) {
+      btn.classList.remove("active");
+      btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" fill="white"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" fill="white"/></svg>`;
+    }
+    if (panel) panel.classList.remove("visible");
+    isActive = false;
   }
 
   // ==============================
   // Waveform Animation
   // ==============================
 
-  let animationFrame = null;
+  function setWaveformMode(mode) {
+    const waveform = document.getElementById("avsa-waveform");
+    if (!waveform) return;
+    waveform.className = `avsa-waveform ${mode}`;
+  }
 
-  function animateWaveform() {
-    if (!analyser) return;
-
+  function animateSpeakingWaveform() {
+    stopWaveformAnimation();
     const bars = document.querySelectorAll("#avsa-waveform .bar");
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    let t = 0;
 
-    function draw() {
-      if (!analyser) return;
-      analyser.getByteFrequencyData(dataArray);
-
+    function frame() {
+      t += 0.15;
       bars.forEach((bar, i) => {
-        const value = dataArray[i] || 0;
-        const height = Math.max(4, (value / 255) * 50);
+        const height = 8 + Math.abs(Math.sin(t + i * 0.4)) * 42;
         bar.style.height = height + "px";
       });
-
-      animationFrame = requestAnimationFrame(draw);
+      animationFrame = requestAnimationFrame(frame);
     }
-    draw();
+    frame();
+  }
+
+  function stopWaveformAnimation() {
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = null;
+    }
   }
 
   function resetWaveform() {
-    if (animationFrame) cancelAnimationFrame(animationFrame);
+    stopWaveformAnimation();
     const bars = document.querySelectorAll("#avsa-waveform .bar");
     bars.forEach((bar) => (bar.style.height = "8px"));
+    const waveform = document.getElementById("avsa-waveform");
+    if (waveform) waveform.className = "avsa-waveform";
+  }
+
+  // ==============================
+  // Transcript
+  // ==============================
+
+  function showTranscript(text) {
+    const container = document.getElementById("avsa-transcript");
+    const el = document.getElementById("avsa-transcript-text");
+    if (!container || !el) return;
+    el.textContent = text;
+    container.style.display = "block";
   }
 
   // ==============================
@@ -435,16 +580,13 @@
   // ==============================
 
   function getCurrentProductContext() {
-    // Try to detect current product from Shopify page
-    const context = { productId: null, title: "", price: "", url: window.location.href };
+    const context = { productId: null, title: "", url: window.location.href };
 
-    // Shopify exposes product data in meta tags
     const metaProductId = document.querySelector('meta[property="og:product:id"]');
     if (metaProductId) {
       context.productId = metaProductId.getAttribute("content");
     }
 
-    // Also try Shopify's global product object
     if (typeof window.ShopifyAnalytics !== "undefined" && window.ShopifyAnalytics.meta) {
       const meta = window.ShopifyAnalytics.meta;
       if (meta.product) {
@@ -453,13 +595,28 @@
       }
     }
 
-    // Fallback: parse from URL (/products/product-handle)
     const urlMatch = window.location.pathname.match(/\/products\/([^/?]+)/);
     if (urlMatch && !context.productId) {
       context.title = urlMatch[1].replace(/-/g, " ");
     }
 
     return context;
+  }
+
+  function extractProductKeywords(aiMessage) {
+    // Simple keyword extraction from AI messages mentioning products
+    const lower = aiMessage.toLowerCase();
+    const patterns = [
+      /(?:recommend|suggest|show|find|looking for|try)\s+([a-z\s]+)/i,
+      /(?:product|item|style)\s+(?:called|named)?\s+"?([^"]+)"?/i,
+    ];
+    for (const pattern of patterns) {
+      const match = lower.match(pattern);
+      if (match && match[1] && match[1].trim().length > 2) {
+        return match[1].trim();
+      }
+    }
+    return null;
   }
 
   // ==============================
@@ -472,18 +629,32 @@
         `${API_BASE}/api/recommendations?product_id=${productId}&store_id=${STORE_ID}&limit=4`
       );
       const data = await response.json();
-
       if (data.recommendations && data.recommendations.length > 0) {
         renderRecommendations(data.recommendations);
       }
     } catch (err) {
-      console.error("Recommendation fetch error:", err);
+      console.error("[AVSA] Recommendation fetch error:", err);
+    }
+  }
+
+  async function fetchRecommendationsByQuery(query) {
+    try {
+      const response = await fetch(
+        `${API_BASE}/api/products/search?store_id=${STORE_ID}&query=${encodeURIComponent(query)}&limit=4`
+      );
+      const data = await response.json();
+      if (data.products && data.products.length > 0) {
+        renderRecommendations(data.products);
+      }
+    } catch (err) {
+      console.error("[AVSA] Product search error:", err);
     }
   }
 
   function renderRecommendations(recs) {
     const container = document.getElementById("avsa-recs");
     const list = document.getElementById("avsa-recs-list");
+    if (!container || !list) return;
 
     list.innerHTML = recs
       .map(
@@ -492,8 +663,8 @@
           <img src="${rec.image || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56"><rect fill="%23333" width="56" height="56"/><text x="28" y="32" text-anchor="middle" fill="%23666" font-size="10">No img</text></svg>'}" alt="${rec.title}" loading="lazy" />
           <div class="avsa-rec-info">
             <div class="title">${rec.title}</div>
-            <div class="type">${rec.recommendation_type === "complementary" ? "Goes great with" : rec.recommendation_type === "similar" ? "Similar style" : "Popular"}</div>
-            <div class="price">$${rec.price.toFixed(2)}</div>
+            <div class="type">${rec.recommendation_type === "complementary" ? "Goes great with" : rec.recommendation_type === "similar" ? "Similar style" : "Popular pick"}</div>
+            <div class="price">$${parseFloat(rec.price || 0).toFixed(2)}</div>
           </div>
           <button class="avsa-add-btn" onclick="window.__avsa_addToCart(${rec.id})">Add</button>
         </div>
@@ -514,7 +685,6 @@
     );
 
     try {
-      // Use Shopify AJAX Cart API
       const response = await fetch("/cart/add.js", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -531,7 +701,7 @@
           }, 2000);
         }
       } else {
-        // If variant ID is needed, try first variant
+        // Try with variant ID
         const productRes = await fetch(`/products/${productId}.js`);
         if (productRes.ok) {
           const product = await productRes.json();
@@ -550,7 +720,7 @@
         }
       }
     } catch (err) {
-      console.error("Add to cart error:", err);
+      console.error("[AVSA] Add to cart error:", err);
       if (btn) btn.textContent = "Error";
     }
   };
@@ -576,10 +746,13 @@
     document
       .getElementById("avsa-trigger-btn")
       .addEventListener("click", toggleVoice);
-    console.log("[AI Voice Shopping Assistant] Widget loaded for store:", STORE_ID);
+
+    // Pre-fetch agent config in background
+    initElevenLabs();
+
+    console.log("[AI Voice Shopping Assistant] Widget v2.0 loaded for store:", STORE_ID);
   }
 
-  // Wait for DOM
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
   } else {

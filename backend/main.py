@@ -469,57 +469,63 @@ async def get_dashboard_stats(store_id: str):
 
 
 # ===========================
+# Voice Config (for widget)
+# ===========================
+
+@app.get("/api/voice/config")
+async def get_voice_config(store_id: str = ""):
+    """
+    Return ElevenLabs Agent ID for the widget.
+    Widget calls this on init so the agent_id is never hardcoded in the JS.
+    """
+    return {
+        "agent_id": settings.ELEVENLABS_AGENT_ID or "",
+        "has_agent": bool(settings.ELEVENLABS_AGENT_ID),
+    }
+
+
+# ===========================
 # GDPR Mandatory Endpoints
 # ===========================
 
-@app.post("/shopify/gdpr/customers/data-request")
-async def gdpr_customer_data_request(request: Request):
-    """Shopify mandatory: handle customer data request"""
+@app.post("/shopify/gdpr")
+async def gdpr_unified(request: Request):
+    """
+    Unified GDPR compliance webhook.
+    Handles topics: customers/data_request, customers/redact, shop/redact
+    Topic is sent via X-Shopify-Topic header.
+    """
+    topic = request.headers.get("X-Shopify-Topic", "")
     body = await request.body()
-    data = json.loads(body)
-    SecurityLogger.log(f"GDPR data request for shop: {data.get('shop_domain')}", "INFO")
-    # In production: compile and send customer data
-    return {"received": True}
-
-
-@app.post("/shopify/gdpr/customers/redact")
-async def gdpr_customer_redact(request: Request):
-    """Shopify mandatory: redact customer data"""
-    body = await request.body()
-    data = json.loads(body)
+    data = json.loads(body) if body else {}
     shop_domain = data.get("shop_domain", "")
 
-    # Delete customer conversation data
-    if db.pool:
-        customer = data.get("customer", {})
-        customer_id = str(customer.get("id", ""))
-        if customer_id:
+    if topic == "customers/data_request":
+        SecurityLogger.log(f"GDPR data request for shop: {shop_domain}", "INFO")
+
+    elif topic == "customers/redact":
+        if db.pool:
+            customer = data.get("customer", {})
+            customer_id = str(customer.get("id", ""))
+            if customer_id:
+                await db.execute(
+                    """DELETE FROM conversations
+                       WHERE store_id = (SELECT id FROM stores WHERE shop_domain = $1)
+                       AND customer_id = $2""",
+                    shop_domain, customer_id,
+                )
+        SecurityLogger.log(f"GDPR customer redact for {shop_domain}", "INFO")
+
+    elif topic == "shop/redact":
+        if db.pool:
             await db.execute(
-                """DELETE FROM conversations
-                   WHERE store_id = (SELECT id FROM stores WHERE shop_domain = $1)
-                   AND customer_id = $2""",
-                shop_domain, customer_id,
+                "DELETE FROM stores WHERE shop_domain = $1", shop_domain
             )
+        SecurityLogger.log(f"GDPR shop redact for {shop_domain}", "INFO")
 
-    SecurityLogger.log(f"GDPR customer redact for {shop_domain}", "INFO")
     return {"received": True}
 
 
-@app.post("/shopify/gdpr/shop/redact")
-async def gdpr_shop_redact(request: Request):
-    """Shopify mandatory: redact shop data (48h after uninstall)"""
-    body = await request.body()
-    data = json.loads(body)
-    shop_domain = data.get("shop_domain", "")
-
-    if db.pool:
-        # Delete all store data (cascade deletes products, conversations, etc.)
-        await db.execute(
-            "DELETE FROM stores WHERE shop_domain = $1", shop_domain
-        )
-
-    SecurityLogger.log(f"GDPR shop redact for {shop_domain}", "INFO")
-    return {"received": True}
 
 
 # ===========================
