@@ -2,12 +2,11 @@
 
 client_id = "9db2313a78585eb57a2cc2b321919b41"
 name = "ai-voice-shopping-assistant"
-application_url = "https://example.com"
+application_url = "https://shopify.simplifyopsco.tech"
 embedded = true
 
 [build]
 automatically_update_urls_on_dev = true
-include_config_on_deploy = true
 
 [webhooks]
 api_version = "2026-04"
@@ -40,7 +39,10 @@ api_version = "2026-04"
 scopes = "read_products,read_orders,read_customers"
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [
+  "https://shopify.simplifyopsco.tech/api/auth/callback",
+  "https://api.simplifyopsco.tech/shopify/callback"
+]
 
   # GDPR mandatory compliance webhooks — required for Shopify App Store
   [[webhooks.subscriptions]]
