@@ -16,6 +16,7 @@ env/
 .env.local
 .env.production
 .env.*.local
+RAILWAY_ENV_VALUES.txt
 
 # Neon CLI context
 .neon
