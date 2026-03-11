@@ -49,11 +49,11 @@ async def lifespan(app: FastAPI):  # type: ignore[no-untyped-def]
     print("   AI Voice Shopping Assistant API v1.0")
     print(f"   Environment: {settings.ENVIRONMENT}")
     print(f"   Debug Mode: {settings.DEBUG}")
-    print(f"   Database: {'✓ connected' if db.pool else '✗ NOT connected'}")
-    print(f"   OpenAI Key: {'✓ configured' if settings.OPENAI_API_KEY else '✗ MISSING'}")
-    print(f"   ElevenLabs Key: {'✓ configured' if settings.ELEVENLABS_API_KEY else '✗ MISSING'}")
-    print(f"   Shopify API Key: {'✓ configured' if settings.SHOPIFY_API_KEY else '✗ MISSING'}")
-    print(f"   Encryption Key: {'✓ configured' if settings.ENCRYPTION_KEY else '✗ MISSING'}")
+    print(f"   Database: {'[OK]' if db.pool else '[MISSING]'}")
+    print(f"   OpenAI Key: {'[OK]' if settings.OPENAI_API_KEY else '[MISSING]'}")
+    print(f"   ElevenLabs Key: {'[OK]' if settings.ELEVENLABS_API_KEY else '[MISSING]'}")
+    print(f"   Shopify API Key: {'[OK]' if settings.SHOPIFY_API_KEY else '[MISSING]'}")
+    print(f"   Encryption Key: {'[OK]' if settings.ENCRYPTION_KEY else '[MISSING]'}")
     print("=" * 60)
 
     yield
