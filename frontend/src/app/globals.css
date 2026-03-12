@@ -47,3 +47,73 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Neon Auth dark theme overrides — targets data-slot attributes from shadcn/ui */
+[data-better-auth-ui] [data-slot="card"] {
+  background-color: #0d0d1a !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #e2e8f0 !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 0 40px -10px rgba(37, 106, 244, 0.1) !important;
+}
+
+[data-better-auth-ui] [data-slot="card-title"] {
+  color: #f1f5f9 !important;
+}
+
+[data-better-auth-ui] [data-slot="card-description"] {
+  color: #94a3b8 !important;
+}
+
+[data-better-auth-ui] [data-slot="form-label"] {
+  color: #e2e8f0 !important;
+}
+
+[data-better-auth-ui] [data-slot="form-control"],
+[data-better-auth-ui] input {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #e2e8f0 !important;
+}
+
+[data-better-auth-ui] [data-slot="form-control"]::placeholder,
+[data-better-auth-ui] input::placeholder {
+  color: #64748b !important;
+}
+
+[data-better-auth-ui] [data-slot="form-control"]:focus,
+[data-better-auth-ui] input:focus {
+  border-color: #256af4 !important;
+  box-shadow: 0 0 0 3px rgba(37, 106, 244, 0.2) !important;
+}
+
+[data-better-auth-ui] button[type="submit"],
+[data-better-auth-ui] [data-slot="button"] {
+  background-color: #256af4 !important;
+  color: white !important;
+  border: none !important;
+}
+
+[data-better-auth-ui] button[type="submit"]:hover,
+[data-better-auth-ui] [data-slot="button"]:hover {
+  background-color: #1a4bbd !important;
+}
+
+[data-better-auth-ui] a {
+  color: #60a5fa !important;
+}
+
+[data-better-auth-ui] a:hover {
+  color: #93bbfc !important;
+}
+
+[data-better-auth-ui] p,
+[data-better-auth-ui] span:not([data-slot="card-title"]) {
+  color: #94a3b8 !important;
+}
+
+/* Password visibility toggle */
+[data-better-auth-ui] button[type="button"] {
+  color: #94a3b8 !important;
+  background: transparent !important;
+}

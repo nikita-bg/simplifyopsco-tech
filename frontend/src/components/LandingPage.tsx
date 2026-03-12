@@ -1,10 +1,12 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
 export function LandingPage() {
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
     return (
         <>
             {/* Navbar */}
@@ -17,16 +19,16 @@ export function LandingPage() {
                             </div>
                             <span className="text-xl font-bold tracking-tight text-white">SimplifyOps</span>
                         </div>
-                        <nav className="hidden md:flex items-center gap-8">
+                        <nav className="hidden lg:flex items-center gap-8">
                             <Link className="text-sm font-medium text-slate-400 hover:text-[#256af4] transition-colors" href="#features">Features</Link>
                             <Link className="text-sm font-medium text-slate-400 hover:text-[#256af4] transition-colors" href="#use-cases">Use Cases</Link>
                             <Link className="text-sm font-medium text-slate-400 hover:text-[#256af4] transition-colors" href="#pricing">Pricing</Link>
                             <Link className="text-sm font-medium text-slate-400 hover:text-[#256af4] transition-colors" href="#how-it-works">How It Works</Link>
                         </nav>
-                        <div className="flex items-center gap-4">
-                            <Link className="hidden sm:block text-sm font-medium text-white hover:opacity-80 transition-opacity" href="/auth/sign-in">Login</Link>
+                        <div className="hidden sm:flex items-center gap-4">
+                            <Link className="text-sm font-medium text-white hover:opacity-80 transition-opacity" href="/auth/sign-in">Login</Link>
                             <Link
-                                className="inline-flex h-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 px-4 text-sm font-semibold text-white transition-all hover:bg-white/10 focus:outline-none"
+                                className="hidden lg:inline-flex h-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 px-4 text-sm font-semibold text-white transition-all hover:bg-white/10 focus:outline-none"
                                 href="/install"
                             >
                                 Install Widget
@@ -38,8 +40,42 @@ export function LandingPage() {
                                 Get Started Free
                             </Link>
                         </div>
+                        {/* Mobile hamburger */}
+                        <button
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="sm:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+                            aria-label="Toggle menu"
+                        >
+                            <span className="material-symbols-outlined text-white text-2xl">
+                                {mobileMenuOpen ? "close" : "menu"}
+                            </span>
+                        </button>
                     </div>
                 </div>
+
+                {/* Mobile menu */}
+                <AnimatePresence>
+                    {mobileMenuOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="sm:hidden border-t border-white/5 bg-[#0f1115]/95 backdrop-blur-xl overflow-hidden"
+                        >
+                            <nav className="flex flex-col px-4 py-4 gap-1">
+                                <Link className="px-3 py-2.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors" href="#features" onClick={() => setMobileMenuOpen(false)}>Features</Link>
+                                <Link className="px-3 py-2.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors" href="#use-cases" onClick={() => setMobileMenuOpen(false)}>Use Cases</Link>
+                                <Link className="px-3 py-2.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors" href="#pricing" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
+                                <Link className="px-3 py-2.5 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors" href="#how-it-works" onClick={() => setMobileMenuOpen(false)}>How It Works</Link>
+                                <div className="border-t border-white/5 mt-2 pt-2 flex flex-col gap-2">
+                                    <Link className="px-3 py-2.5 text-sm font-medium text-white hover:bg-white/5 rounded-lg transition-colors" href="/auth/sign-in" onClick={() => setMobileMenuOpen(false)}>Login</Link>
+                                    <Link className="px-3 py-2.5 text-sm font-semibold text-center rounded-lg bg-[#256af4] text-white hover:bg-[#1a4bbd] transition-colors" href="/auth/sign-up" onClick={() => setMobileMenuOpen(false)}>Get Started Free</Link>
+                                </div>
+                            </nav>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </header>
 
             <main className="flex-grow">
@@ -351,10 +387,6 @@ export function LandingPage() {
                     </div>
                     <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
                         <p className="text-xs text-slate-500">&copy; 2026 SimplifyOps. All rights reserved.</p>
-                        <div className="flex gap-6">
-                            <Link className="text-xs text-slate-500 hover:text-slate-300" href="/privacy">Privacy Policy</Link>
-                            <Link className="text-xs text-slate-500 hover:text-slate-300" href="/terms">Terms of Service</Link>
-                        </div>
                     </div>
                 </div>
             </footer>

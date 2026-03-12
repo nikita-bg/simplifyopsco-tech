@@ -15,19 +15,12 @@ export default function SignUpPage() {
         <span className="text-lg font-bold text-white">SimplifyOps</span>
       </Link>
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md" data-better-auth-ui>
         <AuthView
           view="SIGN_UP"
           redirectTo="/dashboard"
         />
       </div>
-
-      <p className="mt-6 text-sm text-gray-500">
-        Already have an account?{" "}
-        <Link href="/auth/sign-in" className="text-blue-400 hover:text-blue-300">
-          Sign in
-        </Link>
-      </p>
     </div>
   );
 }

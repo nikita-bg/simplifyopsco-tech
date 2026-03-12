@@ -6,7 +6,7 @@ import {
     PieChart, Pie, Cell,
 } from "recharts";
 import {
-    PieChart as PieIcon, MessageSquare, BarChart3, Settings, HelpCircle, Phone, TrendingUp, Star, Search, Mic, Loader2, CreditCard,
+    PieChart as PieIcon, MessageSquare, BarChart3, Settings, HelpCircle, Phone, TrendingUp, Star, Search, Mic, Loader2, CreditCard, Menu, X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -62,6 +62,7 @@ export function ClientDashboard({ user, storeId }: { user?: UserInfo; storeId: s
     const [data, setData] = useState<DashboardData>(FALLBACK);
     const [loading, setLoading] = useState(true);
     const [backendOnline, setBackendOnline] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -84,18 +85,37 @@ export function ClientDashboard({ user, storeId }: { user?: UserInfo; storeId: s
         return () => clearInterval(interval);
     }, [storeId]);
 
+    // Close sidebar on route change
+    useEffect(() => {
+        setSidebarOpen(false);
+    }, [pathname]);
+
     return (
         <div className="min-h-screen flex bg-[#0a0a14] text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            {/* Mobile sidebar overlay */}
+            {sidebarOpen && (
+                <div className="fixed inset-0 z-40 bg-black/60 lg:hidden" onClick={() => setSidebarOpen(false)} />
+            )}
+
             {/* Sidebar */}
-            <aside className="w-60 bg-[#0d0d1a] border-r border-white/5 flex flex-col py-6 px-4 shrink-0">
-                <div className="flex items-center gap-2.5 px-2 mb-8">
-                    <div className="w-8 h-8 rounded-lg bg-[#256af4] flex items-center justify-center">
-                        <Mic className="w-4 h-4 text-white" />
+            <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-60 bg-[#0d0d1a] border-r border-white/5 flex flex-col py-6 px-4 shrink-0 transform transition-transform duration-200 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+                <div className="flex items-center justify-between px-2 mb-8">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-[#256af4] flex items-center justify-center">
+                            <Mic className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-bold">SimplifyOps</p>
+                            <p className="text-[10px] text-gray-500">Dashboard</p>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-sm font-bold">SimplifyOps</p>
-                        <p className="text-[10px] text-gray-500">Dashboard</p>
-                    </div>
+                    <button
+                        onClick={() => setSidebarOpen(false)}
+                        className="lg:hidden w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center cursor-pointer"
+                        aria-label="Close menu"
+                    >
+                        <X className="w-4 h-4 text-gray-400" />
+                    </button>
                 </div>
 
                 <div className="flex-1 flex flex-col gap-1">
@@ -156,11 +176,18 @@ export function ClientDashboard({ user, storeId }: { user?: UserInfo; storeId: s
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 p-8 overflow-auto">
+            <main className="flex-1 p-4 sm:p-8 overflow-auto">
                 {/* Top bar */}
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-4">
-                        <h1 className="text-2xl font-bold">Dashboard Overview</h1>
+                        <button
+                            onClick={() => setSidebarOpen(true)}
+                            className="lg:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+                            aria-label="Open menu"
+                        >
+                            <Menu className="w-5 h-5 text-white" />
+                        </button>
+                        <h1 className="text-xl sm:text-2xl font-bold">Dashboard Overview</h1>
                         <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium ${backendOnline ? "bg-emerald-500/10 text-emerald-400" : "bg-yellow-500/10 text-yellow-400"
                             }`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${backendOnline ? "bg-emerald-400" : "bg-yellow-400"}`} />
@@ -185,14 +212,14 @@ export function ClientDashboard({ user, storeId }: { user?: UserInfo; storeId: s
                 ) : (
                     <>
                         {/* Stat Cards */}
-                        <div className="grid grid-cols-3 gap-5 mb-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
                             <StatCard title="Total Calls" value={data.total_calls.toLocaleString()} icon={<Phone className="w-5 h-5 text-blue-400" />} />
                             <StatCard title="Avg. Lead Score" value={String(data.avg_lead_score)} suffix="/10" icon={<Star className="w-5 h-5 text-yellow-400" />} />
                             <StatCard title="Conversion Rate" value={String(data.conversion_rate)} suffix="%" icon={<TrendingUp className="w-5 h-5 text-emerald-400" />} />
                         </div>
 
                         {/* Charts */}
-                        <div className="grid grid-cols-2 gap-5 mb-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
                             {/* Call Volume Chart */}
                             <div className="rounded-2xl bg-[#0d0d1a] border border-white/5 p-6">
                                 <div className="flex items-center justify-between mb-6">
