@@ -1,26 +1,29 @@
-# FastAPI и сървър
+# ======================================
+# AI Voice Shopping Assistant - Backend
+# ======================================
+
 # Web Framework
-fastapi
-uvicorn[standard]
-pydantic
-pydantic-settings
+fastapi==0.115.12
+uvicorn[standard]==0.34.0
+python-multipart==0.0.25
+
+# Database
+asyncpg==0.30.0
+psycopg2-binary==2.9.10
 
 # HTTP Client
-httpx
+httpx==0.28.1
 
-# Database — Neon PostgreSQL
-asyncpg
-pgvector
+# AI & ML
+openai==1.59.9
 
-# Redis — Caching & Session Management (Upstash)
-redis[hiredis]
+# Configuration
+pydantic==2.10.7
+pydantic-settings==2.7.1
+python-dotenv==1.0.1
 
-# Encryption — Shopify access tokens
-cryptography
+# Security & Encryption
+cryptography==44.0.0
 
-# AI
-openai
-
-# Environment
-python-dotenv
-python-multipart
+# Utilities
+python-dateutil==2.9.0.post0

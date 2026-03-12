@@ -40,12 +40,17 @@ class Settings(BaseSettings):
     WEBHOOK_SECRET: Optional[str] = None
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
 
+    # Frontend URL
+    FRONTEND_URL: str = "http://localhost:3000"
+
     # Production settings
     ENVIRONMENT: str = "development"  # development, staging, production
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    model_config = {
+        "env_file": ".env",
+        "case_sensitive": True,
+        "extra": "ignore",
+    }
 
     @property
     def is_production(self) -> bool:

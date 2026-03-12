@@ -11,7 +11,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 CREATE TABLE IF NOT EXISTS stores (
     id UUID PRIMARY KEY,
     shop_domain VARCHAR(255) UNIQUE NOT NULL,
-    access_token_encrypted TEXT NOT NULL,
+    access_token_encrypted TEXT,
     subscription_tier VARCHAR(50) DEFAULT 'trial',
     settings JSONB DEFAULT '{}',
     created_at TIMESTAMP DEFAULT NOW(),
