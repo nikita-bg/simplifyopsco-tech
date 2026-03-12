@@ -1,5 +1,5 @@
 """
-Stripe Payment Service — Subscription management for Vocalize AI
+Stripe Payment Service — Subscription management for SimplifyOps
 """
 import stripe  # type: ignore[import-not-found]
 from typing import Optional
@@ -14,7 +14,8 @@ if settings.STRIPE_SECRET_KEY:
 
 PLAN_MAP = {
     "starter": settings.STRIPE_STARTER_PRICE_ID,
-    "pro": settings.STRIPE_PRO_PRICE_ID,
+    "growth": settings.STRIPE_PRO_PRICE_ID,  # Growth plan uses the Pro price ID
+    "scale": getattr(settings, "STRIPE_SCALE_PRICE_ID", None),
 }
 
 
@@ -79,55 +80,59 @@ async def handle_webhook_event(payload: bytes, sig_header: str) -> bool:
     event_type = event["type"]
     data = event["data"]["object"]
 
-    if event_type == "checkout.session.completed":
-        store_id = data.get("metadata", {}).get("store_id")
-        plan = data.get("metadata", {}).get("plan", "starter")
-        subscription_id = data.get("subscription")
-        customer_id = data.get("customer")
+    try:
+        if event_type == "checkout.session.completed":
+            store_id = data.get("metadata", {}).get("store_id")
+            plan = data.get("metadata", {}).get("plan", "starter")
+            subscription_id = data.get("subscription")
+            customer_id = data.get("customer")
 
-        if store_id and db.pool:
-            await db.execute(
-                """UPDATE stores
-                   SET subscription_tier = $1,
-                       stripe_customer_id = $2,
-                       stripe_subscription_id = $3,
-                       updated_at = NOW()
-                   WHERE id = $4::uuid""",
-                plan, customer_id, subscription_id, store_id,
-            )
-            SecurityLogger.log(
-                f"Subscription activated: store={store_id} plan={plan}", "INFO"
-            )
+            if store_id and db.pool:
+                await db.execute(
+                    """UPDATE stores
+                       SET subscription_tier = $1,
+                           stripe_customer_id = $2,
+                           stripe_subscription_id = $3,
+                           updated_at = NOW()
+                       WHERE id = $4::uuid""",
+                    plan, customer_id, subscription_id, store_id,
+                )
+                SecurityLogger.log(
+                    f"Subscription activated: store={store_id} plan={plan}", "INFO"
+                )
 
-    elif event_type == "customer.subscription.updated":
-        subscription_id = data.get("id")
-        status = data.get("status")
-        if subscription_id and db.pool:
-            if status in ("active", "trialing"):
-                tier = data.get("metadata", {}).get("plan", "starter")
-            else:
-                tier = "trial"
-            await db.execute(
-                """UPDATE stores
-                   SET subscription_tier = $1, updated_at = NOW()
-                   WHERE stripe_subscription_id = $2""",
-                tier, subscription_id,
-            )
+        elif event_type == "customer.subscription.updated":
+            subscription_id = data.get("id")
+            status = data.get("status")
+            if subscription_id and db.pool:
+                if status in ("active", "trialing"):
+                    tier = data.get("metadata", {}).get("plan", "starter")
+                else:
+                    tier = "trial"
+                await db.execute(
+                    """UPDATE stores
+                       SET subscription_tier = $1, updated_at = NOW()
+                       WHERE stripe_subscription_id = $2""",
+                    tier, subscription_id,
+                )
 
-    elif event_type == "customer.subscription.deleted":
-        subscription_id = data.get("id")
-        if subscription_id and db.pool:
-            await db.execute(
-                """UPDATE stores
-                   SET subscription_tier = 'trial',
-                       stripe_subscription_id = NULL,
-                       updated_at = NOW()
-                   WHERE stripe_subscription_id = $1""",
-                subscription_id,
-            )
-            SecurityLogger.log(
-                f"Subscription cancelled: sub={subscription_id}", "INFO"
-            )
+        elif event_type == "customer.subscription.deleted":
+            subscription_id = data.get("id")
+            if subscription_id and db.pool:
+                await db.execute(
+                    """UPDATE stores
+                       SET subscription_tier = 'trial',
+                           stripe_subscription_id = NULL,
+                           updated_at = NOW()
+                       WHERE stripe_subscription_id = $1""",
+                    subscription_id,
+                )
+                SecurityLogger.log(
+                    f"Subscription cancelled: sub={subscription_id}", "INFO"
+                )
+    except Exception as e:
+        SecurityLogger.log(f"Stripe webhook DB error: {e}", "ERROR")
+        raise  # Re-raise so the endpoint returns 500 and Stripe retries
 
     return True
 

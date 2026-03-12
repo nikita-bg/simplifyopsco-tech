@@ -12,13 +12,17 @@ CREATE TABLE IF NOT EXISTS stores (
     id UUID PRIMARY KEY,
     shop_domain VARCHAR(255) UNIQUE NOT NULL,
     access_token_encrypted TEXT,
+    owner_id UUID,
     subscription_tier VARCHAR(50) DEFAULT 'trial',
+    stripe_customer_id VARCHAR(255),
+    stripe_subscription_id VARCHAR(255),
     settings JSONB DEFAULT '{}',
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE INDEX idx_stores_domain ON stores(shop_domain);
+CREATE INDEX idx_stores_owner ON stores(owner_id);
 
 -- ==========================================
 -- Products (synced from Shopify)

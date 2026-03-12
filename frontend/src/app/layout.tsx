@@ -4,9 +4,9 @@ import { FloatingVoiceWidget } from "@/components/VoiceWidget";
 import { AuthProvider } from "@/components/AuthProvider";
 
 export const metadata: Metadata = {
-  title: "Vocalize AI - AI Voice Shopping Assistant",
+  title: "SimplifyOps - AI Voice Assistant for Your Website",
   description:
-    "Transform your site into an interactive experience with the world's first AI Voice Copilot. Engage visitors with natural conversation, not just clicks.",
+    "Transform your site into an interactive experience with AI-powered voice assistant. Engage visitors with natural conversation, not just clicks.",
 };
 
 export default function RootLayout({

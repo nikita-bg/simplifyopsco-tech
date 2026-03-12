@@ -6,9 +6,10 @@ import {
     PieChart, Pie, Cell,
 } from "recharts";
 import {
-    PieChart as PieIcon, MessageSquare, Users, BarChart3, Settings, HelpCircle, Phone, TrendingUp, Star, Search, Mic, Loader2,
+    PieChart as PieIcon, MessageSquare, BarChart3, Settings, HelpCircle, Phone, TrendingUp, Star, Search, Mic, Loader2, CreditCard,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
 import { LogOut } from "lucide-react";
 
@@ -38,15 +39,15 @@ interface DashboardData {
 }
 
 const navItems = [
-    { label: "Overview", icon: PieIcon, active: true },
-    { label: "Conversations", icon: MessageSquare, active: false },
-    { label: "Leads", icon: Users, active: false },
-    { label: "Reports", icon: BarChart3, active: false },
+    { label: "Overview", icon: PieIcon, href: "/dashboard" },
+    { label: "Conversations", icon: MessageSquare, href: "/dashboard/conversations" },
+    { label: "Reports", icon: BarChart3, href: "/dashboard/reports" },
+    { label: "Billing", icon: CreditCard, href: "/dashboard/billing" },
 ];
 
 const bottomNav = [
     { label: "Settings", icon: Settings, href: "/dashboard/settings" },
-    { label: "Support", icon: HelpCircle },
+    { label: "Support", icon: HelpCircle, href: "mailto:hello@simplifyopsco.tech" },
 ];
 
 interface UserInfo {
@@ -56,8 +57,8 @@ interface UserInfo {
     image?: string | null;
 }
 
-export function ClientDashboard({ user }: { user?: UserInfo }) {
-    const [activeNav, setActiveNav] = useState("Overview");
+export function ClientDashboard({ user, storeId }: { user?: UserInfo; storeId: string }) {
+    const pathname = usePathname();
     const [data, setData] = useState<DashboardData>(FALLBACK);
     const [loading, setLoading] = useState(true);
     const [backendOnline, setBackendOnline] = useState(false);
@@ -65,7 +66,7 @@ export function ClientDashboard({ user }: { user?: UserInfo }) {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const res = await fetch(`${API_URL}/api/dashboard/stats`, { signal: AbortSignal.timeout(5000) });
+                const res = await fetch(`${API_URL}/api/dashboard/${storeId}/stats`, { credentials: "include", signal: AbortSignal.timeout(5000) });
                 if (res.ok) {
                     const json = await res.json();
                     setData(json);
@@ -79,10 +80,9 @@ export function ClientDashboard({ user }: { user?: UserInfo }) {
             }
         };
         fetchStats();
-        // Re-fetch every 30s
         const interval = setInterval(fetchStats, 30000);
         return () => clearInterval(interval);
-    }, []);
+    }, [storeId]);
 
     return (
         <div className="min-h-screen flex bg-[#0a0a14] text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -93,32 +93,35 @@ export function ClientDashboard({ user }: { user?: UserInfo }) {
                         <Mic className="w-4 h-4 text-white" />
                     </div>
                     <div>
-                        <p className="text-sm font-bold">AI Voice Copilot</p>
-                        <p className="text-[10px] text-gray-500">Client Dashboard</p>
+                        <p className="text-sm font-bold">SimplifyOps</p>
+                        <p className="text-[10px] text-gray-500">Dashboard</p>
                     </div>
                 </div>
 
                 <div className="flex-1 flex flex-col gap-1">
-                    {navItems.map((item) => (
-                        <button
-                            key={item.label}
-                            onClick={() => setActiveNav(item.label)}
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${activeNav === item.label
-                                    ? "bg-[#256af4] text-white"
-                                    : "text-gray-400 hover:text-white hover:bg-white/5"
-                                }`}
-                        >
-                            <item.icon className="w-4 h-4" />
-                            {item.label}
-                        </button>
-                    ))}
+                    {navItems.map((item) => {
+                        const isActive = pathname === item.href;
+                        return (
+                            <Link
+                                key={item.label}
+                                href={item.href}
+                                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive
+                                        ? "bg-[#256af4] text-white"
+                                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                                    }`}
+                            >
+                                <item.icon className="w-4 h-4" />
+                                {item.label}
+                            </Link>
+                        );
+                    })}
                 </div>
 
                 <div className="flex flex-col gap-1 border-t border-white/5 pt-4 mt-4">
                     {bottomNav.map((item) => (
                         <Link
                             key={item.label}
-                            href={item.href || "#"}
+                            href={item.href}
                             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all"
                         >
                             <item.icon className="w-4 h-4" />
@@ -183,14 +186,14 @@ export function ClientDashboard({ user }: { user?: UserInfo }) {
                     <>
                         {/* Stat Cards */}
                         <div className="grid grid-cols-3 gap-5 mb-8">
-                            <StatCard title="Total Calls" value={data.total_calls.toLocaleString()} icon={<Phone className="w-5 h-5 text-blue-400" />} trend="+18%" trendLabel="vs last month" />
-                            <StatCard title="Avg. Lead Score" value={String(data.avg_lead_score)} suffix="/10" icon={<Star className="w-5 h-5 text-yellow-400" />} trend="+2.1%" trendLabel="vs last month" />
-                            <StatCard title="Conversion Rate" value={String(data.conversion_rate)} suffix="%" icon={<TrendingUp className="w-5 h-5 text-emerald-400" />} trend="+0.8%" trendLabel="vs last month" />
+                            <StatCard title="Total Calls" value={data.total_calls.toLocaleString()} icon={<Phone className="w-5 h-5 text-blue-400" />} />
+                            <StatCard title="Avg. Lead Score" value={String(data.avg_lead_score)} suffix="/10" icon={<Star className="w-5 h-5 text-yellow-400" />} />
+                            <StatCard title="Conversion Rate" value={String(data.conversion_rate)} suffix="%" icon={<TrendingUp className="w-5 h-5 text-emerald-400" />} />
                         </div>
 
                         {/* Charts */}
                         <div className="grid grid-cols-2 gap-5 mb-8">
-                            {/* Call Durations Chart */}
+                            {/* Call Volume Chart */}
                             <div className="rounded-2xl bg-[#0d0d1a] border border-white/5 p-6">
                                 <div className="flex items-center justify-between mb-6">
                                     <div>
@@ -217,7 +220,7 @@ export function ClientDashboard({ user }: { user?: UserInfo }) {
                                 </div>
                             </div>
 
-                            {/* User Intent Breakdown */}
+                            {/* Intent Breakdown */}
                             <div className="rounded-2xl bg-[#0d0d1a] border border-white/5 p-6">
                                 <div className="flex items-center justify-between mb-6">
                                     <div>
@@ -258,7 +261,7 @@ export function ClientDashboard({ user }: { user?: UserInfo }) {
                             </div>
 
                             {data.recent_conversations.length === 0 ? (
-                                <p className="text-gray-500 text-sm text-center py-8">No conversations yet. Start the FastAPI backend to see live data.</p>
+                                <p className="text-gray-500 text-sm text-center py-8">No conversations yet. Connect your store and start engaging visitors.</p>
                             ) : (
                                 <table className="w-full">
                                     <thead>
@@ -294,9 +297,9 @@ export function ClientDashboard({ user }: { user?: UserInfo }) {
                                                         }`}>{c.status}</span>
                                                 </td>
                                                 <td className="py-4">
-                                                    <button className="w-7 h-7 rounded-full bg-[#256af4]/10 hover:bg-[#256af4]/20 flex items-center justify-center transition-colors cursor-pointer">
+                                                    <Link href="/dashboard/conversations" className="w-7 h-7 rounded-full bg-[#256af4]/10 hover:bg-[#256af4]/20 flex items-center justify-center transition-colors">
                                                         <MessageSquare className="w-3.5 h-3.5 text-[#256af4]" />
-                                                    </button>
+                                                    </Link>
                                                 </td>
                                             </tr>
                                         ))}
@@ -311,8 +314,8 @@ export function ClientDashboard({ user }: { user?: UserInfo }) {
     );
 }
 
-function StatCard({ title, value, suffix, icon, trend, trendLabel }: {
-    title: string; value: string; suffix?: string; icon: React.ReactNode; trend: string; trendLabel: string;
+function StatCard({ title, value, suffix, icon }: {
+    title: string; value: string; suffix?: string; icon: React.ReactNode;
 }) {
     return (
         <div className="rounded-2xl bg-[#0d0d1a] border border-white/5 p-6 hover:border-white/10 transition-all">
@@ -323,10 +326,6 @@ function StatCard({ title, value, suffix, icon, trend, trendLabel }: {
             <div className="flex items-baseline gap-1 mb-2">
                 <span className="text-3xl font-bold">{value}</span>
                 {suffix && <span className="text-lg text-gray-500">{suffix}</span>}
-            </div>
-            <div className="flex items-center gap-1.5">
-                <span className="text-xs text-emerald-400 font-medium">{trend}</span>
-                <span className="text-xs text-gray-600">{trendLabel}</span>
             </div>
         </div>
     );

@@ -1,27 +1,37 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Copy, Check, Mic, ArrowLeft, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { useStore } from "@/lib/store-context";
 
 const AGENT_ID = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || "agent_6401kec12s0ff6hbwjmgdw2s0kt0";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-const embedScript = `<!-- Vocalize AI Widget -->
-<script src="https://unpkg.com/@elevenlabs/react@latest"></script>
-<script>
-  (function() {
-    const agentId = "${AGENT_ID}";
-    // Initialize Vocalize AI widget
-    console.log("Vocalize AI loaded with agent:", agentId);
-  })();
-</script>`;
-
-const webhookUrl = `${API_URL}/webhook/elevenlabs/post-call`;
-
 export default function SettingsPage() {
+    const { storeId } = useStore();
     const [copiedScript, setCopiedScript] = useState(false);
     const [copiedWebhook, setCopiedWebhook] = useState(false);
+    const [embedCode, setEmbedCode] = useState("");
+
+    useEffect(() => {
+        if (storeId) {
+            fetch(`${API_URL}/api/install/${storeId}`, { credentials: "include" })
+                .then((res) => res.json())
+                .then((data) => setEmbedCode(data.embed_code || ""))
+                .catch(() => {});
+        }
+    }, [storeId]);
+
+    const webhookUrl = `${API_URL}/webhook/elevenlabs/post-call`;
+
+    const displayEmbedCode = embedCode || `<script
+  src="${API_URL}/widget-embed.js"
+  data-store-id="${storeId || "your-store-id"}"
+  data-api-url="${API_URL}"
+  data-color="#6366f1"
+  data-position="bottom-right"
+></script>`;
 
     const handleCopy = async (text: string, setter: (v: boolean) => void) => {
         await navigator.clipboard.writeText(text);
@@ -42,7 +52,7 @@ export default function SettingsPage() {
                     </div>
                     <div>
                         <h1 className="text-2xl font-bold">Integration Settings</h1>
-                        <p className="text-sm text-gray-400">Connect Vocalize AI to your website</p>
+                        <p className="text-sm text-gray-400">Connect SimplifyOps to your website</p>
                     </div>
                 </div>
 
@@ -55,8 +65,8 @@ export default function SettingsPage() {
                             <p className="text-sm font-mono text-[#256af4]">{AGENT_ID}</p>
                         </div>
                         <div>
-                            <p className="text-xs text-gray-500 mb-1">API Backend</p>
-                            <p className="text-sm font-mono text-emerald-400">{API_URL}</p>
+                            <p className="text-xs text-gray-500 mb-1">Store ID</p>
+                            <p className="text-sm font-mono text-emerald-400">{storeId || "Not connected"}</p>
                         </div>
                         <div>
                             <p className="text-xs text-gray-500 mb-1">Connection Type</p>
@@ -77,7 +87,7 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="font-bold text-sm text-gray-300 uppercase tracking-wider">Embed Script</h2>
                         <button
-                            onClick={() => handleCopy(embedScript, setCopiedScript)}
+                            onClick={() => handleCopy(displayEmbedCode, setCopiedScript)}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#256af4]/10 text-[#256af4] text-xs font-medium hover:bg-[#256af4]/20 transition-colors cursor-pointer"
                         >
                             {copiedScript ? <><Check className="w-3.5 h-3.5" /> Copied!</> : <><Copy className="w-3.5 h-3.5" /> Copy Script</>}
@@ -87,7 +97,7 @@ export default function SettingsPage() {
                         Paste this code before the <code className="text-[#256af4]">&lt;/body&gt;</code> tag on your website to activate the voice widget.
                     </p>
                     <pre className="bg-[#1e1e1e] rounded-lg p-4 text-xs text-slate-300 font-mono overflow-x-auto border border-white/10">
-                        {embedScript}
+                        {displayEmbedCode}
                     </pre>
                 </div>
 

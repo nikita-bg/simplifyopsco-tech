@@ -64,7 +64,7 @@ export default function InstallPage() {
                         <div className="w-7 h-7 rounded-lg bg-[#256af4]/20 flex items-center justify-center">
                             <Mic className="w-3.5 h-3.5 text-[#256af4]" />
                         </div>
-                        <span className="font-bold text-sm">Vocalize AI</span>
+                        <span className="font-bold text-sm">SimplifyOps</span>
                     </div>
                     <Link href="/dashboard" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">
                         Dashboard

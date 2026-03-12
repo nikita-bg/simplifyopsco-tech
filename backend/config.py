@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     # Server settings
     HOST: str = "0.0.0.0"
     PORT: int = 8000
-    DEBUG: bool = True
+    DEBUG: bool = False
 
     # Database — Neon PostgreSQL (use pooled URL for app, direct for migrations)
     DATABASE_URL: Optional[str] = None           # Pooled connection (-pooler)
@@ -48,7 +48,8 @@ class Settings(BaseSettings):
     STRIPE_PUBLISHABLE_KEY: Optional[str] = None
     STRIPE_WEBHOOK_SECRET: Optional[str] = None
     STRIPE_STARTER_PRICE_ID: Optional[str] = None
-    STRIPE_PRO_PRICE_ID: Optional[str] = None
+    STRIPE_PRO_PRICE_ID: Optional[str] = None  # Used for Growth plan
+    STRIPE_SCALE_PRICE_ID: Optional[str] = None
 
     # Production settings
     ENVIRONMENT: str = "development"  # development, staging, production

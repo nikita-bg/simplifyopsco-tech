@@ -2,11 +2,32 @@
 
 import Link from "next/link";
 import { CheckCircle2, Mic, ArrowLeft, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default function PricingPage() {
+    const [storeId, setStoreId] = useState<string | null>(null);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    useEffect(() => {
+        // Check if user is logged in and has a store
+        fetch(`${API_URL}/api/me`, { credentials: "include" })
+            .then((res) => {
+                if (res.ok) return res.json();
+                return null;
+            })
+            .then((data) => {
+                if (data && data.stores && data.stores.length > 0) {
+                    setStoreId(data.stores[0].id);
+                    setIsLoggedIn(true);
+                } else if (data && data.user_id) {
+                    setIsLoggedIn(true);
+                }
+            })
+            .catch(() => {});
+    }, []);
+
     return (
         <div className="min-h-screen flex flex-col items-center py-24 px-6 bg-[#0a0a14] text-white">
             <div className="absolute top-6 left-6">
@@ -19,10 +40,10 @@ export default function PricingPage() {
                 <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
                     <Mic className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-lg font-bold">Vocalize AI</span>
+                <span className="text-lg font-bold">SimplifyOps</span>
             </div>
 
-            <div className="text-center mb-16">
+            <div className="text-center mb-6">
                 <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
                     Simple, Transparent Pricing
                 </h1>
@@ -31,32 +52,64 @@ export default function PricingPage() {
                 </p>
             </div>
 
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#256af4]/20 bg-[#256af4]/5 px-4 py-1.5 text-xs font-medium text-[#256af4] mb-12">
+                <span className="flex h-2 w-2 rounded-full bg-[#256af4] animate-pulse" />
+                14-Day Free Trial on all plans &mdash; 30 min included
+            </div>
+
             <div className="grid md:grid-cols-3 gap-6 max-w-5xl w-full">
                 <PricingCard
                     title="Starter"
-                    price="$49"
+                    price="$39"
                     plan="starter"
-                    desc="Perfect for side projects and small sites."
-                    features={["500 voice sessions/mo", "Standard Voice AI", "Basic Analytics", "Email Support"]}
+                    storeId={storeId}
+                    isLoggedIn={isLoggedIn}
+                    desc="Perfect for small stores getting started with voice AI."
+                    features={[
+                        "100 minutes/month",
+                        "500 products",
+                        "Standard voice",
+                        "Basic analytics",
+                        "Email support",
+                        "$0.45/min overage",
+                    ]}
                     cta="Get Started"
                     highlighted={false}
                 />
                 <PricingCard
-                    title="Pro"
-                    price="$149"
-                    plan="pro"
-                    desc="For growing businesses needing power."
-                    features={["5,000 voice sessions/mo", "Ultra-Low Latency", "Advanced Analytics", "Custom CRM Integrations", "Priority Support"]}
+                    title="Growth"
+                    price="$99"
+                    plan="growth"
+                    storeId={storeId}
+                    isLoggedIn={isLoggedIn}
+                    desc="For growing businesses needing more power."
+                    features={[
+                        "300 minutes/month",
+                        "5,000 products",
+                        "Custom brand voice",
+                        "Full analytics + transcripts",
+                        "Priority support",
+                        "$0.35/min overage",
+                    ]}
                     cta="Start Free Trial"
                     highlighted={true}
                 />
                 <PricingCard
-                    title="Enterprise"
-                    price="Custom"
-                    plan="enterprise"
+                    title="Scale"
+                    price="$299"
+                    plan="scale"
+                    storeId={storeId}
+                    isLoggedIn={isLoggedIn}
                     desc="Full control and unlimited scale."
-                    features={["Unlimited sessions", "Dedicated Infrastructure", "Custom Voice Cloning", "SLA & On-prem Options", "24/7 Dedicated Support"]}
-                    cta="Contact Sales"
+                    features={[
+                        "1,000 minutes/month",
+                        "Unlimited products",
+                        "Multilingual voice",
+                        "Full analytics + custom reports",
+                        "Dedicated support",
+                        "$0.25/min overage",
+                    ]}
+                    cta="Get Started"
                     highlighted={false}
                 />
             </div>
@@ -64,33 +117,41 @@ export default function PricingPage() {
     );
 }
 
-function PricingCard({ title, price, plan, desc, features, cta, highlighted }: {
-    title: string; price: string; plan: string; desc: string; features: string[]; cta: string; highlighted: boolean;
+function PricingCard({ title, price, plan, storeId, isLoggedIn, desc, features, cta, highlighted }: {
+    title: string; price: string; plan: string; storeId: string | null; isLoggedIn: boolean; desc: string; features: string[]; cta: string; highlighted: boolean;
 }) {
     const [loading, setLoading] = useState(false);
 
     const handleClick = async () => {
-        if (plan === "enterprise") {
-            window.location.href = "mailto:sales@simplifyops.co?subject=Enterprise Plan Inquiry";
+        // If not logged in, redirect to sign-up with plan param
+        if (!isLoggedIn) {
+            window.location.href = `/auth/sign-up?plan=${plan}`;
             return;
         }
 
+        // If logged in but no store, redirect to dashboard (will show onboarding)
+        if (!storeId) {
+            window.location.href = `/dashboard?plan=${plan}`;
+            return;
+        }
+
+        // Logged in with a store - create Stripe checkout
         setLoading(true);
         try {
             const res = await fetch(`${API_URL}/api/stripe/checkout`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ store_id: "pending", plan }),
+                credentials: "include",
+                body: JSON.stringify({ store_id: storeId, plan }),
             });
             const data = await res.json();
             if (data.checkout_url) {
                 window.location.href = data.checkout_url;
             } else {
-                // Stripe not configured — redirect to sign up
-                window.location.href = "/auth/sign-up";
+                alert("Stripe is not configured yet. Please try again later.");
             }
         } catch {
-            window.location.href = "/auth/sign-up";
+            alert("Failed to start checkout. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -107,7 +168,7 @@ function PricingCard({ title, price, plan, desc, features, cta, highlighted }: {
             <h3 className="text-xl font-bold mb-1">{title}</h3>
             <div className="flex items-baseline gap-1 mb-4">
                 <span className="text-4xl font-extrabold">{price}</span>
-                {price !== "Custom" && <span className="text-gray-500 text-sm">/month</span>}
+                <span className="text-gray-500 text-sm">/month</span>
             </div>
             <p className="text-gray-500 text-sm mb-8">{desc}</p>
             <div className="flex-1 flex flex-col gap-3 mb-8">

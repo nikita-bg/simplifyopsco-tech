@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Loader2, MessageSquare, Clock, TrendingUp, User, ShoppingCart } from "lucide-react";
+import { useStore } from "@/lib/store-context";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -17,23 +18,33 @@ interface Conversation {
     customer_id: string | null;
 }
 
+const PAGE_SIZE = 50;
+
 export default function ConversationsPage() {
+    const { storeId } = useStore();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
+    const [total, setTotal] = useState(0);
+    const [offset, setOffset] = useState(0);
 
     useEffect(() => {
-        fetchConversations();
-    }, []);
+        if (storeId) fetchConversations(0);
+        else setLoading(false);
+    }, [storeId]);
 
-    const fetchConversations = async () => {
+    const fetchConversations = async (newOffset: number) => {
+        setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/api/conversations`, {
-                credentials: "include",
-            });
+            const res = await fetch(
+                `${API_URL}/api/conversations?store_id=${storeId}&offset=${newOffset}&limit=${PAGE_SIZE}`,
+                { credentials: "include" },
+            );
             if (res.ok) {
                 const data = await res.json();
                 setConversations(data.conversations || []);
+                setTotal(data.total || 0);
+                setOffset(newOffset);
             }
         } catch (error) {
             console.error("Failed to fetch conversations:", error);
@@ -41,6 +52,9 @@ export default function ConversationsPage() {
             setLoading(false);
         }
     };
+
+    const totalPages = Math.ceil(total / PAGE_SIZE);
+    const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
 
     const getSentimentColor = (sentiment: string) => {
         switch (sentiment) {
@@ -73,7 +87,7 @@ export default function ConversationsPage() {
                     <div className="lg:col-span-1 bg-[#0d0d1a] rounded-xl border border-white/5 p-4 max-h-[calc(100vh-200px)] overflow-y-auto">
                         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                             <MessageSquare className="w-5 h-5 text-blue-400" />
-                            All Conversations ({conversations.length})
+                            All Conversations ({total})
                         </h2>
                         {conversations.length === 0 ? (
                             <p className="text-gray-500 text-sm">No conversations yet</p>
@@ -101,6 +115,27 @@ export default function ConversationsPage() {
                                         </div>
                                     </button>
                                 ))}
+                            </div>
+                        )}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
+                                <button
+                                    onClick={() => fetchConversations(offset - PAGE_SIZE)}
+                                    disabled={currentPage <= 1}
+                                    className="px-3 py-1.5 text-xs bg-white/5 hover:bg-white/10 rounded-lg disabled:opacity-30 transition-all"
+                                >
+                                    Previous
+                                </button>
+                                <span className="text-xs text-gray-500">
+                                    Page {currentPage} of {totalPages}
+                                </span>
+                                <button
+                                    onClick={() => fetchConversations(offset + PAGE_SIZE)}
+                                    disabled={currentPage >= totalPages}
+                                    className="px-3 py-1.5 text-xs bg-white/5 hover:bg-white/10 rounded-lg disabled:opacity-30 transition-all"
+                                >
+                                    Next
+                                </button>
                             </div>
                         )}
                     </div>

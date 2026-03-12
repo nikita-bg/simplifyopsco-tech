@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useConversation } from "@elevenlabs/react";
 import {
     Mic,
@@ -12,18 +12,36 @@ import {
     Bot,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export function FloatingVoiceWidget() {
     const router = useRouter();
+    const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
     const [transcript, setTranscript] = useState<string | null>(null);
+    const [isMuted, setIsMuted] = useState(false);
+    const [elapsedSeconds, setElapsedSeconds] = useState(0);
+    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    // Hide widget on auth pages
+    const isAuthPage = pathname?.startsWith("/auth");
 
     const conversation = useConversation({
-        onConnect: () => console.log("Connected to AI Receptionist"),
+        onConnect: () => {
+            console.log("Connected to SimplifyOps AI");
+            setElapsedSeconds(0);
+            timerRef.current = setInterval(() => {
+                setElapsedSeconds((s) => s + 1);
+            }, 1000);
+        },
         onDisconnect: () => {
             console.log("Disconnected");
             setTranscript(null);
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+            setElapsedSeconds(0);
         },
         onMessage: (message) => {
             console.log("AI Message:", message);
@@ -35,6 +53,18 @@ export function FloatingVoiceWidget() {
     });
 
     const { status, isSpeaking } = conversation;
+
+    useEffect(() => {
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+        };
+    }, []);
+
+    const formatTime = (seconds: number) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    };
 
     const navigateToPricing = useCallback(async () => {
         router.push("/pricing");
@@ -77,7 +107,13 @@ export function FloatingVoiceWidget() {
         setTranscript(null);
     };
 
+    const handleMute = () => {
+        setIsMuted(!isMuted);
+    };
+
     const isConnected = status === "connected";
+
+    if (isAuthPage) return null;
 
     return (
         <>
@@ -119,7 +155,7 @@ export function FloatingVoiceWidget() {
                                 <div>
                                     <p className="text-xs font-semibold text-white">LIVE SESSION</p>
                                     <p className="text-[10px] text-gray-500">
-                                        {isConnected ? "00:42" : "Ready"}
+                                        {isConnected ? formatTime(elapsedSeconds) : "Ready"}
                                     </p>
                                 </div>
                             </div>
@@ -159,9 +195,11 @@ export function FloatingVoiceWidget() {
                             {/* Status Label */}
                             <p className="text-xs text-gray-400 mb-2">
                                 {isConnected
-                                    ? isSpeaking
-                                        ? "Assistant is speaking..."
-                                        : "Listening..."
+                                    ? isMuted
+                                        ? "Muted"
+                                        : isSpeaking
+                                            ? "Assistant is speaking..."
+                                            : "Listening..."
                                     : "Click to start a conversation"}
                             </p>
 
@@ -174,16 +212,18 @@ export function FloatingVoiceWidget() {
                                 </div>
                             )}
 
-                            {/* Audio Waveform Visualization */}
+                            {/* Audio Waveform */}
                             {isConnected && (
                                 <div className="flex items-center gap-0.5 mb-5">
                                     {Array.from({ length: 20 }).map((_, i) => (
                                         <motion.div
                                             key={i}
                                             animate={{
-                                                height: isSpeaking
-                                                    ? [4, Math.random() * 20 + 4, 4]
-                                                    : [4, Math.random() * 6 + 2, 4],
+                                                height: isMuted
+                                                    ? 4
+                                                    : isSpeaking
+                                                        ? [4, Math.random() * 20 + 4, 4]
+                                                        : [4, Math.random() * 6 + 2, 4],
                                             }}
                                             transition={{
                                                 duration: 0.4 + Math.random() * 0.3,
@@ -212,11 +252,20 @@ export function FloatingVoiceWidget() {
                                 </button>
                             ) : (
                                 <div className="flex items-center gap-3 w-full">
-                                    <button className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-sm font-medium transition-all flex items-center justify-center gap-2 cursor-pointer">
-                                        <MessageSquare className="w-4 h-4" />
+                                    <button
+                                        onClick={handleMute}
+                                        className={`flex-1 py-3 rounded-xl border border-white/10 text-white text-sm font-medium transition-all flex items-center justify-center gap-2 cursor-pointer ${isMuted ? "bg-red-500/20 border-red-500/30" : "bg-white/5 hover:bg-white/10"}`}
+                                    >
+                                        {isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                                     </button>
-                                    <button className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-sm font-medium transition-all flex items-center justify-center gap-2 cursor-pointer">
-                                        <MicOff className="w-4 h-4" />
+                                    <button
+                                        onClick={() => {
+                                            const el = document.getElementById("features");
+                                            if (el) el.scrollIntoView({ behavior: "smooth" });
+                                        }}
+                                        className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white text-sm font-medium transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                    >
+                                        <MessageSquare className="w-4 h-4" />
                                     </button>
                                     <button
                                         onClick={handleStart}
@@ -231,7 +280,7 @@ export function FloatingVoiceWidget() {
                         {/* Footer */}
                         <div className="px-4 py-2.5 border-t border-white/5 text-center">
                             <p className="text-[10px] text-gray-600">
-                                Powered by Vocalize AI · ElevenLabs
+                                Powered by SimplifyOps
                             </p>
                         </div>
                     </motion.div>

@@ -2,31 +2,41 @@
 
 import { useState, useEffect } from "react";
 import { Loader2, CreditCard, Calendar, TrendingUp, ExternalLink } from "lucide-react";
+import { useStore } from "@/lib/store-context";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface SubscriptionInfo {
     tier: string;
     status: string;
-    current_period_end?: string;
+    current_period_end?: string | null;
+    sessions_used: number;
+    sessions_limit: number;
+    payment_method_last4?: string | null;
 }
 
 export default function BillingPage() {
+    const { storeId } = useStore();
     const [loading, setLoading] = useState(true);
     const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
     const [portalLoading, setPortalLoading] = useState(false);
 
     useEffect(() => {
+        if (!storeId) {
+            setLoading(false);
+            return;
+        }
         fetchSubscription();
-    }, []);
+    }, [storeId]);
 
     const fetchSubscription = async () => {
+        if (!storeId) return;
         try {
-            // For now, mock data - will be replaced with real API call
-            setSubscription({
-                tier: "trial",
-                status: "active",
-            });
+            const res = await fetch(`${API_URL}/api/stores/${storeId}/subscription`, { credentials: "include" });
+            if (res.ok) {
+                const data = await res.json();
+                setSubscription(data);
+            }
         } catch (error) {
             console.error("Failed to fetch subscription:", error);
         } finally {
@@ -35,6 +45,7 @@ export default function BillingPage() {
     };
 
     const openCustomerPortal = async () => {
+        if (!storeId) return;
         setPortalLoading(true);
         try {
             const res = await fetch(`${API_URL}/api/stripe/portal`, {
@@ -42,7 +53,7 @@ export default function BillingPage() {
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
                 body: JSON.stringify({
-                    store_id: "pending",
+                    store_id: storeId,
                     return_url: window.location.href,
                 }),
             });
@@ -63,17 +74,17 @@ export default function BillingPage() {
     const getPlanName = (tier: string) => {
         switch (tier) {
             case "starter": return "Starter";
-            case "pro": return "Pro";
-            case "enterprise": return "Enterprise";
+            case "growth": return "Growth";
+            case "scale": return "Scale";
             default: return "Free Trial";
         }
     };
 
     const getPlanPrice = (tier: string) => {
         switch (tier) {
-            case "starter": return "$49/month";
-            case "pro": return "$149/month";
-            case "enterprise": return "Custom";
+            case "starter": return "$39/month";
+            case "growth": return "$99/month";
+            case "scale": return "$299/month";
             default: return "$0";
         }
     };
@@ -108,7 +119,7 @@ export default function BillingPage() {
                                 {subscription ? getPlanPrice(subscription.tier) : "$0"}
                             </p>
                             <span className="text-sm text-gray-500">
-                                {subscription?.status === "active" ? "Active" : "Inactive"}
+                                {subscription?.status === "active" ? "Active" : subscription?.status === "trialing" ? "Trial" : "Inactive"}
                             </span>
                         </div>
                     </div>
@@ -126,9 +137,11 @@ export default function BillingPage() {
                         <div className="bg-white/5 rounded-lg p-4 border border-white/5">
                             <div className="flex items-center gap-2 mb-2">
                                 <TrendingUp className="w-4 h-4 text-blue-400" />
-                                <span className="text-sm text-gray-400">Sessions Used</span>
+                                <span className="text-sm text-gray-400">Minutes Used</span>
                             </div>
-                            <p className="text-xl font-bold">127 / 500</p>
+                            <p className="text-xl font-bold">
+                                {subscription?.sessions_used ?? 0} / {subscription?.sessions_limit ?? 30}
+                            </p>
                         </div>
                         <div className="bg-white/5 rounded-lg p-4 border border-white/5">
                             <div className="flex items-center gap-2 mb-2">
@@ -142,14 +155,18 @@ export default function BillingPage() {
                                 <CreditCard className="w-4 h-4 text-purple-400" />
                                 <span className="text-sm text-gray-400">Payment Method</span>
                             </div>
-                            <p className="text-xl font-bold">•••• 4242</p>
+                            <p className="text-xl font-bold">
+                                {subscription?.payment_method_last4
+                                    ? `•••• ${subscription.payment_method_last4}`
+                                    : "No card on file"}
+                            </p>
                         </div>
                     </div>
 
                     <button
                         onClick={openCustomerPortal}
                         disabled={portalLoading}
-                        className="w-full md:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                        className="w-full md:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                     >
                         {portalLoading ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -164,11 +181,11 @@ export default function BillingPage() {
                 </div>
 
                 {/* Upgrade Options */}
-                {subscription?.tier === "trial" && (
+                {(!subscription || subscription.tier === "trial") && (
                     <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-xl border border-blue-500/30 p-6">
-                        <h3 className="text-xl font-semibold mb-2">Unlock More with Pro</h3>
+                        <h3 className="text-xl font-semibold mb-2">Unlock More with Growth</h3>
                         <p className="text-gray-300 mb-4">
-                            Get access to 5,000 sessions/month, ultra-low latency, advanced analytics, and priority support.
+                            Get access to 300 minutes/month, custom brand voice, full analytics with transcripts, and priority support.
                         </p>
                         <a
                             href="/pricing"

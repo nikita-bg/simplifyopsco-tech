@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Loader2, TrendingUp, Users, MessageSquare, ShoppingCart, BarChart3, PieChart } from "lucide-react";
+import { useStore } from "@/lib/store-context";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -17,30 +18,51 @@ interface SentimentData {
     count: number;
 }
 
+interface ReportInsights {
+    avg_duration: number;
+    avg_products: number;
+    cart_abandonment_rate: number;
+    unique_users: number;
+}
+
 export default function ReportsPage() {
+    const { storeId } = useStore();
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [sentimentData, setSentimentData] = useState<SentimentData[]>([]);
+    const [insights, setInsights] = useState<ReportInsights | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchReports();
-    }, []);
+        if (storeId) fetchReports();
+        else setLoading(false);
+    }, [storeId]);
 
     const fetchReports = async () => {
         try {
-            const [statsRes, sentimentRes] = await Promise.all([
-                fetch(`${API_URL}/api/dashboard-stats`, { credentials: "include" }),
+            const [statsRes, sentimentRes, insightsRes] = await Promise.all([
+                fetch(`${API_URL}/api/dashboard/${storeId}/stats`, { credentials: "include" }),
                 fetch(`${API_URL}/api/reports/sentiment`, { credentials: "include" }),
+                fetch(`${API_URL}/api/stores/${storeId}/reports/insights`, { credentials: "include" }),
             ]);
 
             if (statsRes.ok) {
                 const data = await statsRes.json();
-                setStats(data);
+                setStats({
+                    total_conversations: data.total_conversations ?? data.total_calls ?? 0,
+                    avg_lead_score: data.avg_lead_score ?? 0,
+                    conversion_rate: data.conversion_rate ?? 0,
+                    top_intents: data.top_intents ?? data.intent_data ?? [],
+                });
             }
 
             if (sentimentRes.ok) {
                 const data = await sentimentRes.json();
                 setSentimentData(data.sentiment_distribution || []);
+            }
+
+            if (insightsRes.ok) {
+                const data = await insightsRes.json();
+                setInsights(data);
             }
         } catch (error) {
             console.error("Failed to fetch reports:", error);
@@ -96,7 +118,7 @@ export default function ReportsPage() {
                             </div>
                             <span className="text-sm text-gray-400">Avg Lead Score</span>
                         </div>
-                        <p className="text-3xl font-bold">{stats?.avg_lead_score.toFixed(1) || "0.0"}/10</p>
+                        <p className="text-3xl font-bold">{stats?.avg_lead_score?.toFixed(1) || "0.0"}/10</p>
                     </div>
 
                     <div className="bg-[#0d0d1a] rounded-xl border border-white/5 p-6">
@@ -114,9 +136,9 @@ export default function ReportsPage() {
                             <div className="w-10 h-10 rounded-lg bg-orange-600/20 flex items-center justify-center">
                                 <Users className="w-5 h-5 text-orange-400" />
                             </div>
-                            <span className="text-sm text-gray-400">Active Users</span>
+                            <span className="text-sm text-gray-400">Unique Users</span>
                         </div>
-                        <p className="text-3xl font-bold">{Math.floor((stats?.total_conversations || 0) * 0.7)}</p>
+                        <p className="text-3xl font-bold">{insights?.unique_users ?? 0}</p>
                     </div>
                 </div>
 
@@ -190,21 +212,21 @@ export default function ReportsPage() {
                     </div>
                 </div>
 
-                {/* Additional Insights */}
+                {/* Performance Insights */}
                 <div className="mt-6 bg-[#0d0d1a] rounded-xl border border-white/5 p-6">
                     <h2 className="text-xl font-semibold mb-4">Performance Insights</h2>
                     <div className="grid md:grid-cols-3 gap-4">
                         <div className="bg-white/5 rounded-lg p-4 border border-white/5">
                             <p className="text-sm text-gray-400 mb-1">Avg Conversation Duration</p>
-                            <p className="text-2xl font-bold">4.2 min</p>
+                            <p className="text-2xl font-bold">{insights?.avg_duration ?? 0} min</p>
                         </div>
                         <div className="bg-white/5 rounded-lg p-4 border border-white/5">
                             <p className="text-sm text-gray-400 mb-1">Products per Conversation</p>
-                            <p className="text-2xl font-bold">2.8</p>
+                            <p className="text-2xl font-bold">{insights?.avg_products ?? 0}</p>
                         </div>
                         <div className="bg-white/5 rounded-lg p-4 border border-white/5">
                             <p className="text-sm text-gray-400 mb-1">Cart Abandonment Rate</p>
-                            <p className="text-2xl font-bold">23%</p>
+                            <p className="text-2xl font-bold">{insights?.cart_abandonment_rate ?? 0}%</p>
                         </div>
                     </div>
                 </div>

@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "api.simplifyops.co",
+        hostname: "api.simplifyopsco.tech",
       },
       {
         protocol: "https",

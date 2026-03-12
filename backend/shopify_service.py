@@ -3,6 +3,7 @@ Shopify Integration Service
 Handles: OAuth, HMAC verification, product sync, Admin API calls.
 Uses raw HTTP (httpx) — Shopify's official SDK is Node.js only.
 """
+import base64
 import hashlib
 import hmac
 import json
@@ -29,18 +30,20 @@ class ShopifyService:
     # ========================
 
     @staticmethod
-    def get_install_url(shop: str) -> str:
+    def get_install_url(shop: str, user_id: str = "") -> str:
         """Generate OAuth install URL for a Shopify store"""
         scopes = settings.SHOPIFY_SCOPES or "read_products,read_orders"
         redirect_uri = f"{settings.SHOPIFY_APP_URL}/shopify/callback"
         nonce = str(uuid.uuid4())
+        # Encode user_id in state param for retrieval in callback
+        state = f"{nonce}:{user_id}" if user_id else nonce
 
         return (
             f"https://{shop}/admin/oauth/authorize"
             f"?client_id={settings.SHOPIFY_API_KEY}"
             f"&scope={scopes}"
             f"&redirect_uri={redirect_uri}"
-            f"&state={nonce}"
+            f"&state={state}"
         )
 
     @staticmethod
@@ -59,21 +62,33 @@ class ShopifyService:
             return data.get("access_token")
 
     @staticmethod
-    async def register_store(shop: str, access_token: str) -> str:
+    async def register_store(shop: str, access_token: str, owner_id: str | None = None) -> str:
         """Save store credentials to database (encrypted)"""
         store_id = str(uuid.uuid4())
         encrypted_token = encrypt_token(access_token)
 
-        await db.execute(
-            """
-            INSERT INTO stores (id, shop_domain, access_token_encrypted, subscription_tier, settings, created_at)
-            VALUES ($1, $2, $3, 'trial', '{}', $4)
-            ON CONFLICT (shop_domain) DO UPDATE
-            SET access_token_encrypted = $3
-            RETURNING id
-            """,
-            store_id, shop, encrypted_token, datetime.utcnow(),
-        )
+        if owner_id:
+            await db.execute(
+                """
+                INSERT INTO stores (id, shop_domain, access_token_encrypted, owner_id, subscription_tier, settings, created_at)
+                VALUES ($1, $2, $3, $4::uuid, 'trial', '{}', $5)
+                ON CONFLICT (shop_domain) DO UPDATE
+                SET access_token_encrypted = $3, owner_id = $4::uuid
+                RETURNING id
+                """,
+                store_id, shop, encrypted_token, owner_id, datetime.utcnow(),
+            )
+        else:
+            await db.execute(
+                """
+                INSERT INTO stores (id, shop_domain, access_token_encrypted, subscription_tier, settings, created_at)
+                VALUES ($1, $2, $3, 'trial', '{}', $4)
+                ON CONFLICT (shop_domain) DO UPDATE
+                SET access_token_encrypted = $3
+                RETURNING id
+                """,
+                store_id, shop, encrypted_token, datetime.utcnow(),
+            )
 
         SecurityLogger.log(f"Store registered: {shop}", "INFO")
         return store_id
@@ -84,16 +99,19 @@ class ShopifyService:
 
     @staticmethod
     def verify_hmac(data: bytes, hmac_header: str) -> bool:
-        """Verify Shopify webhook HMAC-SHA256 signature"""
+        """Verify Shopify webhook HMAC-SHA256 signature.
+        Shopify sends the HMAC as base64-encoded, not hex."""
         secret = settings.SHOPIFY_API_SECRET
         if not secret:
             return False
 
-        digest = hmac.new(
-            secret.encode("utf-8"),
-            data,
-            hashlib.sha256,
-        ).hexdigest()
+        digest = base64.b64encode(
+            hmac.new(
+                secret.encode("utf-8"),
+                data,
+                hashlib.sha256,
+            ).digest()
+        ).decode("utf-8")
 
         return hmac.compare_digest(digest, hmac_header)
 

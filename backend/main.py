@@ -1,5 +1,5 @@
 """
-AI Voice Shopping Assistant — FastAPI Backend
+SimplifyOps — FastAPI Backend
 Intelligent voice-powered sales agent for Shopify stores
 """
 from contextlib import asynccontextmanager
@@ -38,6 +38,15 @@ from backend.stripe_service import (  # type: ignore[import]
     create_portal_session,
     handle_webhook_event,
 )
+from backend.auth_middleware import (  # type: ignore[import]
+    get_authenticated_user,
+    verify_store_ownership,
+    require_store_owner,
+)
+try:
+    import stripe  # type: ignore[import-not-found]
+except ImportError:
+    stripe = None  # type: ignore[assignment]
 
 
 # ===========================
@@ -51,7 +60,7 @@ async def lifespan(app: FastAPI):  # type: ignore[no-untyped-def]
     await db.connect()
 
     print("=" * 60)
-    print("   AI Voice Shopping Assistant API v1.0")
+    print("   SimplifyOps API v1.0")
     print(f"   Environment: {settings.ENVIRONMENT}")
     print(f"   Debug Mode: {settings.DEBUG}")
     print(f"   Database: {'[OK]' if db.pool else '[MISSING]'}")
@@ -69,7 +78,7 @@ async def lifespan(app: FastAPI):  # type: ignore[no-untyped-def]
 
 # Initialize FastAPI
 app = FastAPI(
-    title="AI Voice Shopping Assistant API",
+    title="SimplifyOps API",
     description="Intelligent voice-powered sales agent for Shopify stores",
     version="1.0.1",
     lifespan=lifespan,
@@ -98,7 +107,7 @@ app.add_middleware(
 async def root():
     """Health check"""
     return {
-        "service": "AI Voice Shopping Assistant",
+        "service": "SimplifyOps",
         "status": "running",
         "version": "1.0.1",
         "database": "connected" if db.pool else "disconnected",
@@ -115,7 +124,7 @@ async def health_check():
 
     health_status = {
         "status": "healthy" if is_healthy else "unhealthy",
-        "service": "AI Voice Shopping Assistant API",
+        "service": "SimplifyOps API",
         "version": "1.0.1",
         "checks": {
             "database": "connected" if db.pool else "disconnected",
@@ -134,12 +143,12 @@ async def health_check():
 # ===========================
 
 @app.get("/shopify/auth")
-async def shopify_auth(shop: str):
+async def shopify_auth(shop: str, user_id: str = ""):
     """Initiate Shopify OAuth install flow"""
     if not shop or not shop.endswith(".myshopify.com"):
         raise HTTPException(400, "Invalid shop domain")
 
-    install_url = shopify_service.get_install_url(shop)
+    install_url = shopify_service.get_install_url(shop, user_id=user_id)
     return {"install_url": install_url}
 
 
@@ -157,8 +166,13 @@ async def shopify_callback(
         if not access_token:
             raise HTTPException(400, "Failed to get access token")
 
+        # Extract user_id from state param (format: "nonce:user_id")
+        owner_id = None
+        if state and ":" in state:
+            owner_id = state.split(":", 1)[1]
+
         # Save store to database
-        store_id = await shopify_service.register_store(shop, access_token)
+        store_id = await shopify_service.register_store(shop, access_token, owner_id=owner_id)
 
         # Trigger initial product sync in background
         SecurityLogger.log(f"Shopify OAuth complete for {shop}, store_id={store_id}", "INFO")
@@ -189,7 +203,10 @@ async def shopify_product_webhook(
 
     # Verify HMAC signature
     hmac_header = request.headers.get("X-Shopify-Hmac-SHA256", "")
-    if settings.SHOPIFY_API_SECRET and not shopify_service.verify_hmac(body, hmac_header):
+    if not settings.SHOPIFY_API_SECRET:
+        if settings.is_production:
+            raise HTTPException(401, "HMAC verification not configured")
+    elif not shopify_service.verify_hmac(body, hmac_header):
         raise HTTPException(401, "Invalid HMAC signature")
 
     # Parse product data
@@ -215,8 +232,9 @@ async def shopify_product_webhook(
 
 
 @app.post("/api/stores/{store_id}/sync")
-async def trigger_product_sync(store_id: str, background_tasks: BackgroundTasks):
+async def trigger_product_sync(store_id: str, background_tasks: BackgroundTasks, request: Request):
     """Manually trigger a full product sync for a store"""
+    await require_store_owner(request, store_id)
     async def _sync():
         count = await shopify_service.sync_all_products(store_id)
         SecurityLogger.log(f"Product sync complete: {count} products for store {store_id}", "INFO")
@@ -262,7 +280,17 @@ async def analyze_shopping_conversation(transcript: str) -> dict[str, Any]:
     """
     transcript = sanitize_input(transcript, max_length=5000)
 
-    if not transcript or not settings.OPENAI_API_KEY:
+    if not transcript:
+        return {
+            "sentiment": "Neutral",
+            "intent": "Browsing",
+            "products_mentioned": [],
+            "purchase_intent": 0.5,
+        }
+
+    if not settings.OPENAI_API_KEY:
+        if settings.is_production:
+            raise HTTPException(500, "OpenAI API key not configured")
         return {
             "sentiment": "Neutral",
             "intent": "Browsing",
@@ -339,6 +367,8 @@ async def post_call_webhook(
         # Save to database if connected
         if db.pool and store_id:
             conv_id = str(uuid.uuid4())
+            has_cart = bool(payload.cart_actions)
+            has_products = bool(payload.products_discussed)
             await db.execute(
                 """
                 INSERT INTO conversations (id, store_id, session_id, transcript,
@@ -355,6 +385,24 @@ async def post_call_webhook(
                 payload.duration or 0,
                 datetime.utcnow(),
             )
+
+            # Upsert daily_analytics
+            try:
+                await db.execute(
+                    """
+                    INSERT INTO daily_analytics (store_id, date, total_conversations, products_recommended, add_to_cart_count)
+                    VALUES ($1::uuid, CURRENT_DATE, 1, $2, $3)
+                    ON CONFLICT (store_id, date) DO UPDATE SET
+                        total_conversations = daily_analytics.total_conversations + 1,
+                        products_recommended = daily_analytics.products_recommended + $2,
+                        add_to_cart_count = daily_analytics.add_to_cart_count + $3
+                    """,
+                    store_id,
+                    1 if has_products else 0,
+                    1 if has_cart else 0,
+                )
+            except Exception as e:
+                SecurityLogger.log(f"daily_analytics upsert error: {e}", "WARNING")
 
         SecurityLogger.log(
             f"Shopping call recorded: {call_id} | Intent: {analysis.get('intent')} | "
@@ -378,8 +426,9 @@ async def post_call_webhook(
 # ===========================
 
 @app.get("/api/stores/{store_id}/settings")
-async def get_store_settings(store_id: str):
+async def get_store_settings(store_id: str, request: Request):
     """Get widget settings for a store"""
+    await require_store_owner(request, store_id)
     row = await db.fetchrow(
         "SELECT settings FROM stores WHERE id = $1::uuid", store_id
     )
@@ -390,8 +439,9 @@ async def get_store_settings(store_id: str):
 
 
 @app.put("/api/stores/{store_id}/settings")
-async def update_store_settings(store_id: str, settings_data: StoreSettings):
+async def update_store_settings(store_id: str, settings_data: StoreSettings, request: Request):
     """Update widget settings for a store"""
+    await require_store_owner(request, store_id)
     await db.execute(
         "UPDATE stores SET settings = $1, updated_at = $2 WHERE id = $3::uuid",
         json.dumps(settings_data.model_dump()),
@@ -428,8 +478,9 @@ def _format_duration(seconds: int) -> str:
 
 
 @app.get("/api/dashboard/{store_id}/stats", response_model=DashboardStats)
-async def get_dashboard_stats(store_id: str):
+async def get_dashboard_stats(store_id: str, request: Request):
     """Get dashboard statistics for a store"""
+    await require_store_owner(request, store_id)
     if not db.pool:
         return DashboardStats()
 
@@ -521,7 +572,7 @@ async def get_voice_config(store_id: str = ""):
 async def get_dashboard_stats_global():
     """
     Aggregated stats across all stores.
-    Used by the Next.js Vocalize AI frontend dashboard.
+    Used by the Next.js SimplifyOps frontend dashboard.
     """
     if not db.pool:
         return {
@@ -617,20 +668,37 @@ async def get_dashboard_stats_global():
 # ===========================
 
 @app.get("/api/conversations")
-async def get_conversations():
+async def get_conversations(request: Request, store_id: str = "", offset: int = 0, limit: int = 50):
     """
-    Get all conversations with details for the Conversations page.
+    Get conversations for a specific store with pagination.
     """
+    if not store_id:
+        raise HTTPException(400, "store_id query parameter is required")
+
+    await require_store_owner(request, store_id)
+
+    # Clamp limit to reasonable bounds
+    limit = max(1, min(limit, 100))
+    offset = max(0, offset)
+
     if not db.pool:
-        return {"conversations": []}
+        return {"conversations": [], "total": 0, "offset": offset, "limit": limit}
 
     try:
+        # Get total count for pagination
+        total = await db.fetchval(
+            "SELECT COUNT(*) FROM conversations WHERE store_id = $1::uuid",
+            store_id,
+        ) or 0
+
         rows = await db.fetch(
             """SELECT id, session_id, transcript, intent, sentiment,
                       products_discussed, cart_actions, started_at, customer_id
                FROM conversations
+               WHERE store_id = $1::uuid
                ORDER BY started_at DESC
-               LIMIT 100"""
+               LIMIT $2 OFFSET $3""",
+            store_id, limit, offset,
         )
 
         conversations = []
@@ -647,10 +715,10 @@ async def get_conversations():
                 "customer_id": r["customer_id"],
             })
 
-        return {"conversations": conversations}
+        return {"conversations": conversations, "total": int(total), "offset": offset, "limit": limit}
     except Exception as e:
         SecurityLogger.log(f"Conversations fetch error: {e}", "ERROR")
-        return {"conversations": []}
+        return {"conversations": [], "total": 0, "offset": offset, "limit": limit}
 
 
 @app.get("/api/reports/sentiment")
@@ -834,8 +902,10 @@ async def stripe_checkout(request: Request):
 
     if not store_id:
         raise HTTPException(400, "store_id is required")
-    if plan not in ("starter", "pro"):
-        raise HTTPException(400, "Invalid plan. Must be 'starter' or 'pro'")
+    if plan not in ("starter", "growth", "scale"):
+        raise HTTPException(400, "Invalid plan. Must be 'starter', 'growth', or 'scale'")
+
+    await require_store_owner(request, store_id)
 
     frontend_url = settings.FRONTEND_URL.rstrip("/")
     checkout_url = await create_checkout_session(
@@ -861,6 +931,8 @@ async def stripe_portal(request: Request):
     if not store_id:
         raise HTTPException(400, "store_id is required")
 
+    await require_store_owner(request, store_id)
+
     frontend_url = settings.FRONTEND_URL.rstrip("/")
     portal_url = await create_portal_session(
         store_id=store_id,
@@ -879,9 +951,15 @@ async def stripe_webhook(request: Request):
     payload = await request.body()
     sig_header = request.headers.get("Stripe-Signature", "")
 
-    success = await handle_webhook_event(payload, sig_header)
-    if not success:
-        raise HTTPException(400, "Webhook processing failed")
+    try:
+        success = await handle_webhook_event(payload, sig_header)
+        if not success:
+            raise HTTPException(400, "Webhook signature verification failed")
+    except HTTPException:
+        raise
+    except Exception as e:
+        SecurityLogger.log(f"Stripe webhook processing error: {e}", "ERROR")
+        raise HTTPException(500, "Webhook processing failed — will retry")
 
     return {"received": True}
 
@@ -896,6 +974,196 @@ async def stripe_config():
 
 
 # ===========================
+# User-Store Architecture
+# ===========================
+
+@app.get("/api/me")
+async def get_current_user(request: Request):
+    """
+    Given an authenticated user, returns their store(s).
+    Validates session cookie via Neon Auth.
+    """
+    user_id = await get_authenticated_user(request)
+
+    if not db.pool:
+        return {"user_id": user_id, "stores": [], "has_store": False}
+
+    try:
+        stores = await db.fetch(
+            "SELECT id, shop_domain, subscription_tier, settings, created_at FROM stores WHERE owner_id = $1::uuid",
+            user_id,
+        )
+        store_list = [
+            {
+                "id": str(s["id"]),
+                "shop_domain": s["shop_domain"],
+                "subscription_tier": s["subscription_tier"],
+                "created_at": s["created_at"].isoformat() if s["created_at"] else None,
+            }
+            for s in stores
+        ]
+        return {"user_id": user_id, "stores": store_list, "has_store": len(store_list) > 0}
+    except Exception as e:
+        SecurityLogger.log_error("Get user stores error", e)
+        return {"user_id": user_id, "stores": [], "has_store": False}
+
+
+@app.post("/api/stores/create")
+async def create_store(request: Request):
+    """
+    Create a store for non-Shopify users (manual website entry).
+    """
+    user_id = await get_authenticated_user(request)
+
+    body = await request.body()
+    data = json.loads(body) if body else {}
+    site_url = sanitize_input(str(data.get("site_url", "")).strip().rstrip("/"))
+
+    if not site_url:
+        raise HTTPException(400, "site_url is required")
+
+    store_id = str(uuid.uuid4())
+
+    if db.pool:
+        try:
+            await db.execute(
+                """INSERT INTO stores (id, shop_domain, owner_id, subscription_tier, settings, created_at)
+                   VALUES ($1, $2, $3::uuid, 'trial', '{}', NOW())
+                   ON CONFLICT (shop_domain) DO UPDATE SET owner_id = $3::uuid
+                   RETURNING id""",
+                store_id, site_url, user_id,
+            )
+        except Exception as e:
+            SecurityLogger.log_error("Create store error", e)
+            raise HTTPException(500, "Failed to create store")
+
+    return {"store_id": store_id, "site_url": site_url, "subscription_tier": "trial"}
+
+
+# ===========================
+# Subscription & Reports Endpoints
+# ===========================
+
+@app.get("/api/stores/{store_id}/subscription")
+async def get_store_subscription(store_id: str, request: Request):
+    """Get real subscription info from Stripe for a store."""
+    await require_store_owner(request, store_id)
+    if not db.pool:
+        return {"tier": "trial", "status": "active", "sessions_used": 0, "sessions_limit": 30}
+
+    try:
+        row = await db.fetchrow(
+            """SELECT subscription_tier, stripe_customer_id, stripe_subscription_id
+               FROM stores WHERE id = $1::uuid""",
+            store_id,
+        )
+        if not row:
+            raise HTTPException(404, "Store not found")
+
+        tier = row["subscription_tier"] or "trial"
+        result: dict[str, Any] = {
+            "tier": tier,
+            "status": "active",
+            "sessions_used": 0,
+            "sessions_limit": {"trial": 30, "starter": 100, "growth": 300, "scale": 1000}.get(tier, 30),
+            "current_period_end": None,
+            "payment_method_last4": None,
+        }
+
+        # Count sessions used this billing period
+        sessions_used = await db.fetchval(
+            """SELECT COUNT(*) FROM conversations
+               WHERE store_id = $1::uuid
+               AND started_at >= date_trunc('month', NOW())""",
+            store_id,
+        )
+        result["sessions_used"] = int(sessions_used or 0)
+
+        # Get Stripe details if available
+        if row["stripe_subscription_id"] and settings.STRIPE_SECRET_KEY:
+            try:
+                sub = stripe.Subscription.retrieve(row["stripe_subscription_id"])
+                result["status"] = sub.status
+                result["current_period_end"] = datetime.fromtimestamp(sub.current_period_end).isoformat()
+
+                # Get payment method
+                if row["stripe_customer_id"]:
+                    payment_methods = stripe.PaymentMethod.list(
+                        customer=row["stripe_customer_id"],
+                        type="card",
+                        limit=1,
+                    )
+                    if payment_methods.data:
+                        result["payment_method_last4"] = payment_methods.data[0].card.last4
+            except Exception as e:
+                SecurityLogger.log(f"Stripe fetch error: {e}", "WARNING")
+
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        SecurityLogger.log_error("Subscription fetch error", e)
+        return {"tier": "trial", "status": "active", "sessions_used": 0, "sessions_limit": 30}
+
+
+@app.get("/api/stores/{store_id}/reports/insights")
+async def get_store_reports(store_id: str, request: Request):
+    """Get computed report insights for a store."""
+    await require_store_owner(request, store_id)
+    if not db.pool:
+        return {"avg_duration": 0, "avg_products": 0, "cart_abandonment_rate": 0, "unique_users": 0}
+
+    try:
+        # Average duration
+        avg_dur = await db.fetchval(
+            "SELECT AVG(duration_seconds) FROM conversations WHERE store_id = $1::uuid",
+            store_id,
+        )
+        avg_duration_mins = round(float(avg_dur or 0) / 60, 1)
+
+        # Average products per conversation
+        avg_products_raw = await db.fetchval(
+            """SELECT AVG(jsonb_array_length(products_discussed))
+               FROM conversations WHERE store_id = $1::uuid
+               AND products_discussed != '[]'::jsonb""",
+            store_id,
+        )
+        avg_products = round(float(avg_products_raw or 0), 1)
+
+        # Cart abandonment rate (conversations with products discussed but no cart actions)
+        total_with_products = await db.fetchval(
+            """SELECT COUNT(*) FROM conversations
+               WHERE store_id = $1::uuid AND products_discussed != '[]'::jsonb""",
+            store_id,
+        ) or 0
+        total_with_cart = await db.fetchval(
+            """SELECT COUNT(*) FROM conversations
+               WHERE store_id = $1::uuid AND cart_actions != '[]'::jsonb""",
+            store_id,
+        ) or 0
+        if total_with_products > 0:
+            cart_abandonment = round((1 - float(total_with_cart) / float(total_with_products)) * 100, 1)
+        else:
+            cart_abandonment = 0.0
+
+        # Unique users
+        unique_users = await db.fetchval(
+            "SELECT COUNT(DISTINCT session_id) FROM conversations WHERE store_id = $1::uuid",
+            store_id,
+        ) or 0
+
+        return {
+            "avg_duration": avg_duration_mins,
+            "avg_products": avg_products,
+            "cart_abandonment_rate": cart_abandonment,
+            "unique_users": int(unique_users),
+        }
+    except Exception as e:
+        SecurityLogger.log_error("Reports insights error", e)
+        return {"avg_duration": 0, "avg_products": 0, "cart_abandonment_rate": 0, "unique_users": 0}
+
+
+# ===========================
 # GDPR Mandatory Endpoints
 # ===========================
 
@@ -906,8 +1174,17 @@ async def gdpr_unified(request: Request):
     Handles topics: customers/data_request, customers/redact, shop/redact
     Topic is sent via X-Shopify-Topic header.
     """
-    topic = request.headers.get("X-Shopify-Topic", "")
     body = await request.body()
+
+    # Verify HMAC signature (mandatory for GDPR webhooks)
+    hmac_header = request.headers.get("X-Shopify-Hmac-SHA256", "")
+    if not settings.SHOPIFY_API_SECRET:
+        if settings.is_production:
+            raise HTTPException(401, "HMAC verification not configured")
+    elif not shopify_service.verify_hmac(body, hmac_header):
+        raise HTTPException(401, "Invalid HMAC signature")
+
+    topic = request.headers.get("X-Shopify-Topic", "")
     data = json.loads(body) if body else {}
     shop_domain = data.get("shop_domain", "")
 
