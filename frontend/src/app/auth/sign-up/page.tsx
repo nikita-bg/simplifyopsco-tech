@@ -1,7 +1,6 @@
 "use client";
 
 import { AuthView } from "@neondatabase/auth/react";
-import { authClient } from "@/lib/auth/client";
 import "@neondatabase/auth/ui/css";
 import Link from "next/link";
 import { Mic } from "lucide-react";
