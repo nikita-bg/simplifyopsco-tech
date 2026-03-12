@@ -21,10 +21,10 @@ export function LandingPage() {
                             <Link className="text-sm font-medium text-slate-400 hover:text-[#256af4] transition-colors" href="#features">Features</Link>
                             <Link className="text-sm font-medium text-slate-400 hover:text-[#256af4] transition-colors" href="#use-cases">Use Cases</Link>
                             <Link className="text-sm font-medium text-slate-400 hover:text-[#256af4] transition-colors" href="#pricing">Pricing</Link>
-                            <Link className="text-sm font-medium text-slate-400 hover:text-[#256af4] transition-colors" href="#docs">Docs</Link>
+                            <Link className="text-sm font-medium text-slate-400 hover:text-[#256af4] transition-colors" href="#how-it-works">How It Works</Link>
                         </nav>
                         <div className="flex items-center gap-4">
-                            <Link className="hidden sm:block text-sm font-medium text-white hover:opacity-80 transition-opacity" href="/dashboard">Login</Link>
+                            <Link className="hidden sm:block text-sm font-medium text-white hover:opacity-80 transition-opacity" href="/auth/sign-in">Login</Link>
                             <Link
                                 className="inline-flex h-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 px-4 text-sm font-semibold text-white transition-all hover:bg-white/10 focus:outline-none"
                                 href="/install"
@@ -33,7 +33,7 @@ export function LandingPage() {
                             </Link>
                             <Link
                                 className="inline-flex h-9 items-center justify-center rounded-lg bg-[#256af4] px-4 text-sm font-semibold text-white transition-all hover:bg-[#1a4bbd] hover:shadow-[0_0_20px_-5px_rgba(37,106,244,0.5)] focus:outline-none focus:ring-2 focus:ring-[#256af4] focus:ring-offset-2 focus:ring-offset-[#0f1115]"
-                                href="#"
+                                href="/install"
                             >
                                 Try Live Demo
                             </Link>

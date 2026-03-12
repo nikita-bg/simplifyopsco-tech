@@ -1,5 +1,10 @@
+"use client";
+
 import Link from "next/link";
-import { CheckCircle2, Mic, ArrowLeft } from "lucide-react";
+import { CheckCircle2, Mic, ArrowLeft, Loader2 } from "lucide-react";
+import { useState } from "react";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default function PricingPage() {
     return (
@@ -30,6 +35,7 @@ export default function PricingPage() {
                 <PricingCard
                     title="Starter"
                     price="$49"
+                    plan="starter"
                     desc="Perfect for side projects and small sites."
                     features={["500 voice sessions/mo", "Standard Voice AI", "Basic Analytics", "Email Support"]}
                     cta="Get Started"
@@ -38,6 +44,7 @@ export default function PricingPage() {
                 <PricingCard
                     title="Pro"
                     price="$149"
+                    plan="pro"
                     desc="For growing businesses needing power."
                     features={["5,000 voice sessions/mo", "Ultra-Low Latency", "Advanced Analytics", "Custom CRM Integrations", "Priority Support"]}
                     cta="Start Free Trial"
@@ -46,6 +53,7 @@ export default function PricingPage() {
                 <PricingCard
                     title="Enterprise"
                     price="Custom"
+                    plan="enterprise"
                     desc="Full control and unlimited scale."
                     features={["Unlimited sessions", "Dedicated Infrastructure", "Custom Voice Cloning", "SLA & On-prem Options", "24/7 Dedicated Support"]}
                     cta="Contact Sales"
@@ -56,9 +64,38 @@ export default function PricingPage() {
     );
 }
 
-function PricingCard({ title, price, desc, features, cta, highlighted }: {
-    title: string; price: string; desc: string; features: string[]; cta: string; highlighted: boolean;
+function PricingCard({ title, price, plan, desc, features, cta, highlighted }: {
+    title: string; price: string; plan: string; desc: string; features: string[]; cta: string; highlighted: boolean;
 }) {
+    const [loading, setLoading] = useState(false);
+
+    const handleClick = async () => {
+        if (plan === "enterprise") {
+            window.location.href = "mailto:sales@simplifyops.co?subject=Enterprise Plan Inquiry";
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const res = await fetch(`${API_URL}/api/stripe/checkout`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ store_id: "pending", plan }),
+            });
+            const data = await res.json();
+            if (data.checkout_url) {
+                window.location.href = data.checkout_url;
+            } else {
+                // Stripe not configured — redirect to sign up
+                window.location.href = "/auth/sign-up";
+            }
+        } catch {
+            window.location.href = "/auth/sign-up";
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className={`p-8 rounded-2xl flex flex-col transition-all ${highlighted
                 ? "bg-[#0d0d1a] border-2 border-blue-500 shadow-[0_0_40px_rgba(59,130,246,0.15)] scale-105"
@@ -81,11 +118,15 @@ function PricingCard({ title, price, desc, features, cta, highlighted }: {
                     </div>
                 ))}
             </div>
-            <button className={`w-full py-3 rounded-lg font-semibold text-sm transition-all ${highlighted
+            <button
+                onClick={handleClick}
+                disabled={loading}
+                className={`w-full py-3 rounded-lg font-semibold text-sm transition-all cursor-pointer disabled:opacity-50 ${highlighted
                     ? "bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20"
                     : "bg-white/5 hover:bg-white/10 border border-white/10"
-                }`}>
-                {cta}
+                }`}
+            >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : cta}
             </button>
         </div>
     );

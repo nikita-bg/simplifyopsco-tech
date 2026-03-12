@@ -25,5 +25,8 @@ python-dotenv==1.0.1
 # Security & Encryption
 cryptography==44.0.0
 
+# Payments
+stripe==14.4.1
+
 # Utilities
 python-dateutil==2.9.0.post0

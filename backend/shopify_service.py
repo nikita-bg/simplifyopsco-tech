@@ -18,7 +18,7 @@ from backend.encryption import encrypt_token, decrypt_token  # type: ignore[impo
 from backend.security_middleware import SecurityLogger  # type: ignore[import]
 
 
-SHOPIFY_API_VERSION = "2025-01"
+SHOPIFY_API_VERSION = "2026-04"
 
 
 class ShopifyService:

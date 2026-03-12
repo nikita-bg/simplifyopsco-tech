@@ -43,6 +43,13 @@ class Settings(BaseSettings):
     # Frontend URL
     FRONTEND_URL: str = "http://localhost:3000"
 
+    # Stripe Payments
+    STRIPE_SECRET_KEY: Optional[str] = None
+    STRIPE_PUBLISHABLE_KEY: Optional[str] = None
+    STRIPE_WEBHOOK_SECRET: Optional[str] = None
+    STRIPE_STARTER_PRICE_ID: Optional[str] = None
+    STRIPE_PRO_PRICE_ID: Optional[str] = None
+
     # Production settings
     ENVIRONMENT: str = "development"  # development, staging, production
 

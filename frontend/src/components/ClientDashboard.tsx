@@ -9,6 +9,8 @@ import {
     PieChart as PieIcon, MessageSquare, Users, BarChart3, Settings, HelpCircle, Phone, TrendingUp, Star, Search, Mic, Loader2,
 } from "lucide-react";
 import Link from "next/link";
+import { authClient } from "@/lib/auth/client";
+import { LogOut } from "lucide-react";
 
 const INTENT_COLORS = ["#3b82f6", "#8b5cf6", "#10b981", "#f59e0b", "#ef4444"];
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -47,7 +49,14 @@ const bottomNav = [
     { label: "Support", icon: HelpCircle },
 ];
 
-export function ClientDashboard() {
+interface UserInfo {
+    id: string;
+    name: string;
+    email: string;
+    image?: string | null;
+}
+
+export function ClientDashboard({ user }: { user?: UserInfo }) {
     const [activeNav, setActiveNav] = useState("Overview");
     const [data, setData] = useState<DashboardData>(FALLBACK);
     const [loading, setLoading] = useState(true);
@@ -116,7 +125,31 @@ export function ClientDashboard() {
                             {item.label}
                         </Link>
                     ))}
+                    <button
+                        onClick={async () => {
+                            await authClient.signOut();
+                            window.location.href = "/";
+                        }}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-red-400 hover:bg-red-500/5 transition-all cursor-pointer"
+                    >
+                        <LogOut className="w-4 h-4" />
+                        Sign Out
+                    </button>
                 </div>
+
+                {user && (
+                    <div className="border-t border-white/5 pt-4 mt-4 px-2">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-[#256af4] flex items-center justify-center text-xs font-bold">
+                                {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || "U"}
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-xs font-medium truncate">{user.name || "User"}</p>
+                                <p className="text-[10px] text-gray-500 truncate">{user.email}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </aside>
 
             {/* Main Content */}

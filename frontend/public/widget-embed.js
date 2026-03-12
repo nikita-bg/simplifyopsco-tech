@@ -16,7 +16,7 @@
   const SCRIPT_TAG = document.currentScript;
   const STORE_ID = SCRIPT_TAG?.getAttribute("data-store-id") || "";
   const API_BASE =
-    SCRIPT_TAG?.getAttribute("data-api-url") || "https://ai-voice-shopping-assistant-production.up.railway.app";
+    SCRIPT_TAG?.getAttribute("data-api-url") || "https://api.simplifyopsco.tech";
   const WIDGET_COLOR =
     SCRIPT_TAG?.getAttribute("data-color") || "#6366f1";
   const WIDGET_POSITION =

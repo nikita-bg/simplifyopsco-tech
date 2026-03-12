@@ -33,6 +33,11 @@ from backend.security_middleware import (  # type: ignore[import]
     sanitize_input,
     SecurityLogger,
 )
+from backend.stripe_service import (  # type: ignore[import]
+    create_checkout_session,
+    create_portal_session,
+    handle_webhook_event,
+)
 
 
 # ===========================
@@ -98,6 +103,30 @@ async def root():
         "version": "1.0.0",
         "database": "connected" if db.pool else "disconnected",
     }
+
+
+@app.get("/health")
+async def health_check():
+    """
+    Health check endpoint for Railway monitoring.
+    Returns 200 if service is healthy, 503 if unhealthy.
+    """
+    is_healthy = db.pool is not None
+
+    health_status = {
+        "status": "healthy" if is_healthy else "unhealthy",
+        "service": "AI Voice Shopping Assistant API",
+        "version": "1.0.0",
+        "checks": {
+            "database": "connected" if db.pool else "disconnected",
+            "environment": settings.ENVIRONMENT,
+        }
+    }
+
+    if not is_healthy:
+        return JSONResponse(content=health_status, status_code=503)
+
+    return health_status
 
 
 # ===========================
@@ -508,6 +537,30 @@ async def get_dashboard_stats_global():
         }
     try:
         total = await db.fetchval("SELECT COUNT(*) FROM conversations") or 0
+
+        # Calculate real avg lead score from purchase_intent sentiment
+        avg_score_raw = await db.fetchval(
+            """SELECT AVG(
+                CASE sentiment
+                    WHEN 'Very Positive' THEN 9.0
+                    WHEN 'Positive' THEN 7.0
+                    WHEN 'Neutral' THEN 5.0
+                    WHEN 'Negative' THEN 3.0
+                    ELSE 5.0
+                END
+            ) FROM conversations"""
+        ) or 0
+
+        # Calculate real conversion rate from cart_actions
+        cart_count = await db.fetchval(
+            "SELECT COUNT(*) FROM conversations WHERE cart_actions != '[]'::jsonb"
+        ) or 0
+        if total > 0:
+            conversion_rate_raw: float = (float(cart_count) / float(total)) * 100.0
+            conversion_rate = round(conversion_rate_raw, 1)
+        else:
+            conversion_rate = 0.0
+
         recent_rows = await db.fetch(
             "SELECT session_id, started_at, duration_seconds, sentiment FROM conversations ORDER BY started_at DESC LIMIT 5"
         ) or []
@@ -544,8 +597,8 @@ async def get_dashboard_stats_global():
             })
         return {
             "total_calls": int(total),
-            "avg_lead_score": 7.4,
-            "conversion_rate": 12.3,
+            "avg_lead_score": round(float(avg_score_raw), 1),
+            "conversion_rate": conversion_rate,
             "call_data": call_data,
             "intent_data": intent_data,
             "recent_conversations": recent_conversations,
@@ -556,6 +609,142 @@ async def get_dashboard_stats_global():
             "total_calls": 0, "avg_lead_score": 0, "conversion_rate": 0,
             "call_data": [{"name": d, "calls": 0} for d in ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]],
             "intent_data": [], "recent_conversations": [],
+        }
+
+
+# ===========================
+# Conversations & Reports
+# ===========================
+
+@app.get("/api/conversations")
+async def get_conversations():
+    """
+    Get all conversations with details for the Conversations page.
+    """
+    if not db.pool:
+        return {"conversations": []}
+
+    try:
+        rows = await db.fetch(
+            """SELECT id, session_id, transcript, intent, sentiment,
+                      products_discussed, cart_actions, started_at, customer_id
+               FROM conversations
+               ORDER BY started_at DESC
+               LIMIT 100"""
+        )
+
+        conversations = []
+        for r in rows:
+            conversations.append({
+                "id": str(r["id"]),
+                "session_id": str(r["session_id"]),
+                "transcript": r["transcript"] or "",
+                "intent": r["intent"] or "Unknown",
+                "sentiment": r["sentiment"] or "Neutral",
+                "products_discussed": r["products_discussed"] if r["products_discussed"] else [],
+                "cart_actions": len(r["cart_actions"]) if r["cart_actions"] else 0,
+                "started_at": r["started_at"].isoformat() if r["started_at"] else "",
+                "customer_id": r["customer_id"],
+            })
+
+        return {"conversations": conversations}
+    except Exception as e:
+        SecurityLogger.log(f"Conversations fetch error: {e}", "ERROR")
+        return {"conversations": []}
+
+
+@app.get("/api/reports/sentiment")
+async def get_sentiment_report():
+    """
+    Get sentiment distribution for Reports page.
+    """
+    if not db.pool:
+        return {"sentiment_distribution": []}
+
+    try:
+        rows = await db.fetch(
+            """SELECT sentiment, COUNT(*) as count
+               FROM conversations
+               WHERE sentiment IS NOT NULL
+               GROUP BY sentiment
+               ORDER BY count DESC"""
+        )
+
+        sentiment_distribution = [
+            {"sentiment": r["sentiment"], "count": int(r["count"])}
+            for r in rows
+        ]
+
+        return {"sentiment_distribution": sentiment_distribution}
+    except Exception as e:
+        SecurityLogger.log(f"Sentiment report error: {e}", "ERROR")
+        return {"sentiment_distribution": []}
+
+
+@app.get("/api/dashboard-stats")
+async def get_dashboard_stats_simple():
+    """
+    Simplified dashboard stats endpoint for frontend.
+    Returns aggregated metrics matching DashboardStats interface.
+    """
+    if not db.pool:
+        return {
+            "total_conversations": 0,
+            "avg_lead_score": 0.0,
+            "conversion_rate": 0.0,
+            "top_intents": [],
+        }
+
+    try:
+        total = await db.fetchval("SELECT COUNT(*) FROM conversations") or 0
+
+        # Calculate real avg lead score from sentiment
+        avg_score_raw = await db.fetchval(
+            """SELECT AVG(
+                CASE sentiment
+                    WHEN 'Very Positive' THEN 9.0
+                    WHEN 'Positive' THEN 7.0
+                    WHEN 'Neutral' THEN 5.0
+                    WHEN 'Negative' THEN 3.0
+                    ELSE 5.0
+                END
+            ) FROM conversations"""
+        ) or 0
+
+        # Calculate real conversion rate from cart_actions
+        cart_count = await db.fetchval(
+            "SELECT COUNT(*) FROM conversations WHERE cart_actions != '[]'::jsonb"
+        ) or 0
+        conversion_rate = round(float(cart_count / total * 100), 1) if total > 0 else 0.0
+
+        # Top intents
+        intent_rows = await db.fetch(
+            """SELECT intent, COUNT(*) as count
+               FROM conversations
+               WHERE intent IS NOT NULL
+               GROUP BY intent
+               ORDER BY count DESC
+               LIMIT 5"""
+        )
+
+        top_intents = [
+            {"intent": r["intent"], "count": int(r["count"])}
+            for r in intent_rows
+        ]
+
+        return {
+            "total_conversations": int(total),
+            "avg_lead_score": round(float(avg_score_raw), 1),
+            "conversion_rate": conversion_rate,
+            "top_intents": top_intents,
+        }
+    except Exception as e:
+        SecurityLogger.log(f"Dashboard stats error: {e}", "ERROR")
+        return {
+            "total_conversations": 0,
+            "avg_lead_score": 0.0,
+            "conversion_rate": 0.0,
+            "top_intents": [],
         }
 
 
@@ -632,6 +821,81 @@ async def get_install_info(store_id: str):
 
 
 # ===========================
+# Stripe Payments
+# ===========================
+
+@app.post("/api/stripe/checkout")
+async def stripe_checkout(request: Request):
+    """Create a Stripe Checkout session for subscription"""
+    body = await request.body()
+    data = json.loads(body) if body else {}
+    store_id = data.get("store_id", "")
+    plan = data.get("plan", "starter")
+
+    if not store_id:
+        raise HTTPException(400, "store_id is required")
+    if plan not in ("starter", "pro"):
+        raise HTTPException(400, "Invalid plan. Must be 'starter' or 'pro'")
+
+    frontend_url = settings.FRONTEND_URL.rstrip("/")
+    checkout_url = await create_checkout_session(
+        store_id=store_id,
+        plan=plan,
+        success_url=f"{frontend_url}/dashboard?payment=success",
+        cancel_url=f"{frontend_url}/pricing?payment=cancelled",
+    )
+
+    if not checkout_url:
+        raise HTTPException(500, "Failed to create checkout session. Stripe may not be configured.")
+
+    return {"checkout_url": checkout_url}
+
+
+@app.post("/api/stripe/portal")
+async def stripe_portal(request: Request):
+    """Create a Stripe Customer Portal session"""
+    body = await request.body()
+    data = json.loads(body) if body else {}
+    store_id = data.get("store_id", "")
+
+    if not store_id:
+        raise HTTPException(400, "store_id is required")
+
+    frontend_url = settings.FRONTEND_URL.rstrip("/")
+    portal_url = await create_portal_session(
+        store_id=store_id,
+        return_url=f"{frontend_url}/dashboard",
+    )
+
+    if not portal_url:
+        raise HTTPException(500, "Failed to create portal session")
+
+    return {"portal_url": portal_url}
+
+
+@app.post("/api/stripe/webhook")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhook events"""
+    payload = await request.body()
+    sig_header = request.headers.get("Stripe-Signature", "")
+
+    success = await handle_webhook_event(payload, sig_header)
+    if not success:
+        raise HTTPException(400, "Webhook processing failed")
+
+    return {"received": True}
+
+
+@app.get("/api/stripe/config")
+async def stripe_config():
+    """Return Stripe publishable key for frontend"""
+    return {
+        "publishable_key": settings.STRIPE_PUBLISHABLE_KEY or "",
+        "has_stripe": bool(settings.STRIPE_SECRET_KEY),
+    }
+
+
+# ===========================
 # GDPR Mandatory Endpoints
 # ===========================
 
@@ -649,6 +913,39 @@ async def gdpr_unified(request: Request):
 
     if topic == "customers/data_request":
         SecurityLogger.log(f"GDPR data request for shop: {shop_domain}", "INFO")
+        # Return customer data for GDPR compliance
+        if db.pool:
+            customer = data.get("customer", {})
+            customer_id = str(customer.get("id", ""))
+            if customer_id:
+                conversations = await db.fetch(
+                    """SELECT id, session_id, transcript, intent, sentiment,
+                              products_discussed, cart_actions, started_at
+                       FROM conversations
+                       WHERE store_id = (SELECT id FROM stores WHERE shop_domain = $1)
+                       AND customer_id = $2
+                       ORDER BY started_at DESC""",
+                    shop_domain, customer_id,
+                )
+                customer_data = {
+                    "customer_id": customer_id,
+                    "shop_domain": shop_domain,
+                    "conversations": [
+                        {
+                            "id": str(c["id"]),
+                            "session_id": c["session_id"],
+                            "transcript": c["transcript"],
+                            "intent": c["intent"],
+                            "sentiment": c["sentiment"],
+                            "products_discussed": json.loads(c["products_discussed"] or "[]"),
+                            "cart_actions": json.loads(c["cart_actions"] or "[]"),
+                            "date": c["started_at"].isoformat() if c["started_at"] else None,
+                        }
+                        for c in conversations
+                    ],
+                }
+                return {"customer_data": customer_data}
+        return {"customer_data": {}}
 
     elif topic == "customers/redact":
         if db.pool:
