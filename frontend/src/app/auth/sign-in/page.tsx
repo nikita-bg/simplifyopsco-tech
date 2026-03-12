@@ -18,8 +18,7 @@ export default function SignInPage() {
 
       <div className="w-full max-w-md">
         <AuthView
-          authClient={authClient}
-          view="sign-in"
+          view="SIGN_IN"
           redirectTo="/dashboard"
         />
       </div>

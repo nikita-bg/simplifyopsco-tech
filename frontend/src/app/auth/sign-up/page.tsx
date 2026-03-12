@@ -18,8 +18,7 @@ export default function SignUpPage() {
 
       <div className="w-full max-w-md">
         <AuthView
-          authClient={authClient}
-          view="sign-up"
+          view="SIGN_UP"
           redirectTo="/dashboard"
         />
       </div>
