@@ -78,8 +78,8 @@ After creation, copy `whsec_...` and add as `STRIPE_WEBHOOK_SECRET` to Railway.
 2. Identify root cause of timeout (likely missing env vars or build failure)
 3. Ensure these variables are set:
    ```
-   SHOPIFY_API_KEY=9db2313a78585eb57a2cc2b321919b41
-   SHOPIFY_API_SECRET=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
+   SHOPIFY_API_KEY=<from Shopify Partners dashboard>
+   SHOPIFY_API_SECRET=<from Shopify Partners dashboard>
    SCOPES=read_products,read_orders,read_customers
    HOST=https://shopify.simplifyopsco.tech
    DATABASE_URL=<same Neon connection string>
