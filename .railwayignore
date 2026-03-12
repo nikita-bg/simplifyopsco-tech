@@ -1,0 +1,10 @@
+.env
+.env.local
+.env.production
+.env.*.local
+RAILWAY_ENV_VALUES.txt
+*.secret
+node_modules/
+ai-voice-shopping-assistant/node_modules/
+frontend/node_modules/
+.git/
