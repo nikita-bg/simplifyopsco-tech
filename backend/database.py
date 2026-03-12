@@ -21,18 +21,15 @@ class Database:
             return
 
         try:
-            # Strip sslmode from DSN — asyncpg 0.30+ requires ssl passed separately
-            import ssl as ssl_module
+            # Strip sslmode and other unsupported params — asyncpg 0.31 requires ssl=True
             import re
             dsn = re.sub(r'[?&]sslmode=[^&]*', '', settings.DATABASE_URL)
             dsn = re.sub(r'[?&]channel_binding=[^&]*', '', dsn)
-            ssl_ctx = ssl_module.create_default_context()
-            ssl_ctx.check_hostname = False
-            ssl_ctx.verify_mode = ssl_module.CERT_NONE
+            dsn = re.sub(r'\?$', '', dsn)  # strip trailing ? if no other params remain
 
             self.pool = await asyncpg.create_pool(
                 dsn=dsn,
-                ssl=ssl_ctx,
+                ssl=True,
                 min_size=2,
                 max_size=10,
                 command_timeout=30,
