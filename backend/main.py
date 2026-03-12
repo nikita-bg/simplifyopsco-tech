@@ -71,7 +71,7 @@ async def lifespan(app: FastAPI):  # type: ignore[no-untyped-def]
 app = FastAPI(
     title="AI Voice Shopping Assistant API",
     description="Intelligent voice-powered sales agent for Shopify stores",
-    version="1.0.0",
+    version="1.0.1",
     lifespan=lifespan,
 )
 
@@ -100,7 +100,7 @@ async def root():
     return {
         "service": "AI Voice Shopping Assistant",
         "status": "running",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "database": "connected" if db.pool else "disconnected",
     }
 
@@ -116,7 +116,7 @@ async def health_check():
     health_status = {
         "status": "healthy" if is_healthy else "unhealthy",
         "service": "AI Voice Shopping Assistant API",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "checks": {
             "database": "connected" if db.pool else "disconnected",
             "environment": settings.ENVIRONMENT,
