@@ -21,9 +21,18 @@ class Database:
             return
 
         try:
-            # Use pooled connection string (Neon -pooler suffix)
+            # Strip sslmode from DSN — asyncpg 0.30+ requires ssl passed separately
+            import ssl as ssl_module
+            import re
+            dsn = re.sub(r'[?&]sslmode=[^&]*', '', settings.DATABASE_URL)
+            dsn = re.sub(r'[?&]channel_binding=[^&]*', '', dsn)
+            ssl_ctx = ssl_module.create_default_context()
+            ssl_ctx.check_hostname = False
+            ssl_ctx.verify_mode = ssl_module.CERT_NONE
+
             self.pool = await asyncpg.create_pool(
-                dsn=settings.DATABASE_URL,
+                dsn=dsn,
+                ssl=ssl_ctx,
                 min_size=2,
                 max_size=10,
                 command_timeout=30,
