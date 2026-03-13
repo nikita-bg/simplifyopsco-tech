@@ -1,51 +1,71 @@
 """
-Authentication Middleware — Validates Neon Auth sessions server-side
+Authentication Middleware — Validates Supabase Auth JWT tokens server-side
 """
 import time
 from typing import Optional
-from fastapi import Request, HTTPException, Depends  # type: ignore[import-not-found]
+from fastapi import Request, HTTPException  # type: ignore[import-not-found]
+
+import httpx  # type: ignore[import-not-found]
 
 from backend.config import settings  # type: ignore[import]
 from backend.database import db  # type: ignore[import]
 from backend.security_middleware import SecurityLogger  # type: ignore[import]
 
-# Simple in-memory session cache (TTL-based)
-_session_cache: dict[str, tuple[str, float]] = {}  # cookie -> (user_id, expiry)
+# Supabase project URL for auth verification
+SUPABASE_URL = getattr(settings, "SUPABASE_URL", None) or "https://rhwgjtawyxwqaippjxlj.supabase.co"
+SUPABASE_ANON_KEY = getattr(settings, "SUPABASE_ANON_KEY", None) or ""
+
+# Simple in-memory cache (TTL-based)
+_session_cache: dict[str, tuple[str, float]] = {}  # token -> (user_id, expiry)
 _CACHE_TTL = 300  # 5 minutes
 
 
 async def get_authenticated_user(request: Request) -> str:
     """
-    FastAPI dependency: extract and validate user from session cookie.
+    FastAPI dependency: extract and validate Supabase JWT token.
     Returns the authenticated user_id or raises 401.
     """
-    # Try cookie first, then Authorization header
-    session_cookie = request.cookies.get("__session") or request.cookies.get("better-auth.session_token")
+    # Get token from Authorization header or Supabase cookies
+    token: Optional[str] = None
 
-    if not session_cookie:
-        # Fallback: check Authorization header (for API clients)
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            session_cookie = auth_header[7:]
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:]
 
-    if not session_cookie:
+    if not token:
+        # Supabase stores auth in sb-<ref>-auth-token cookie
+        for name, value in request.cookies.items():
+            if "auth-token" in name:
+                # Cookie value may be JSON-encoded; extract access_token
+                try:
+                    import json
+                    data = json.loads(str(value))
+                    if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
+                        token = str(data[0].get("access_token", "")) or None
+                    elif isinstance(data, dict):
+                        token = str(data.get("access_token", "")) or None
+                except (json.JSONDecodeError, TypeError):
+                    token = str(value)
+                if token:
+                    break
+
+    if not token:
         raise HTTPException(status_code=401, detail="Authentication required")
 
     # Check cache
     now = time.time()
-    cached = _session_cache.get(session_cookie)
+    cached = _session_cache.get(token)
     if cached and cached[1] > now:
         return cached[0]
 
-    # Validate session against database
-    # Neon Auth / better-auth stores sessions in a `session` table
-    user_id = await _validate_session(session_cookie)
+    # Validate JWT via Supabase Auth API
+    user_id = await _validate_supabase_token(token)
 
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid or expired session")
 
     # Cache the result
-    _session_cache[session_cookie] = (user_id, now + _CACHE_TTL)
+    _session_cache[token] = (user_id, now + _CACHE_TTL)
 
     # Periodically clean cache
     if len(_session_cache) > 1000:
@@ -54,42 +74,23 @@ async def get_authenticated_user(request: Request) -> str:
     return user_id
 
 
-async def _validate_session(session_token: str) -> Optional[str]:
-    """Validate session token against the database session table."""
-    if not db.pool:
-        return None
-
+async def _validate_supabase_token(access_token: str) -> Optional[str]:
+    """Validate Supabase JWT by calling /auth/v1/user endpoint."""
     try:
-        # better-auth stores sessions in a "session" table
-        # The token format may be "token" or "token.signature"
-        token = session_token.split(".")[0] if "." in session_token else session_token
-
-        row = await db.fetchrow(
-            """SELECT "userId", "expiresAt"
-               FROM neon_auth."session"
-               WHERE "token" = $1""",
-            token,
-        )
-
-        if not row:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                f"{SUPABASE_URL}/auth/v1/user",
+                headers={
+                    "Authorization": f"Bearer {access_token}",
+                    "apikey": SUPABASE_ANON_KEY,
+                },
+            )
+            if response.status_code == 200:
+                data = response.json()
+                return data.get("id")
             return None
-
-        # Check expiry
-        expires_at = row["expiresAt"]
-        if expires_at:
-            from datetime import datetime, timezone
-            if isinstance(expires_at, datetime):
-                if expires_at.tzinfo is None:
-                    # Assume UTC
-                    if expires_at < datetime.utcnow():
-                        return None
-                else:
-                    if expires_at < datetime.now(timezone.utc):
-                        return None
-
-        return str(row["userId"])
     except Exception as e:
-        SecurityLogger.log(f"Session validation error: {e}", "WARNING")
+        SecurityLogger.log(f"Supabase token validation error: {e}", "WARNING")
         return None
 
 

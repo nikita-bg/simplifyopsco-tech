@@ -1,13 +1,25 @@
 export const dynamic = "force-dynamic";
 
-import { getAuth } from "@/lib/auth/server";
+import { createSupabaseServer } from "@/lib/supabase/server";
+import { NextResponse } from "next/server";
 
-type RouteContext = { params: Promise<{ path: string[] }> };
+export async function GET() {
+  const supabase = await createSupabaseServer();
+  const { data: { user } } = await supabase.auth.getUser();
 
-export async function GET(request: Request, context: RouteContext) {
-  return getAuth().handler().GET(request, context);
+  if (!user) {
+    return NextResponse.json({ user: null }, { status: 401 });
+  }
+
+  return NextResponse.json({
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.full_name || null,
+    },
+  });
 }
 
-export async function POST(request: Request, context: RouteContext) {
-  return getAuth().handler().POST(request, context);
+export async function POST() {
+  return NextResponse.json({ error: "Not implemented" }, { status: 404 });
 }

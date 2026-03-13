@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     STRIPE_PRO_PRICE_ID: Optional[str] = None  # Used for Growth plan
     STRIPE_SCALE_PRICE_ID: Optional[str] = None
 
+    # Supabase Auth
+    SUPABASE_URL: Optional[str] = None
+    SUPABASE_ANON_KEY: Optional[str] = None
+
     # Production settings
     ENVIRONMENT: str = "development"  # development, staging, production
 

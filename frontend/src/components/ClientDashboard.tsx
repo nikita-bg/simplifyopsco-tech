@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { authClient } from "@/lib/auth/client";
+import { createSupabaseBrowser } from "@/lib/supabase/client";
 import { LogOut } from "lucide-react";
 
 const INTENT_COLORS = ["#3b82f6", "#8b5cf6", "#10b981", "#f59e0b", "#ef4444"];
@@ -150,7 +150,8 @@ export function ClientDashboard({ user, storeId }: { user?: UserInfo; storeId: s
                     ))}
                     <button
                         onClick={async () => {
-                            await authClient.signOut();
+                            const supabase = createSupabaseBrowser();
+                            await supabase.auth.signOut();
                             window.location.href = "/";
                         }}
                         className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-red-400 hover:bg-red-500/5 transition-all cursor-pointer"
