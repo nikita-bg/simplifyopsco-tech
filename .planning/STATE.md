@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-03-13T20:51:34.000Z"
-last_activity: 2026-03-13 — Completed 03-01 (Widget Config Endpoint)
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-03-13T21:00:13.059Z"
+last_activity: 2026-03-13 — Completed 03-02 (Widget Embed Refactor)
 progress:
   total_phases: 10
-  completed_phases: 2
-  total_plans: 8
-  completed_plans: 6
-  percent: 75
+  completed_phases: 3
+  total_plans: 9
+  completed_plans: 7
+  percent: 78
 ---
 
 # Project State
@@ -21,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-13)
 
 **Core value:** Any merchant can have a working, personalized AI voice sales assistant live on their website in under 10 minutes — no code, no technical help needed.
-**Current focus:** Phase 3 - Widget (IN PROGRESS)
+**Current focus:** Phase 3 - Widget (COMPLETE)
 
 ## Current Position
 
-Phase: 3 of 10 (Widget)
-Plan: 1 of 2 in current phase (03-01 complete)
+Phase: 3 of 10 (Widget) - COMPLETE
+Plan: 2 of 2 in current phase (03-02 complete)
 Status: Executing
-Last activity: 2026-03-13 — Completed 03-01 (Widget Config Endpoint)
+Last activity: 2026-03-13 — Completed 03-02 (Widget Embed Refactor)
 
-Progress: [████████░░] 75%
+Progress: [████████░░] 78%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 4.2min
-- Total execution time: 0.42 hours
+- Total plans completed: 7
+- Average duration: 4.1min
+- Total execution time: 0.48 hours
 
 **By Phase:**
 
@@ -49,9 +49,10 @@ Progress: [████████░░] 75%
 | Phase 02 | P02 | 5min | 2 | 2 |
 | Phase 02 | P03 | 3min | 3 | 2 |
 | Phase 03 | P01 | 3min | 2 | 3 |
+| Phase 03 | P02 | 4min | 2 | 1 |
 
 **Recent Trend:**
-- Last 5 plans: 5min, 7min, 5min, 3min, 3min
+- Last 5 plans: 7min, 5min, 3min, 3min, 4min
 - Trend: Steady
 
 *Updated after each plan completion*
@@ -86,6 +87,9 @@ Recent decisions affecting current work:
 - [Phase 03]: Per-endpoint wildcard CORS via Response.headers (preserves allow_credentials on dashboard)
 - [Phase 03]: Default widget color #256af4 (project primary) not legacy #6366f1
 - [Phase 03]: agent_id security-gated: only exposed when active AND enabled
+- [Phase 03]: CSS custom properties (--avsa-color) replace template literal color injection for runtime theming
+- [Phase 03]: Mic permission errors keep panel open with retry instead of auto-closing
+- [Phase 03]: All widget console.error replaced with console.warn for merchant storefronts
 
 ### Pending Todos
 
@@ -99,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T20:51:34Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-03-13T21:00:13.056Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None

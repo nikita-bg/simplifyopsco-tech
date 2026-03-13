@@ -37,8 +37,8 @@
 - [x] **WDG-02**: Widget fetches config from FastAPI `/api/widget/config` (agent_id, color, position, greeting)
 - [x] **WDG-03**: Widget uses signed URL (from backend) to connect to ElevenLabs WebRTC
 - [x] **WDG-04**: Widget customizable: color, position (4 corners), avatar
-- [ ] **WDG-05**: Microphone permission handling with clear user prompts
-- [ ] **WDG-06**: Mobile-optimized voice UI (iOS Safari audio context handling)
+- [x] **WDG-05**: Microphone permission handling with clear user prompts
+- [x] **WDG-06**: Mobile-optimized voice UI (iOS Safari audio context handling)
 - [x] **WDG-07**: Graceful fallback when agent is disabled or merchant exceeds plan limits
 
 ### Onboarding (ONB)
@@ -176,8 +176,8 @@
 | WDG-02 | Phase 3: Widget | Complete |
 | WDG-03 | Phase 3: Widget | Complete |
 | WDG-04 | Phase 3: Widget | Complete |
-| WDG-05 | Phase 3: Widget | Pending |
-| WDG-06 | Phase 3: Widget | Pending |
+| WDG-05 | Phase 3: Widget | Complete |
+| WDG-06 | Phase 3: Widget | Complete |
 | WDG-07 | Phase 3: Widget | Complete |
 | AUT-01 | Phase 4: Automation | Pending |
 | AUT-02 | Phase 4: Automation | Pending |
