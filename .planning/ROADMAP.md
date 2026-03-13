@@ -48,12 +48,11 @@ Plans:
   3. Agent deletion cleans up both the ElevenLabs resource and the DB record
   4. Each agent type (Online Store, Service Business, Lead Gen) has a pre-configured template with appropriate system prompt, guardrails, and defaults
   5. The Neon DB schema includes agent columns on stores, pgvector extension, agent templates table, and usage tracking columns -- all via additive migrations
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [ ] 01-01-PLAN.md — DB schema migrations, ElevenLabs service module, and Pydantic models
+- [ ] 01-02-PLAN.md — Agent CRUD endpoints, signed URL refactor, and comprehensive tests
 
 ### Phase 2: Knowledge Base
 **Goal**: Every agent knows its merchant's products and can answer product questions accurately
@@ -197,7 +196,7 @@ Note: Phases 6, 7, 8 can potentially run in parallel after their dependencies ar
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 0. Security Lockdown | 2/2 | Complete | 2026-03-13 |
-| 1. Agent Infrastructure | 0/3 | Not started | - |
+| 1. Agent Infrastructure | 0/2 | Planned | - |
 | 2. Knowledge Base | 0/3 | Not started | - |
 | 3. Widget | 0/3 | Not started | - |
 | 4. Automation | 0/2 | Not started | - |
