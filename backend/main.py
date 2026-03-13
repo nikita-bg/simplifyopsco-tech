@@ -29,11 +29,14 @@ from backend.models import (  # type: ignore[import]
     AgentInfo,
     AgentDeleteResponse,
     AgentTemplateInfo,
+    ManualProductCreate,
+    ManualProductUpdate,
 )
 from backend.elevenlabs_service import elevenlabs_service  # type: ignore[import]
 from backend.config import settings  # type: ignore[import]
 from backend.database import db  # type: ignore[import]
 from backend.shopify_service import shopify_service  # type: ignore[import]
+from backend.kb_service import kb_service  # type: ignore[import]
 from backend.recommendation_engine import recommender  # type: ignore[import]
 from backend.security_middleware import (  # type: ignore[import]
     rate_limit_middleware,
@@ -234,6 +237,8 @@ async def shopify_product_webhook(
     background_tasks.add_task(
         shopify_service.handle_product_webhook, store_id, action, product_data
     )
+    # Trigger KB rebuild after product sync (BackgroundTasks run sequentially)
+    background_tasks.add_task(kb_service.trigger_kb_rebuild, store_id)
 
     return {"received": True}
 
@@ -247,6 +252,8 @@ async def trigger_product_sync(store_id: str, background_tasks: BackgroundTasks,
         SecurityLogger.log(f"Product sync complete: {count} products for store {store_id}", "INFO")
 
     background_tasks.add_task(_sync)
+    # Also trigger KB rebuild after product sync
+    background_tasks.add_task(kb_service.trigger_kb_rebuild, store_id)
     return {"message": "Product sync started", "store_id": store_id}
 
 
@@ -801,6 +808,210 @@ async def delete_agent(store_id: str, request: Request):
         deleted=True,
         message="Agent deleted successfully",
     )
+
+
+# ===========================
+# Knowledge Base Management
+# ===========================
+
+
+@app.post("/api/stores/{store_id}/products", status_code=201)
+async def create_manual_product(
+    store_id: str,
+    body: ManualProductCreate,
+    background_tasks: BackgroundTasks,
+    request: Request,
+):
+    """Create a manual (non-Shopify) product for a store."""
+    await require_store_owner(request, store_id)
+
+    # Generate next negative ID for manual products (avoids Shopify BIGINT collision)
+    next_id = await db.fetchval(
+        "SELECT COALESCE(MIN(id), 0) - 1 FROM products WHERE store_id = $1::uuid AND source = 'manual'",
+        store_id,
+    )
+
+    # Insert the manual product
+    await db.execute(
+        """INSERT INTO products (id, store_id, title, description, price_min, price_max, source, product_url)
+           VALUES ($1, $2::uuid, $3, $4, $5, $5, 'manual', $6)""",
+        next_id, store_id, body.title, body.description, body.price, body.product_url,
+    )
+
+    # Fetch the inserted product for response
+    product = await db.fetchrow(
+        "SELECT id, store_id, title, description, price_min, price_max, source, product_url FROM products WHERE id = $1 AND store_id = $2::uuid",
+        next_id, store_id,
+    )
+
+    # Trigger KB rebuild in background
+    background_tasks.add_task(kb_service.trigger_kb_rebuild, store_id)
+
+    return {
+        "id": product["id"] if product else next_id,
+        "store_id": str(product["store_id"]) if product else store_id,
+        "title": product["title"] if product else body.title,
+        "description": product["description"] if product else body.description,
+        "price_min": float(product["price_min"]) if product else body.price,
+        "price_max": float(product["price_max"]) if product else body.price,
+        "source": "manual",
+        "product_url": product["product_url"] if product else body.product_url,
+    }
+
+
+@app.put("/api/stores/{store_id}/products/{product_id}")
+async def update_manual_product(
+    store_id: str,
+    product_id: int,
+    body: ManualProductUpdate,
+    background_tasks: BackgroundTasks,
+    request: Request,
+):
+    """Update a manual product. Only source='manual' products can be edited."""
+    await require_store_owner(request, store_id)
+
+    # Verify product exists and is manual
+    product = await db.fetchrow(
+        "SELECT id, store_id, source, title, description, price_min, price_max, product_url FROM products WHERE id = $1 AND store_id = $2::uuid",
+        product_id, store_id,
+    )
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    if product["source"] != "manual":
+        raise HTTPException(status_code=403, detail="Only manual products can be edited")
+
+    # Build UPDATE for non-None fields
+    updates = []
+    params: list = []
+    param_idx = 1
+
+    if body.title is not None:
+        updates.append(f"title = ${param_idx}")
+        params.append(body.title)
+        param_idx += 1
+    if body.description is not None:
+        updates.append(f"description = ${param_idx}")
+        params.append(body.description)
+        param_idx += 1
+    if body.price is not None:
+        updates.append(f"price_min = ${param_idx}")
+        params.append(body.price)
+        param_idx += 1
+        updates.append(f"price_max = ${param_idx}")
+        params.append(body.price)
+        param_idx += 1
+    if body.product_url is not None:
+        updates.append(f"product_url = ${param_idx}")
+        params.append(body.product_url)
+        param_idx += 1
+
+    if updates:
+        params.append(product_id)
+        params.append(store_id)
+        sql = f"UPDATE products SET {', '.join(updates)} WHERE id = ${param_idx} AND store_id = ${param_idx + 1}::uuid"
+        await db.execute(sql, *params)
+
+    # Trigger KB rebuild
+    background_tasks.add_task(kb_service.trigger_kb_rebuild, store_id)
+
+    # Return updated product data
+    return {
+        "id": product_id,
+        "store_id": store_id,
+        "title": body.title if body.title is not None else product["title"],
+        "description": body.description if body.description is not None else product["description"],
+        "price_min": body.price if body.price is not None else float(product["price_min"]),
+        "price_max": body.price if body.price is not None else float(product["price_max"]),
+        "source": "manual",
+        "product_url": body.product_url if body.product_url is not None else product["product_url"],
+    }
+
+
+@app.delete("/api/stores/{store_id}/products/{product_id}")
+async def delete_manual_product(
+    store_id: str,
+    product_id: int,
+    background_tasks: BackgroundTasks,
+    request: Request,
+):
+    """Delete a manual product. Only source='manual' products can be deleted."""
+    await require_store_owner(request, store_id)
+
+    # Verify product exists and is manual
+    product = await db.fetchrow(
+        "SELECT id, source FROM products WHERE id = $1 AND store_id = $2::uuid",
+        product_id, store_id,
+    )
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    if product["source"] != "manual":
+        raise HTTPException(status_code=403, detail="Only manual products can be deleted")
+
+    await db.execute(
+        "DELETE FROM products WHERE id = $1 AND store_id = $2::uuid",
+        product_id, store_id,
+    )
+
+    # Trigger KB rebuild
+    background_tasks.add_task(kb_service.trigger_kb_rebuild, store_id)
+
+    return {"deleted": True, "product_id": product_id}
+
+
+@app.get("/api/stores/{store_id}/kb/status")
+async def get_kb_sync_status(store_id: str, request: Request):
+    """Get knowledge base sync status for a store."""
+    await require_store_owner(request, store_id)
+
+    row = await db.fetchrow(
+        """SELECT kb_sync_status, kb_last_synced, kb_product_count,
+                  kb_char_count, kb_doc_id
+           FROM stores WHERE id = $1::uuid""",
+        store_id,
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    char_count = int(row["kb_char_count"] or 0)
+    char_limit = 300000
+    warning_threshold = 240000
+
+    return {
+        "store_id": store_id,
+        "kb_sync_status": row["kb_sync_status"] or "none",
+        "kb_last_synced": str(row["kb_last_synced"]) if row["kb_last_synced"] else None,
+        "kb_product_count": int(row["kb_product_count"] or 0),
+        "kb_char_count": char_count,
+        "kb_doc_id": row["kb_doc_id"],
+        "char_limit": char_limit,
+        "warning_threshold": warning_threshold,
+        "is_warning": char_count >= warning_threshold,
+    }
+
+
+@app.post("/api/stores/{store_id}/kb/sync", status_code=202)
+async def kb_sync_now(
+    store_id: str,
+    background_tasks: BackgroundTasks,
+    request: Request,
+):
+    """Trigger an immediate KB rebuild for a store."""
+    await require_store_owner(request, store_id)
+
+    # Check store has an agent
+    store = await db.fetchrow(
+        "SELECT elevenlabs_agent_id FROM stores WHERE id = $1::uuid",
+        store_id,
+    )
+    if not store or not store.get("elevenlabs_agent_id"):
+        raise HTTPException(
+            status_code=400,
+            detail="Store has no ElevenLabs agent. Create an agent first.",
+        )
+
+    background_tasks.add_task(kb_service.trigger_kb_rebuild, store_id)
+
+    return {"message": "KB sync started", "store_id": store_id}
 
 
 # ===========================
