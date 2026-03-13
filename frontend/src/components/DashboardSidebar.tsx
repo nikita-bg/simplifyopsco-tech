@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  PieChart, MessageSquare, BarChart3, CreditCard,
+  PieChart, MessageSquare, BarChart3, CreditCard, Database,
   Settings, HelpCircle, LogOut, Mic, Menu, X, ChevronRight,
 } from "lucide-react";
 import { createSupabaseBrowser } from "@/lib/supabase/client";
@@ -12,6 +12,7 @@ import { createSupabaseBrowser } from "@/lib/supabase/client";
 const navItems = [
   { label: "Overview", icon: PieChart, href: "/dashboard" },
   { label: "Conversations", icon: MessageSquare, href: "/dashboard/conversations" },
+  { label: "Knowledge Base", icon: Database, href: "/dashboard/knowledge-base" },
   { label: "Reports", icon: BarChart3, href: "/dashboard/reports" },
   { label: "Billing", icon: CreditCard, href: "/dashboard/billing" },
 ];
