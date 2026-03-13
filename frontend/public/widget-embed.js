@@ -17,21 +17,24 @@
   const STORE_ID = SCRIPT_TAG?.getAttribute("data-store-id") || "";
   const API_BASE =
     SCRIPT_TAG?.getAttribute("data-api-url") || "https://api.simplifyopsco.tech";
-  const WIDGET_COLOR =
-    SCRIPT_TAG?.getAttribute("data-color") || "#6366f1";
   const WIDGET_POSITION =
     SCRIPT_TAG?.getAttribute("data-position") || "bottom-right";
 
-  // ElevenLabs SDK CDN
+  // ElevenLabs SDK CDN (version-pinned)
   const ELEVENLABS_SDK_URL =
-    "https://cdn.jsdelivr.net/npm/@elevenlabs/client@latest/dist/index.umd.js";
+    "https://cdn.jsdelivr.net/npm/@elevenlabs/client@0.15.1/dist/index.umd.js";
 
   // ==============================
-  // Styles
+  // Styles (CSS custom properties for dynamic theming)
   // ==============================
 
   const STYLES = `
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    #avsa-widget-container {
+      --avsa-color: #256af4;
+      --avsa-safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
 
     #avsa-widget-container * {
       margin: 0;
@@ -43,15 +46,15 @@
     /* Floating Button */
     #avsa-trigger-btn {
       position: fixed;
-      ${WIDGET_POSITION === "bottom-left" ? "left: 24px" : "right: 24px"};
-      bottom: 24px;
+      ${WIDGET_POSITION.includes("left") ? "left: 24px" : "right: 24px"};
+      ${WIDGET_POSITION.includes("top") ? "top: 24px" : `bottom: calc(24px + var(--avsa-safe-bottom, 0px))`};
       width: 64px;
       height: 64px;
       border-radius: 50%;
-      background: ${WIDGET_COLOR};
+      background: var(--avsa-color, #256af4);
       border: none;
       cursor: pointer;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25), 0 0 0 0 ${WIDGET_COLOR}40;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25), 0 0 0 0 rgba(37, 106, 244, 0.25);
       z-index: 999999;
       display: flex;
       align-items: center;
@@ -62,7 +65,7 @@
 
     #avsa-trigger-btn:hover {
       transform: scale(1.1);
-      box-shadow: 0 6px 32px rgba(0, 0, 0, 0.3), 0 0 0 8px ${WIDGET_COLOR}20;
+      box-shadow: 0 6px 32px rgba(0, 0, 0, 0.3), 0 0 0 8px rgba(37, 106, 244, 0.12);
     }
 
     #avsa-trigger-btn.active {
@@ -71,8 +74,8 @@
     }
 
     @keyframes avsa-pulse {
-      0%, 100% { box-shadow: 0 4px 24px rgba(0,0,0,0.25), 0 0 0 0 ${WIDGET_COLOR}40; }
-      50% { box-shadow: 0 4px 24px rgba(0,0,0,0.25), 0 0 0 12px ${WIDGET_COLOR}00; }
+      0%, 100% { box-shadow: 0 4px 24px rgba(0,0,0,0.25), 0 0 0 0 rgba(37, 106, 244, 0.25); }
+      50% { box-shadow: 0 4px 24px rgba(0,0,0,0.25), 0 0 0 12px rgba(37, 106, 244, 0); }
     }
 
     #avsa-trigger-btn svg {
@@ -81,11 +84,15 @@
       fill: white;
     }
 
+    /* Top-positioned variants */
+    #avsa-trigger-btn.avsa-top { top: 24px; bottom: unset; }
+    #avsa-panel.avsa-top { top: 100px; bottom: unset; }
+
     /* Voice Panel */
     #avsa-panel {
       position: fixed;
-      ${WIDGET_POSITION === "bottom-left" ? "left: 24px" : "right: 24px"};
-      bottom: 100px;
+      ${WIDGET_POSITION.includes("left") ? "left: 24px" : "right: 24px"};
+      ${WIDGET_POSITION.includes("top") ? "top: 100px" : "bottom: 100px"};
       width: 380px;
       max-height: 560px;
       background: rgba(15, 15, 25, 0.97);
@@ -155,7 +162,7 @@
     .avsa-waveform .bar {
       width: 4px;
       border-radius: 2px;
-      background: ${WIDGET_COLOR};
+      background: var(--avsa-color, #256af4);
       transition: height 0.1s ease;
     }
 
@@ -174,7 +181,7 @@
     }
 
     .avsa-status.listening { color: #22c55e; }
-    .avsa-status.speaking { color: ${WIDGET_COLOR}; }
+    .avsa-status.speaking { color: var(--avsa-color, #256af4); }
     .avsa-status.error { color: #ef4444; }
     .avsa-status.connecting { color: rgba(255,255,255,0.5); }
 
@@ -193,7 +200,7 @@
       color: rgba(255,255,255,0.8);
       font-size: 13px;
       line-height: 1.5;
-      border-left: 3px solid ${WIDGET_COLOR};
+      border-left: 3px solid var(--avsa-color, #256af4);
     }
 
     /* Recommendations Area */
@@ -227,7 +234,7 @@
 
     .avsa-rec-card:hover {
       background: rgba(255, 255, 255, 0.08);
-      border-color: ${WIDGET_COLOR}40;
+      border-color: rgba(37, 106, 244, 0.25);
     }
 
     .avsa-rec-card img {
@@ -256,7 +263,7 @@
     }
 
     .avsa-rec-info .price {
-      color: ${WIDGET_COLOR};
+      color: var(--avsa-color, #256af4);
       font-size: 14px;
       font-weight: 600;
       margin-top: 4px;
@@ -264,7 +271,7 @@
 
     .avsa-add-btn {
       padding: 6px 14px;
-      background: ${WIDGET_COLOR};
+      background: var(--avsa-color, #256af4);
       color: white;
       border: none;
       border-radius: 8px;
@@ -312,8 +319,8 @@
       <div id="avsa-panel">
         <div class="avsa-header">
           <div class="avsa-header-text">
-            <h3>🎙️ Voice Shopping Assistant</h3>
-            <p>Tap to speak — I'll help you find products</p>
+            <h3>Voice Shopping Assistant</h3>
+            <p id="avsa-subtitle">Tap to speak — I'll help you find products</p>
           </div>
           <div class="avsa-powered-by">Powered by<br>ElevenLabs AI</div>
         </div>
@@ -353,69 +360,253 @@
   // ==============================
 
   let conversation = null;   // ElevenLabs Conversation instance
-  let agentId = null;        // Fetched from /api/voice/config
+  let agentId = null;        // Fetched from /api/widget/config
   let isActive = false;
   let animationFrame = null;
   let audioContext = null;
   let analyser = null;
 
   /**
-   * Load ElevenLabs SDK from CDN, then fetch agent config.
+   * Fetch widget config from backend and initialize the widget.
+   * Fetches per-store config from /api/widget/config and initializes the widget.
    */
-  function initElevenLabs() {
-    // Fetch agent ID from our backend (keeps it out of client-side code)
-    fetch(`${API_BASE}/api/voice/config?store_id=${STORE_ID}`)
-      .then((r) => r.json())
-      .then((cfg) => {
-        agentId = cfg.agent_id || null;
-        if (!agentId) {
-          console.warn("[AVSA] ElevenLabs Agent ID not configured. Voice AI disabled.");
-          return;
+  async function initWidget() {
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/widget/config?store_id=${encodeURIComponent(STORE_ID)}`
+      );
+
+      if (!res.ok) {
+        console.warn("[AVSA] Widget config returned non-200:", res.status);
+        showFallbackState("default");
+        return;
+      }
+
+      const cfg = await res.json();
+
+      // Apply dynamic visual config (color, position)
+      applyWidgetConfig(cfg);
+
+      // Check if agent is available
+      if (!cfg.enabled || !cfg.has_agent) {
+        showFallbackState(
+          cfg.status === "active" ? "disabled" : "not_configured"
+        );
+        return;
+      }
+
+      // Store agent ID for voice sessions
+      agentId = cfg.agent_id;
+
+      // Apply greeting message if provided
+      if (cfg.greeting_message) {
+        const subtitle = document.getElementById("avsa-subtitle");
+        if (subtitle) {
+          subtitle.textContent = cfg.greeting_message;
         }
-        // Dynamically load the ElevenLabs SDK
-        const script = document.createElement("script");
-        script.src = ELEVENLABS_SDK_URL;
-        script.onload = () => {
-          console.log("[AVSA] ElevenLabs SDK loaded. Agent ID:", agentId);
-        };
-        script.onerror = () => {
-          console.error("[AVSA] Failed to load ElevenLabs SDK from CDN.");
-        };
-        document.head.appendChild(script);
-      })
-      .catch((err) => {
-        console.warn("[AVSA] Could not fetch voice config:", err);
-      });
+      }
+
+      // Dynamically load the ElevenLabs SDK
+      const script = document.createElement("script");
+      script.src = ELEVENLABS_SDK_URL;
+      script.onload = () => {
+        console.log("[AVSA] Widget initialized. ElevenLabs SDK loaded.");
+      };
+      script.onerror = () => {
+        console.warn("[AVSA] Failed to load ElevenLabs SDK from CDN.");
+      };
+      document.head.appendChild(script);
+    } catch (err) {
+      console.warn("[AVSA] Could not fetch widget config:", err);
+      showFallbackState("default");
+    }
+  }
+
+  /**
+   * Apply widget visual config from backend response.
+   * Updates CSS custom properties and positioning dynamically.
+   * Supports all 4 corner positions: bottom-right, bottom-left, top-right, top-left.
+   */
+  function applyWidgetConfig(cfg) {
+    const container = document.getElementById("avsa-widget-container");
+    const btn = document.getElementById("avsa-trigger-btn");
+    const panel = document.getElementById("avsa-panel");
+
+    if (!container) return;
+
+    // Set CSS custom property for dynamic color
+    if (cfg.widget_color) {
+      container.style.setProperty("--avsa-color", cfg.widget_color);
+    }
+
+    // Reposition based on cfg.widget_position
+    const pos = cfg.widget_position || "bottom-right";
+
+    if (btn) {
+      // Horizontal position
+      if (pos.includes("left")) {
+        btn.style.left = "24px";
+        btn.style.right = "unset";
+      } else {
+        btn.style.right = "24px";
+        btn.style.left = "unset";
+      }
+
+      // Vertical position
+      if (pos.includes("top")) {
+        btn.style.top = "24px";
+        btn.style.bottom = "unset";
+        btn.classList.add("avsa-top");
+      } else {
+        btn.style.bottom = "calc(24px + var(--avsa-safe-bottom, 0px))";
+        btn.style.top = "unset";
+        btn.classList.remove("avsa-top");
+      }
+    }
+
+    if (panel) {
+      // Horizontal position
+      if (pos.includes("left")) {
+        panel.style.left = "24px";
+        panel.style.right = "unset";
+      } else {
+        panel.style.right = "24px";
+        panel.style.left = "unset";
+      }
+
+      // Vertical position
+      if (pos.includes("top")) {
+        panel.style.top = "100px";
+        panel.style.bottom = "unset";
+        panel.classList.add("avsa-top");
+      } else {
+        panel.style.bottom = "100px";
+        panel.style.top = "unset";
+        panel.classList.remove("avsa-top");
+      }
+    }
+  }
+
+  /**
+   * Show graceful fallback state when agent is unavailable.
+   */
+  function showFallbackState(reason) {
+    const btn = document.getElementById("avsa-trigger-btn");
+    const status = document.getElementById("avsa-status");
+
+    // Disable the button visually
+    if (btn) {
+      btn.style.opacity = "0.5";
+      btn.style.cursor = "not-allowed";
+      btn.onclick = null; // Remove click handler
+      btn.setAttribute("aria-label", "Voice assistant unavailable");
+    }
+
+    const messages = {
+      disabled: "Voice assistant is currently disabled",
+      not_configured: "Voice assistant is not set up yet",
+      limit_exceeded: "Voice assistant is temporarily unavailable",
+      default: "Voice assistant is unavailable",
+    };
+
+    // Update status if panel is visible
+    if (status) {
+      status.textContent = messages[reason] || messages.default;
+      status.className = "avsa-status";
+    }
+
+    console.warn("[AVSA] Fallback state:", reason);
   }
 
   async function startElevenLabsConversation() {
     if (!agentId) {
-      updateStatus("⚙️ Voice AI not configured yet", "error");
+      updateStatus("Voice AI not configured yet", "error");
       return;
     }
 
     // Check if SDK is loaded
     const ElevenLabs = window.ElevenLabs || window.ElevenLabsClient;
     if (!ElevenLabs || !ElevenLabs.Conversation) {
-      updateStatus("⏳ Loading voice AI...", "connecting");
+      updateStatus("Loading voice AI...", "connecting");
       // Retry after SDK loads
       setTimeout(startElevenLabsConversation, 1500);
       return;
     }
 
-    updateStatus("🔌 Connecting...", "connecting");
+    updateStatus("Connecting...", "connecting");
 
     try {
-      // Request microphone
-      await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Request microphone with clear status
+      updateStatus("Requesting microphone access...", "connecting");
+
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (micErr) {
+        if (micErr.name === "NotAllowedError") {
+          const status = document.getElementById("avsa-status");
+          if (status) {
+            status.innerHTML =
+              'Microphone access is needed for voice shopping. Please allow microphone access in your browser settings and try again. <span style="text-decoration:underline;cursor:pointer" id="avsa-retry-mic">Try Again</span>';
+            status.className = "avsa-status error";
+
+            // Attach retry handler
+            const retryEl = document.getElementById("avsa-retry-mic");
+            if (retryEl) {
+              retryEl.addEventListener("click", function () {
+                startElevenLabsConversation();
+              });
+            }
+          }
+          // Keep panel open so user can read the message
+          return;
+        } else if (micErr.name === "NotFoundError") {
+          updateStatus(
+            "No microphone found. Please connect a microphone to use voice shopping.",
+            "error"
+          );
+          // Keep panel open
+          return;
+        } else {
+          throw micErr; // Re-throw unexpected mic errors
+        }
+      }
 
       // Fetch a fresh signed URL (15-min TTL) for each conversation
-      const urlRes = await fetch(`${API_BASE}/api/voice/signed-url?store_id=${STORE_ID}`);
-      if (!urlRes.ok) {
-        updateStatus("Voice AI unavailable", "error");
+      let signed_url;
+      try {
+        const urlRes = await fetch(
+          `${API_BASE}/api/voice/signed-url?store_id=${encodeURIComponent(STORE_ID)}`
+        );
+        if (!urlRes.ok) {
+          const errBody = await urlRes.json().catch(() => ({}));
+          const detail = errBody.detail || "";
+
+          if (urlRes.status === 503 && detail.includes("not active")) {
+            showFallbackState("disabled");
+            return;
+          }
+          if (urlRes.status === 503 && detail.includes("not configured")) {
+            showFallbackState("not_configured");
+            return;
+          }
+
+          // Generic non-200
+          updateStatus(
+            "Could not connect to voice assistant. Please try again later.",
+            "error"
+          );
+          return;
+        }
+        const urlData = await urlRes.json();
+        signed_url = urlData.signed_url;
+      } catch (fetchErr) {
+        console.warn("[AVSA] Signed URL fetch error:", fetchErr);
+        updateStatus(
+          "Connection error. Please check your internet and try again.",
+          "error"
+        );
         return;
       }
-      const { signed_url } = await urlRes.json();
 
       // Start ElevenLabs conversation session via signed URL (API key stays server-side)
       conversation = await ElevenLabs.Conversation.startSession({
@@ -423,7 +614,7 @@
 
         onConnect: ({ conversationId }) => {
           console.log("[AVSA] Connected. Session:", conversationId);
-          updateStatus("🎤 Listening... Speak now!", "listening");
+          updateStatus("Listening... Speak now!", "listening");
           setWaveformMode("listening");
         },
 
@@ -433,19 +624,19 @@
         },
 
         onError: (message, context) => {
-          console.error("[AVSA] Error:", message, context);
-          updateStatus("⚠️ Voice error — please try again", "error");
+          console.warn("[AVSA] Voice error:", message, context);
+          updateStatus("Voice error — please try again", "error");
           stopVoice();
         },
 
         onModeChange: ({ mode }) => {
           // mode: "listening" | "speaking"
           if (mode === "speaking") {
-            updateStatus("🔊 Thinking...", "speaking");
+            updateStatus("Thinking...", "speaking");
             setWaveformMode("speaking");
             animateSpeakingWaveform();
           } else {
-            updateStatus("🎤 Listening...", "listening");
+            updateStatus("Listening...", "listening");
             setWaveformMode("listening");
           }
         },
@@ -462,21 +653,20 @@
           }
         },
       });
-
     } catch (err) {
-      if (err.name === "NotAllowedError") {
-        updateStatus("⚠️ Microphone access denied", "error");
-      } else {
-        console.error("[AVSA] Failed to start conversation:", err);
-        updateStatus("⚠️ Could not connect to Voice AI", "error");
-      }
+      console.warn("[AVSA] Failed to start conversation:", err);
+      updateStatus("Could not connect to Voice AI", "error");
       stopVoice();
     }
   }
 
   function stopElevenLabsConversation() {
     if (conversation) {
-      conversation.endSession().catch(() => {});
+      try {
+        conversation.endSession().catch(() => {});
+      } catch (_) {
+        // Ignore errors during cleanup
+      }
       conversation = null;
     }
   }
@@ -505,6 +695,14 @@
   }
 
   async function startVoice() {
+    // iOS Safari fix: create AudioContext inside user gesture handler
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioContext.state === "suspended") {
+      await audioContext.resume();
+    }
+
     // Fetch product context for initial recommendations
     const productContext = getCurrentProductContext();
     if (productContext.productId) {
@@ -590,22 +788,26 @@
   function getCurrentProductContext() {
     const context = { productId: null, title: "", url: window.location.href };
 
-    const metaProductId = document.querySelector('meta[property="og:product:id"]');
-    if (metaProductId) {
-      context.productId = metaProductId.getAttribute("content");
-    }
-
-    if (typeof window.ShopifyAnalytics !== "undefined" && window.ShopifyAnalytics.meta) {
-      const meta = window.ShopifyAnalytics.meta;
-      if (meta.product) {
-        context.productId = meta.product.id;
-        context.title = meta.product.type || "";
+    try {
+      const metaProductId = document.querySelector('meta[property="og:product:id"]');
+      if (metaProductId) {
+        context.productId = metaProductId.getAttribute("content");
       }
-    }
 
-    const urlMatch = window.location.pathname.match(/\/products\/([^/?]+)/);
-    if (urlMatch && !context.productId) {
-      context.title = urlMatch[1].replace(/-/g, " ");
+      if (typeof window.ShopifyAnalytics !== "undefined" && window.ShopifyAnalytics.meta) {
+        const meta = window.ShopifyAnalytics.meta;
+        if (meta.product) {
+          context.productId = meta.product.id;
+          context.title = meta.product.type || "";
+        }
+      }
+
+      const urlMatch = window.location.pathname.match(/\/products\/([^/?]+)/);
+      if (urlMatch && !context.productId) {
+        context.title = urlMatch[1].replace(/-/g, " ");
+      }
+    } catch (err) {
+      console.warn("[AVSA] Product context detection error:", err);
     }
 
     return context;
@@ -634,28 +836,36 @@
   async function fetchRecommendations(productId) {
     try {
       const response = await fetch(
-        `${API_BASE}/api/recommendations?product_id=${productId}&store_id=${STORE_ID}&limit=4`
+        `${API_BASE}/api/recommendations?product_id=${productId}&store_id=${encodeURIComponent(STORE_ID)}&limit=4`
       );
+      if (!response.ok) {
+        console.warn("[AVSA] Recommendation fetch returned:", response.status);
+        return;
+      }
       const data = await response.json();
       if (data.recommendations && data.recommendations.length > 0) {
         renderRecommendations(data.recommendations);
       }
     } catch (err) {
-      console.error("[AVSA] Recommendation fetch error:", err);
+      console.warn("[AVSA] Recommendation fetch error:", err);
     }
   }
 
   async function fetchRecommendationsByQuery(query) {
     try {
       const response = await fetch(
-        `${API_BASE}/api/products/search?store_id=${STORE_ID}&query=${encodeURIComponent(query)}&limit=4`
+        `${API_BASE}/api/products/search?store_id=${encodeURIComponent(STORE_ID)}&query=${encodeURIComponent(query)}&limit=4`
       );
+      if (!response.ok) {
+        console.warn("[AVSA] Product search returned:", response.status);
+        return;
+      }
       const data = await response.json();
       if (data.products && data.products.length > 0) {
         renderRecommendations(data.products);
       }
     } catch (err) {
-      console.error("[AVSA] Product search error:", err);
+      console.warn("[AVSA] Product search error:", err);
     }
   }
 
@@ -701,7 +911,7 @@
 
       if (response.ok) {
         if (btn) {
-          btn.textContent = "✓ Added";
+          btn.textContent = "Added";
           btn.classList.add("added");
           setTimeout(() => {
             btn.textContent = "Add";
@@ -710,25 +920,30 @@
         }
       } else {
         // Try with variant ID
-        const productRes = await fetch(`/products/${productId}.js`);
-        if (productRes.ok) {
-          const product = await productRes.json();
-          const variantId = product.variants?.[0]?.id;
-          if (variantId) {
-            await fetch("/cart/add.js", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ id: variantId, quantity: 1 }),
-            });
-            if (btn) {
-              btn.textContent = "✓ Added";
-              btn.classList.add("added");
+        try {
+          const productRes = await fetch(`/products/${productId}.js`);
+          if (productRes.ok) {
+            const product = await productRes.json();
+            const variantId = product.variants?.[0]?.id;
+            if (variantId) {
+              await fetch("/cart/add.js", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: variantId, quantity: 1 }),
+              });
+              if (btn) {
+                btn.textContent = "Added";
+                btn.classList.add("added");
+              }
             }
           }
+        } catch (variantErr) {
+          console.warn("[AVSA] Variant fallback error:", variantErr);
+          if (btn) btn.textContent = "Error";
         }
       }
     } catch (err) {
-      console.error("[AVSA] Add to cart error:", err);
+      console.warn("[AVSA] Add to cart error:", err);
       if (btn) btn.textContent = "Error";
     }
   };
@@ -755,10 +970,10 @@
       .getElementById("avsa-trigger-btn")
       .addEventListener("click", toggleVoice);
 
-    // Pre-fetch agent config in background
-    initElevenLabs();
+    // Fetch widget config and initialize from backend
+    initWidget();
 
-    console.log("[AI Voice Shopping Assistant] Widget v2.0 loaded for store:", STORE_ID);
+    console.log("[AVSA] Widget v3.0 loaded for store:", STORE_ID);
   }
 
   if (document.readyState === "loading") {
