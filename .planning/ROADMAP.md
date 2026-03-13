@@ -64,12 +64,12 @@ Plans:
   3. Non-Shopify merchants can manually add, edit, and remove products from their knowledge base via the dashboard
   4. The dashboard shows sync status (last synced timestamp, product count, KB character usage with warning at 80% of 300k limit)
   5. A "Sync Now" button triggers an immediate re-sync, and pgvector embeddings enable precision product search via server tools
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [ ] 02-01-PLAN.md — DB migration, KB service module, ElevenLabs KB methods, Gemini embeddings, pgvector search
+- [ ] 02-02-PLAN.md — KB API endpoints: webhook extension, manual CRUD, sync status, sync now, server tool
+- [ ] 02-03-PLAN.md — Knowledge Base dashboard page with sync status, products, and sidebar nav
 
 ### Phase 3: Widget
 **Goal**: Merchants can embed a single script tag and their customers can talk to the AI voice assistant
@@ -197,7 +197,7 @@ Note: Phases 6, 7, 8 can potentially run in parallel after their dependencies ar
 |-------|----------------|--------|-----------|
 | 0. Security Lockdown | 2/2 | Complete | 2026-03-13 |
 | 1. Agent Infrastructure | 2/2 | Complete | 2026-03-13 |
-| 2. Knowledge Base | 0/3 | Not started | - |
+| 2. Knowledge Base | 0/3 | Planned | - |
 | 3. Widget | 0/3 | Not started | - |
 | 4. Automation | 0/2 | Not started | - |
 | 5. Onboarding | 0/2 | Not started | - |
