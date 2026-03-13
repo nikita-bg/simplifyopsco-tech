@@ -3,30 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-03-13T20:11:50.310Z"
-last_activity: 2026-03-13 — Completed 02-03 (KB Dashboard UI)
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-03-13T20:51:34.000Z"
+last_activity: 2026-03-13 — Completed 03-01 (Widget Config Endpoint)
 progress:
   total_phases: 10
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 5
----
-
----
-gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: executing
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-03-13T20:06:40.469Z"
-last_activity: 2026-03-13 — Completed 02-03 (KB Dashboard UI)
-progress:
-  total_phases: 10
-  completed_phases: 2
-  total_plans: 7
-  completed_plans: 5
-  percent: 71
+  total_plans: 8
+  completed_plans: 6
+  percent: 75
 ---
 
 # Project State
@@ -36,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-13)
 
 **Core value:** Any merchant can have a working, personalized AI voice sales assistant live on their website in under 10 minutes — no code, no technical help needed.
-**Current focus:** Phase 2 - Knowledge Base (COMPLETE)
+**Current focus:** Phase 3 - Widget (IN PROGRESS)
 
 ## Current Position
 
-Phase: 2 of 10 (Knowledge Base) - COMPLETE
-Plan: 3 of 3 in current phase (all complete)
+Phase: 3 of 10 (Widget)
+Plan: 1 of 2 in current phase (03-01 complete)
 Status: Executing
-Last activity: 2026-03-13 — Completed 02-03 (KB Dashboard UI)
+Last activity: 2026-03-13 — Completed 03-01 (Widget Config Endpoint)
 
-Progress: [███████░░░] 71%
+Progress: [████████░░] 75%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 4.4min
-- Total execution time: 0.37 hours
+- Total plans completed: 6
+- Average duration: 4.2min
+- Total execution time: 0.42 hours
 
 **By Phase:**
 
@@ -63,9 +48,10 @@ Progress: [███████░░░] 71%
 | Phase 02 | P01 | 7min | 2 | 8 |
 | Phase 02 | P02 | 5min | 2 | 2 |
 | Phase 02 | P03 | 3min | 3 | 2 |
+| Phase 03 | P01 | 3min | 2 | 3 |
 
 **Recent Trend:**
-- Last 5 plans: 2min, 5min, 7min, 5min, 3min
+- Last 5 plans: 5min, 7min, 5min, 3min, 3min
 - Trend: Steady
 
 *Updated after each plan completion*
@@ -97,6 +83,9 @@ Recent decisions affecting current work:
 - [Phase 02]: Inline form for product CRUD instead of modal (simpler UX)
 - [Phase 02]: Custom relativeTime helper instead of library (no new npm dependencies)
 - [Phase 02]: 3-second polling interval for sync status during sync
+- [Phase 03]: Per-endpoint wildcard CORS via Response.headers (preserves allow_credentials on dashboard)
+- [Phase 03]: Default widget color #256af4 (project primary) not legacy #6366f1
+- [Phase 03]: agent_id security-gated: only exposed when active AND enabled
 
 ### Pending Todos
 
@@ -110,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T20:06:40Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-03-13T20:51:34Z
+Stopped at: Completed 03-01-PLAN.md
 Resume file: None

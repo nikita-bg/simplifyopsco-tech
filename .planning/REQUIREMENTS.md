@@ -33,13 +33,13 @@
 
 ### Widget (WDG)
 
-- [ ] **WDG-01**: Single embed.js script tag with `data-store-id` loads correct agent per merchant
-- [ ] **WDG-02**: Widget fetches config from FastAPI `/api/widget/config` (agent_id, color, position, greeting)
-- [ ] **WDG-03**: Widget uses signed URL (from backend) to connect to ElevenLabs WebRTC
-- [ ] **WDG-04**: Widget customizable: color, position (4 corners), avatar
+- [x] **WDG-01**: Single embed.js script tag with `data-store-id` loads correct agent per merchant
+- [x] **WDG-02**: Widget fetches config from FastAPI `/api/widget/config` (agent_id, color, position, greeting)
+- [x] **WDG-03**: Widget uses signed URL (from backend) to connect to ElevenLabs WebRTC
+- [x] **WDG-04**: Widget customizable: color, position (4 corners), avatar
 - [ ] **WDG-05**: Microphone permission handling with clear user prompts
 - [ ] **WDG-06**: Mobile-optimized voice UI (iOS Safari audio context handling)
-- [ ] **WDG-07**: Graceful fallback when agent is disabled or merchant exceeds plan limits
+- [x] **WDG-07**: Graceful fallback when agent is disabled or merchant exceeds plan limits
 
 ### Onboarding (ONB)
 
@@ -172,13 +172,13 @@
 | KB-05 | Phase 2: Knowledge Base | Complete |
 | KB-06 | Phase 2: Knowledge Base | Complete |
 | KB-07 | Phase 2: Knowledge Base | Complete |
-| WDG-01 | Phase 3: Widget | Pending |
-| WDG-02 | Phase 3: Widget | Pending |
-| WDG-03 | Phase 3: Widget | Pending |
-| WDG-04 | Phase 3: Widget | Pending |
+| WDG-01 | Phase 3: Widget | Complete |
+| WDG-02 | Phase 3: Widget | Complete |
+| WDG-03 | Phase 3: Widget | Complete |
+| WDG-04 | Phase 3: Widget | Complete |
 | WDG-05 | Phase 3: Widget | Pending |
 | WDG-06 | Phase 3: Widget | Pending |
-| WDG-07 | Phase 3: Widget | Pending |
+| WDG-07 | Phase 3: Widget | Complete |
 | AUT-01 | Phase 4: Automation | Pending |
 | AUT-02 | Phase 4: Automation | Pending |
 | AUT-03 | Phase 4: Automation | Pending |
