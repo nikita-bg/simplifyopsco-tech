@@ -14,7 +14,7 @@ SimplifyOps transforms from a single-agent prototype into a multi-tenant product
 - [x] **Phase 1: Agent Infrastructure** - Multi-tenant ElevenLabs agent CRUD with DB schema and agent templates
 - [ ] **Phase 2: Knowledge Base** - Product sync pipeline (Shopify + manual) with pgvector search and KB management
 - [ ] **Phase 3: Widget** - Customer-facing embed.js that loads the correct agent per merchant via signed URLs
-- [ ] **Phase 4: Automation** - n8n production deployment with onboarding, sync, alert, and analysis workflows
+- [ ] **Phase 4: Automation** - Python-native automation (APScheduler + Resend) for onboarding, sync, alerts, and post-call analysis
 - [ ] **Phase 5: Onboarding** - Sub-5-minute signup-to-live flow with Shopify 1-click connect and progress indicators
 - [ ] **Phase 6: Agent Configuration** - Merchant self-service agent customization (voice, personality, widget appearance, preview)
 - [ ] **Phase 7: Billing** - Stripe subscription tiers with usage tracking, enforcement, trial flow, and upgrade prompts
@@ -88,20 +88,20 @@ Plans:
 - [ ] 03-02-PLAN.md — Widget JS refactor: dynamic config, 4-corner positioning, iOS AudioContext, mic permissions, graceful fallback
 
 ### Phase 4: Automation
-**Goal**: Core business workflows run automatically via n8n without manual intervention
+**Goal**: Core business workflows run automatically via Python-native automation (APScheduler + BackgroundTasks + Resend) without manual intervention
 **Depends on**: Phase 1, Phase 2
 **Requirements**: AUT-01, AUT-02, AUT-03, AUT-04, AUT-05, AUT-06
 **Success Criteria** (what must be TRUE):
-  1. n8n is deployed on Railway alongside the backend and accessible for workflow management
+  1. APScheduler runs inside the FastAPI process with scheduled jobs for KB resync and usage alerts
   2. The onboarding workflow fires on signup and orchestrates agent creation, product sync, and welcome email delivery end-to-end
-  3. Product sync workflows run on both a schedule and Shopify webhook triggers, keeping knowledge bases current
+  3. Product sync workflows run on both a daily schedule and Shopify webhook triggers, keeping knowledge bases current
   4. Usage alert emails are sent automatically when a merchant hits 80% of their conversation minute limit
   5. Failed workflows are caught by an error handler that prevents merchants from ending up in a half-configured state
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md — Automation foundation: APScheduler lifecycle, Resend email service, onboarding workflow with error handling
+- [ ] 04-02-PLAN.md — Scheduled jobs (daily KB resync + usage alerts) and ElevenLabs webhook registration with post-call usage tracking
 
 ### Phase 5: Onboarding
 **Goal**: A new merchant goes from signup to hearing their AI agent talk about their products in under 5 minutes
