@@ -6,17 +6,13 @@ import {
     PieChart, Pie, Cell,
 } from "recharts";
 import {
-    PieChart as PieIcon, MessageSquare, BarChart3, Settings, HelpCircle, Phone, TrendingUp, Star, Search, Mic, Loader2, CreditCard, Menu, X,
+    Phone, TrendingUp, Star, Search, Loader2, MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { createSupabaseBrowser } from "@/lib/supabase/client";
 import { apiFetch } from "@/lib/api";
-import { LogOut } from "lucide-react";
 
 const INTENT_COLORS = ["#3b82f6", "#8b5cf6", "#10b981", "#f59e0b", "#ef4444"];
 
-// Fallback static data
 const FALLBACK = {
     total_calls: 0,
     avg_lead_score: 0,
@@ -38,31 +34,10 @@ interface DashboardData {
     recent_conversations: { caller_id: string; time_ago: string; duration: string; sentiment: string; status: string }[];
 }
 
-const navItems = [
-    { label: "Overview", icon: PieIcon, href: "/dashboard" },
-    { label: "Conversations", icon: MessageSquare, href: "/dashboard/conversations" },
-    { label: "Reports", icon: BarChart3, href: "/dashboard/reports" },
-    { label: "Billing", icon: CreditCard, href: "/dashboard/billing" },
-];
-
-const bottomNav = [
-    { label: "Settings", icon: Settings, href: "/dashboard/settings" },
-    { label: "Support", icon: HelpCircle, href: "mailto:hello@simplifyopsco.tech" },
-];
-
-interface UserInfo {
-    id: string;
-    name: string;
-    email: string;
-    image?: string | null;
-}
-
-export function ClientDashboard({ user, storeId }: { user?: UserInfo; storeId: string }) {
-    const pathname = usePathname();
+export function ClientDashboard({ storeId }: { storeId: string }) {
     const [data, setData] = useState<DashboardData>(FALLBACK);
     const [loading, setLoading] = useState(true);
     const [backendOnline, setBackendOnline] = useState(false);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -85,260 +60,158 @@ export function ClientDashboard({ user, storeId }: { user?: UserInfo; storeId: s
         return () => clearInterval(interval);
     }, [storeId]);
 
-    // Close sidebar on route change
-    useEffect(() => {
-        setSidebarOpen(false);
-    }, [pathname]);
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-96">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+        );
+    }
 
     return (
-        <div className="min-h-screen flex bg-[#0a0a14] text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            {/* Mobile sidebar overlay */}
-            {sidebarOpen && (
-                <div className="fixed inset-0 z-40 bg-black/60 lg:hidden" onClick={() => setSidebarOpen(false)} />
-            )}
-
-            {/* Sidebar */}
-            <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-60 bg-[#0d0d1a] border-r border-white/5 flex flex-col py-6 px-4 shrink-0 transform transition-transform duration-200 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-                <div className="flex items-center justify-between px-2 mb-8">
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-[#256af4] flex items-center justify-center">
-                            <Mic className="w-4 h-4 text-white" />
-                        </div>
-                        <div>
-                            <p className="text-sm font-bold">SimplifyOps</p>
-                            <p className="text-[10px] text-gray-500">Dashboard</p>
-                        </div>
+        <>
+            {/* Page header */}
+            <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-4">
+                    <h1 className="text-xl sm:text-2xl font-bold">Dashboard Overview</h1>
+                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium ${backendOnline ? "bg-emerald-500/10 text-emerald-400" : "bg-yellow-500/10 text-yellow-400"}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${backendOnline ? "bg-emerald-400" : "bg-yellow-400"}`} />
+                        {backendOnline ? "Live" : "Offline"}
                     </div>
-                    <button
-                        onClick={() => setSidebarOpen(false)}
-                        className="lg:hidden w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center cursor-pointer"
-                        aria-label="Close menu"
-                    >
-                        <X className="w-4 h-4 text-gray-400" />
-                    </button>
                 </div>
-
-                <div className="flex-1 flex flex-col gap-1">
-                    {navItems.map((item) => {
-                        const isActive = pathname === item.href;
-                        return (
-                            <Link
-                                key={item.label}
-                                href={item.href}
-                                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive
-                                        ? "bg-[#256af4] text-white"
-                                        : "text-gray-400 hover:text-white hover:bg-white/5"
-                                    }`}
-                            >
-                                <item.icon className="w-4 h-4" />
-                                {item.label}
-                            </Link>
-                        );
-                    })}
-                </div>
-
-                <div className="flex flex-col gap-1 border-t border-white/5 pt-4 mt-4">
-                    {bottomNav.map((item) => (
-                        <Link
-                            key={item.label}
-                            href={item.href}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all"
-                        >
-                            <item.icon className="w-4 h-4" />
-                            {item.label}
-                        </Link>
-                    ))}
-                    <button
-                        onClick={async () => {
-                            const supabase = createSupabaseBrowser();
-                            await supabase.auth.signOut();
-                            window.location.href = "/";
-                        }}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-red-400 hover:bg-red-500/5 transition-all cursor-pointer"
-                    >
-                        <LogOut className="w-4 h-4" />
-                        Sign Out
-                    </button>
-                </div>
-
-                {user && (
-                    <div className="border-t border-white/5 pt-4 mt-4 px-2">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-[#256af4] flex items-center justify-center text-xs font-bold">
-                                {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || "U"}
-                            </div>
-                            <div className="min-w-0">
-                                <p className="text-xs font-medium truncate">{user.name || "User"}</p>
-                                <p className="text-[10px] text-gray-500 truncate">{user.email}</p>
-                            </div>
-                        </div>
+                <div className="flex items-center gap-3">
+                    <div className="hidden sm:flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
+                        <Search className="w-4 h-4 text-gray-500" />
+                        <input placeholder="Search data..." className="bg-transparent text-sm text-white placeholder-gray-500 outline-none w-40" />
                     </div>
-                )}
-            </aside>
+                    <Link href="/" className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium transition-colors">
+                        Back to Site
+                    </Link>
+                </div>
+            </div>
 
-            {/* Main Content */}
-            <main className="flex-1 p-4 sm:p-8 overflow-auto">
-                {/* Top bar */}
-                <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={() => setSidebarOpen(true)}
-                            className="lg:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
-                            aria-label="Open menu"
-                        >
-                            <Menu className="w-5 h-5 text-white" />
-                        </button>
-                        <h1 className="text-xl sm:text-2xl font-bold">Dashboard Overview</h1>
-                        <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium ${backendOnline ? "bg-emerald-500/10 text-emerald-400" : "bg-yellow-500/10 text-yellow-400"
-                            }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${backendOnline ? "bg-emerald-400" : "bg-yellow-400"}`} />
-                            {backendOnline ? "Live" : "Offline"}
-                        </div>
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+                <StatCard title="Total Calls" value={(data.total_calls ?? 0).toLocaleString()} icon={<Phone className="w-5 h-5 text-blue-400" />} />
+                <StatCard title="Avg. Lead Score" value={String(data.avg_lead_score ?? 0)} suffix="/10" icon={<Star className="w-5 h-5 text-yellow-400" />} />
+                <StatCard title="Conversion Rate" value={String(data.conversion_rate ?? 0)} suffix="%" icon={<TrendingUp className="w-5 h-5 text-emerald-400" />} />
+            </div>
+
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
+                {/* Call Volume Chart */}
+                <div className="rounded-2xl bg-panel border border-white/5 p-6">
+                    <div className="mb-6">
+                        <h3 className="font-bold text-sm mb-1">Call Volume</h3>
+                        <p className="text-xs text-gray-500">Sessions per day of week</p>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-                            <Search className="w-4 h-4 text-gray-500" />
-                            <input placeholder="Search data..." className="bg-transparent text-sm text-white placeholder-gray-500 outline-none w-40" />
-                        </div>
-                        <Link href="/" className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium transition-colors">
-                            Back to Site
-                        </Link>
+                    <div className="h-52">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={data.call_data}>
+                                <defs>
+                                    <linearGradient id="colorCalls" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="oklch(52% 0.22 260)" stopOpacity={0.4} />
+                                        <stop offset="95%" stopColor="oklch(52% 0.22 260)" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#1a1a2e" vertical={false} />
+                                <XAxis dataKey="name" stroke="#555" tick={{ fontSize: 11 }} />
+                                <YAxis stroke="#555" tick={{ fontSize: 11 }} />
+                                <Tooltip contentStyle={{ backgroundColor: "#111", borderColor: "#333", borderRadius: 8 }} />
+                                <Area type="monotone" dataKey="calls" stroke="oklch(52% 0.22 260)" strokeWidth={2} fillOpacity={1} fill="url(#colorCalls)" />
+                            </AreaChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
 
-                {loading ? (
-                    <div className="flex items-center justify-center h-96">
-                        <Loader2 className="w-8 h-8 animate-spin text-[#256af4]" />
+                {/* Intent Breakdown */}
+                <div className="rounded-2xl bg-panel border border-white/5 p-6">
+                    <div className="mb-6">
+                        <h3 className="font-bold text-sm mb-1">User Intent Breakdown</h3>
+                        <p className="text-xs text-gray-500">Primary topics discussed</p>
                     </div>
-                ) : (
-                    <>
-                        {/* Stat Cards */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
-                            <StatCard title="Total Calls" value={(data.total_calls ?? 0).toLocaleString()} icon={<Phone className="w-5 h-5 text-blue-400" />} />
-                            <StatCard title="Avg. Lead Score" value={String(data.avg_lead_score ?? 0)} suffix="/10" icon={<Star className="w-5 h-5 text-yellow-400" />} />
-                            <StatCard title="Conversion Rate" value={String(data.conversion_rate ?? 0)} suffix="%" icon={<TrendingUp className="w-5 h-5 text-emerald-400" />} />
-                        </div>
-
-                        {/* Charts */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
-                            {/* Call Volume Chart */}
-                            <div className="rounded-2xl bg-[#0d0d1a] border border-white/5 p-6">
-                                <div className="flex items-center justify-between mb-6">
-                                    <div>
-                                        <h3 className="font-bold text-sm mb-1">Call Volume</h3>
-                                        <p className="text-xs text-gray-500">Sessions per day of week</p>
-                                    </div>
-                                </div>
-                                <div className="h-52">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <AreaChart data={data.call_data}>
-                                            <defs>
-                                                <linearGradient id="colorCalls" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#256af4" stopOpacity={0.4} />
-                                                    <stop offset="95%" stopColor="#256af4" stopOpacity={0} />
-                                                </linearGradient>
-                                            </defs>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#1a1a2e" vertical={false} />
-                                            <XAxis dataKey="name" stroke="#555" tick={{ fontSize: 11 }} />
-                                            <YAxis stroke="#555" tick={{ fontSize: 11 }} />
-                                            <Tooltip contentStyle={{ backgroundColor: "#111", borderColor: "#333", borderRadius: 8 }} />
-                                            <Area type="monotone" dataKey="calls" stroke="#256af4" strokeWidth={2} fillOpacity={1} fill="url(#colorCalls)" />
-                                        </AreaChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </div>
-
-                            {/* Intent Breakdown */}
-                            <div className="rounded-2xl bg-[#0d0d1a] border border-white/5 p-6">
-                                <div className="flex items-center justify-between mb-6">
-                                    <div>
-                                        <h3 className="font-bold text-sm mb-1">User Intent Breakdown</h3>
-                                        <p className="text-xs text-gray-500">Primary topics discussed</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-8">
-                                    <div className="h-44 w-44">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie data={data.intent_data} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={4} dataKey="value">
-                                                    {data.intent_data.map((entry, i) => (
-                                                        <Cell key={entry.name} fill={INTENT_COLORS[i % INTENT_COLORS.length]} />
-                                                    ))}
-                                                </Pie>
-                                            </PieChart>
-                                        </ResponsiveContainer>
-                                    </div>
-                                    <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-8">
+                        <div className="h-44 w-44">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie data={data.intent_data} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={4} dataKey="value">
                                         {data.intent_data.map((entry, i) => (
-                                            <div key={entry.name} className="flex items-center gap-2.5 text-sm">
-                                                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: INTENT_COLORS[i % INTENT_COLORS.length] }} />
-                                                <span className="text-gray-400">{entry.name}</span>
-                                                <span className="text-white font-semibold ml-auto">{entry.value}%</span>
-                                            </div>
+                                            <Cell key={entry.name} fill={INTENT_COLORS[i % INTENT_COLORS.length]} />
                                         ))}
-                                    </div>
+                                    </Pie>
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                        <div className="flex flex-col gap-3">
+                            {data.intent_data.map((entry, i) => (
+                                <div key={entry.name} className="flex items-center gap-2.5 text-sm">
+                                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: INTENT_COLORS[i % INTENT_COLORS.length] }} />
+                                    <span className="text-gray-400">{entry.name}</span>
+                                    <span className="text-white font-semibold ml-auto">{entry.value}%</span>
                                 </div>
-                            </div>
+                            ))}
                         </div>
+                    </div>
+                </div>
+            </div>
 
-                        {/* Recent Conversations Table */}
-                        <div className="rounded-2xl bg-[#0d0d1a] border border-white/5 p-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <h3 className="font-bold">Recent AI Conversations</h3>
-                                <span className="text-xs text-gray-500">{data.recent_conversations.length} records</span>
-                            </div>
+            {/* Recent Conversations Table */}
+            <div className="rounded-2xl bg-panel border border-white/5 p-6">
+                <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-bold">Recent AI Conversations</h3>
+                    <span className="text-xs text-gray-500">{data.recent_conversations.length} records</span>
+                </div>
 
-                            {data.recent_conversations.length === 0 ? (
-                                <p className="text-gray-500 text-sm text-center py-8">No conversations yet. Connect your store and start engaging visitors.</p>
-                            ) : (
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="text-xs text-gray-500 border-b border-white/5">
-                                            <th className="text-left pb-3 font-medium">CALLER ID</th>
-                                            <th className="text-left pb-3 font-medium">TIME</th>
-                                            <th className="text-left pb-3 font-medium">DURATION</th>
-                                            <th className="text-left pb-3 font-medium">SENTIMENT</th>
-                                            <th className="text-left pb-3 font-medium">STATUS</th>
-                                            <th className="text-left pb-3 font-medium">ACTION</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {data.recent_conversations.map((c, i) => (
-                                            <tr key={i} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors">
-                                                <td className="py-4 text-sm font-medium flex items-center gap-2">
-                                                    <Phone className="w-3.5 h-3.5 text-gray-500" />
-                                                    {c.caller_id}
-                                                </td>
-                                                <td className="py-4 text-sm text-gray-400">{c.time_ago}</td>
-                                                <td className="py-4 text-sm text-gray-400">{c.duration}</td>
-                                                <td className="py-4">
-                                                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${c.sentiment === "Very Positive" ? "bg-emerald-500/10 text-emerald-400" :
-                                                            c.sentiment === "Positive" ? "bg-green-500/10 text-green-400" :
-                                                                c.sentiment === "Negative" ? "bg-red-500/10 text-red-400" :
-                                                                    "bg-gray-500/10 text-gray-400"
-                                                        }`}>{c.sentiment}</span>
-                                                </td>
-                                                <td className="py-4">
-                                                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${c.status === "Qualified" ? "bg-blue-500/10 text-blue-400" :
-                                                            c.status === "Rejected" ? "bg-red-500/10 text-red-400" :
-                                                                "bg-yellow-500/10 text-yellow-400"
-                                                        }`}>{c.status}</span>
-                                                </td>
-                                                <td className="py-4">
-                                                    <Link href="/dashboard/conversations" className="w-7 h-7 rounded-full bg-[#256af4]/10 hover:bg-[#256af4]/20 flex items-center justify-center transition-colors">
-                                                        <MessageSquare className="w-3.5 h-3.5 text-[#256af4]" />
-                                                    </Link>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            )}
-                        </div>
-                    </>
+                {data.recent_conversations.length === 0 ? (
+                    <p className="text-gray-500 text-sm text-center py-8">No conversations yet. Connect your store and start engaging visitors.</p>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="text-xs text-gray-500 border-b border-white/5">
+                                    <th className="text-left pb-3 font-medium">CALLER ID</th>
+                                    <th className="text-left pb-3 font-medium">TIME</th>
+                                    <th className="text-left pb-3 font-medium">DURATION</th>
+                                    <th className="text-left pb-3 font-medium">SENTIMENT</th>
+                                    <th className="text-left pb-3 font-medium">STATUS</th>
+                                    <th className="text-left pb-3 font-medium">ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {data.recent_conversations.map((c, i) => (
+                                    <tr key={i} className="border-b border-white/5 last:border-0 hover:bg-white/[0.02] transition-colors">
+                                        <td className="py-4 text-sm font-medium flex items-center gap-2">
+                                            <Phone className="w-3.5 h-3.5 text-gray-500" />
+                                            {c.caller_id}
+                                        </td>
+                                        <td className="py-4 text-sm text-gray-400">{c.time_ago}</td>
+                                        <td className="py-4 text-sm text-gray-400">{c.duration}</td>
+                                        <td className="py-4">
+                                            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${c.sentiment === "Very Positive" ? "bg-emerald-500/10 text-emerald-400" :
+                                                    c.sentiment === "Positive" ? "bg-green-500/10 text-green-400" :
+                                                        c.sentiment === "Negative" ? "bg-red-500/10 text-red-400" :
+                                                            "bg-gray-500/10 text-gray-400"
+                                                }`}>{c.sentiment}</span>
+                                        </td>
+                                        <td className="py-4">
+                                            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${c.status === "Qualified" ? "bg-blue-500/10 text-blue-400" :
+                                                    c.status === "Rejected" ? "bg-red-500/10 text-red-400" :
+                                                        "bg-yellow-500/10 text-yellow-400"
+                                                }`}>{c.status}</span>
+                                        </td>
+                                        <td className="py-4">
+                                            <Link href="/dashboard/conversations" className="w-7 h-7 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors">
+                                                <MessageSquare className="w-3.5 h-3.5 text-primary" />
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
-            </main>
-        </div>
+            </div>
+        </>
     );
 }
 
@@ -346,7 +219,7 @@ function StatCard({ title, value, suffix, icon }: {
     title: string; value: string; suffix?: string; icon: React.ReactNode;
 }) {
     return (
-        <div className="rounded-2xl bg-[#0d0d1a] border border-white/5 p-6 hover:border-white/10 transition-all">
+        <div className="rounded-2xl bg-panel border border-white/5 p-6 hover:border-white/10 transition-all">
             <div className="flex items-center justify-between mb-4">
                 <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{title}</p>
                 <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">{icon}</div>

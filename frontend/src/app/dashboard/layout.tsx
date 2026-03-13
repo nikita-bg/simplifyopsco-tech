@@ -16,8 +16,15 @@ export default async function DashboardLayout({
     redirect("/auth/sign-in");
   }
 
+  const userInfo = {
+    id: user.id,
+    name: user.user_metadata?.full_name || user.email?.split("@")[0] || "User",
+    email: user.email || "",
+    image: user.user_metadata?.avatar_url || null,
+  };
+
   return (
-    <DashboardLayoutClient userId={user.id}>
+    <DashboardLayoutClient userId={user.id} user={userInfo}>
       {children}
     </DashboardLayoutClient>
   );

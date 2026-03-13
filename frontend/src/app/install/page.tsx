@@ -52,21 +52,21 @@ export default function InstallPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0a0a14] text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+        <div className="min-h-screen bg-canvas text-heading" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             {/* Navbar */}
-            <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0a0a14]/80 backdrop-blur-xl">
+            <header className="sticky top-0 z-50 border-b border-white/5 bg-canvas/80 backdrop-blur-xl">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2.5 text-gray-400 hover:text-white transition-colors text-sm">
+                    <Link href="/" className="flex items-center gap-2.5 text-muted hover:text-heading transition-colors text-sm">
                         <ArrowLeft className="w-4 h-4" />
                         <span>Back</span>
                     </Link>
                     <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-[#256af4]/20 flex items-center justify-center">
-                            <Mic className="w-3.5 h-3.5 text-[#256af4]" />
+                        <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center">
+                            <Mic className="w-3.5 h-3.5 text-primary" />
                         </div>
                         <span className="font-bold text-sm">SimplifyOps</span>
                     </div>
-                    <Link href="/dashboard" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">
+                    <Link href="/dashboard" className="text-sm font-medium text-muted hover:text-heading transition-colors">
                         Dashboard
                     </Link>
                 </div>
@@ -80,17 +80,17 @@ export default function InstallPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <div className="inline-flex items-center gap-2 rounded-full border border-[#256af4]/20 bg-[#256af4]/5 px-3 py-1 text-xs font-medium text-[#256af4] mb-6">
-                            <span className="flex h-2 w-2 rounded-full bg-[#256af4] animate-pulse" />
+                        <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary mb-6">
+                            <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
                             Any Website • 2-Minute Setup
                         </div>
-                        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white mb-4 leading-tight">
+                        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-heading mb-4 leading-tight">
                             Add Voice AI to<br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#256af4] to-indigo-400">
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-400">
                                 Any Website
                             </span>
                         </h1>
-                        <p className="text-lg text-slate-400 max-w-xl mx-auto">
+                        <p className="text-lg text-muted max-w-xl mx-auto">
                             Enter your website URL and get a ready-to-paste script tag.
                             Works with Shopify, WordPress, Webflow, or any HTML site.
                         </p>
@@ -104,48 +104,48 @@ export default function InstallPage() {
                             initial={{ opacity: 0, y: 16 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: 0.1 }}
-                            className="rounded-2xl bg-[#0d0d1a] border border-white/5 p-6"
+                            className="rounded-2xl bg-panel border border-white/5 p-6"
                         >
                             <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
-                                <Globe className="w-5 h-5 text-[#256af4]" />
+                                <Globe className="w-5 h-5 text-primary" />
                                 Get Your Embed Code
                             </h2>
                             <form onSubmit={handleInstall} className="space-y-4">
                                 <div>
-                                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2 block">
+                                    <label className="text-xs font-medium text-muted uppercase tracking-wider mb-2 block">
                                         Website URL *
                                     </label>
-                                    <div className="flex items-center gap-2 bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 focus-within:border-[#256af4]/50 transition-colors">
-                                        <Globe className="w-4 h-4 text-gray-500 shrink-0" />
+                                    <div className="flex items-center gap-2 bg-white/[0.04] border border-edge rounded-xl px-4 py-3 focus-within:border-primary/50 transition-colors">
+                                        <Globe className="w-4 h-4 text-faint shrink-0" />
                                         <input
                                             type="text"
                                             placeholder="https://mystore.com"
                                             value={siteUrl}
                                             onChange={(e) => setSiteUrl(e.target.value)}
                                             required
-                                            className="bg-transparent text-sm text-white placeholder-gray-500 outline-none flex-1"
+                                            className="bg-transparent text-sm text-heading placeholder-faint outline-none flex-1"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2 block">
-                                        Email <span className="normal-case text-gray-600">(optional — for updates)</span>
+                                    <label className="text-xs font-medium text-muted uppercase tracking-wider mb-2 block">
+                                        Email <span className="normal-case text-faint">(optional — for updates)</span>
                                     </label>
-                                    <div className="flex items-center gap-2 bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 focus-within:border-[#256af4]/50 transition-colors">
-                                        <Mail className="w-4 h-4 text-gray-500 shrink-0" />
+                                    <div className="flex items-center gap-2 bg-white/[0.04] border border-edge rounded-xl px-4 py-3 focus-within:border-primary/50 transition-colors">
+                                        <Mail className="w-4 h-4 text-faint shrink-0" />
                                         <input
                                             type="email"
                                             placeholder="hello@mystore.com"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            className="bg-transparent text-sm text-white placeholder-gray-500 outline-none flex-1"
+                                            className="bg-transparent text-sm text-heading placeholder-faint outline-none flex-1"
                                         />
                                     </div>
                                 </div>
 
                                 {error && (
-                                    <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-sm text-red-400">
+                                    <div className="bg-error/10 border border-error/20 rounded-xl px-4 py-3 text-sm text-error">
                                         {error}
                                     </div>
                                 )}
@@ -153,7 +153,7 @@ export default function InstallPage() {
                                 <button
                                     type="submit"
                                     disabled={loading || !siteUrl}
-                                    className="w-full py-3.5 rounded-xl bg-[#256af4] hover:bg-[#1a4bbd] disabled:opacity-50 text-white font-semibold text-sm transition-all shadow-lg shadow-[#256af4]/20 flex items-center justify-center gap-2 cursor-pointer"
+                                    className="w-full py-3.5 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white font-semibold text-sm transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2 cursor-pointer"
                                 >
                                     {loading ? (
                                         <>
@@ -176,11 +176,11 @@ export default function InstallPage() {
                                 <motion.div
                                     initial={{ opacity: 0, y: 12 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="rounded-2xl bg-[#0d0d1a] border border-[#256af4]/30 p-6 shadow-[0_0_40px_-10px_rgba(37,106,244,0.2)]"
+                                    className="rounded-2xl bg-panel border border-primary/30 p-6 shadow-[0_0_40px_-10px_oklch(52%_0.22_260/0.2)]"
                                 >
                                     <div className="flex items-center justify-between mb-4">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                            <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
                                             <h3 className="font-bold text-sm">Your Embed Code</h3>
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -188,7 +188,7 @@ export default function InstallPage() {
                                                 href={result.preview_url}
                                                 target="_blank"
                                                 rel="noreferrer"
-                                                className="flex items-center gap-1.5 text-xs text-[#256af4] hover:text-blue-300 transition-colors"
+                                                className="flex items-center gap-1.5 text-xs text-primary hover:text-primary-300 transition-colors"
                                             >
                                                 <ExternalLink className="w-3 h-3" />
                                                 Preview
@@ -202,7 +202,7 @@ export default function InstallPage() {
                                         </pre>
                                         <button
                                             onClick={copyCode}
-                                            className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#256af4] hover:bg-[#1a4bbd] text-white text-xs font-medium transition-all cursor-pointer"
+                                            className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-all cursor-pointer"
                                         >
                                             {copied ? (
                                                 <><Check className="w-3 h-3" /> Copied!</>
@@ -212,20 +212,20 @@ export default function InstallPage() {
                                         </button>
                                     </div>
 
-                                    <div className="bg-[#256af4]/5 border border-[#256af4]/10 rounded-xl p-4">
-                                        <p className="text-xs font-semibold text-[#256af4] mb-2">
-                                            📋 How to install
+                                    <div className="bg-primary/5 border border-primary/10 rounded-xl p-4">
+                                        <p className="text-xs font-semibold text-primary mb-2">
+                                            How to install
                                         </p>
-                                        <ol className="text-xs text-gray-400 space-y-1 list-decimal list-inside">
+                                        <ol className="text-xs text-muted space-y-1 list-decimal list-inside">
                                             <li>Copy the code above</li>
-                                            <li>Paste it before <code className="text-gray-300">&lt;/body&gt;</code> on every page of your site</li>
-                                            <li>A floating 🎙️ mic button will appear — your visitors can start talking!</li>
+                                            <li>Paste it before <code className="text-body">&lt;/body&gt;</code> on every page of your site</li>
+                                            <li>A floating mic button will appear — your visitors can start talking!</li>
                                         </ol>
                                     </div>
 
-                                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between text-xs text-gray-500">
-                                        <span>Store ID: <code className="text-gray-400">{result.store_id}</code></span>
-                                        <Link href="/dashboard" className="text-[#256af4] hover:text-blue-300 transition-colors flex items-center gap-1">
+                                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between text-xs text-faint">
+                                        <span>Store ID: <code className="text-muted">{result.store_id}</code></span>
+                                        <Link href="/dashboard" className="text-primary hover:text-primary-300 transition-colors flex items-center gap-1">
                                             View Analytics <ExternalLink className="w-3 h-3" />
                                         </Link>
                                     </div>
@@ -242,35 +242,15 @@ export default function InstallPage() {
                         className="lg:col-span-2 space-y-4"
                     >
                         {[
-                            {
-                                icon: <Zap className="w-5 h-5 text-yellow-400" />,
-                                title: "2-Minute Setup",
-                                desc: "One script tag. No server required. Works with any website builder.",
-                            },
-                            {
-                                icon: <Mic className="w-5 h-5 text-[#256af4]" />,
-                                title: "Real Voice AI",
-                                desc: "Powered by ElevenLabs — ultra-low latency, human-quality voice.",
-                            },
-                            {
-                                icon: <BarChart3 className="w-5 h-5 text-emerald-400" />,
-                                title: "Analytics Dashboard",
-                                desc: "Track conversations, sentiment, and conversion in real-time.",
-                            },
-                            {
-                                icon: <Shield className="w-5 h-5 text-purple-400" />,
-                                title: "GDPR Compliant",
-                                desc: "No cookies. No personal data stored. Fully privacy-safe.",
-                            },
-                            {
-                                icon: <Code2 className="w-5 h-5 text-pink-400" />,
-                                title: "Also on Shopify",
-                                desc: "Have a Shopify store? Install directly via the Shopify App Store.",
-                            },
+                            { icon: <Zap className="w-5 h-5 text-yellow-400" />, title: "2-Minute Setup", desc: "One script tag. No server required. Works with any website builder." },
+                            { icon: <Mic className="w-5 h-5 text-primary" />, title: "Real Voice AI", desc: "Powered by ElevenLabs — ultra-low latency, human-quality voice." },
+                            { icon: <BarChart3 className="w-5 h-5 text-success" />, title: "Analytics Dashboard", desc: "Track conversations, sentiment, and conversion in real-time." },
+                            { icon: <Shield className="w-5 h-5 text-purple-400" />, title: "GDPR Compliant", desc: "No cookies. No personal data stored. Fully privacy-safe." },
+                            { icon: <Code2 className="w-5 h-5 text-pink-400" />, title: "Also on Shopify", desc: "Have a Shopify store? Install directly via the Shopify App Store." },
                         ].map((f) => (
                             <div
                                 key={f.title}
-                                className="rounded-xl bg-[#0d0d1a] border border-white/5 p-5 hover:border-white/10 transition-colors"
+                                className="rounded-xl bg-panel border border-white/5 p-5 hover:border-edge-strong transition-colors"
                             >
                                 <div className="flex items-start gap-4">
                                     <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
@@ -278,20 +258,20 @@ export default function InstallPage() {
                                     </div>
                                     <div>
                                         <p className="font-semibold text-sm mb-1">{f.title}</p>
-                                        <p className="text-xs text-gray-500 leading-relaxed">{f.desc}</p>
+                                        <p className="text-xs text-faint leading-relaxed">{f.desc}</p>
                                     </div>
                                 </div>
                             </div>
                         ))}
 
                         {/* Shopify CTA */}
-                        <div className="rounded-xl bg-gradient-to-br from-[#256af4]/10 to-purple-500/10 border border-[#256af4]/20 p-5">
-                            <p className="text-xs font-medium text-[#256af4] mb-1 uppercase tracking-wider">Shopify Store?</p>
+                        <div className="rounded-xl bg-gradient-to-br from-primary/10 to-purple-500/10 border border-primary/20 p-5">
+                            <p className="text-xs font-medium text-primary mb-1 uppercase tracking-wider">Shopify Store?</p>
                             <p className="text-sm font-bold mb-3">Install via Shopify App</p>
-                            <p className="text-xs text-gray-400 mb-4">
+                            <p className="text-xs text-muted mb-4">
                                 The Shopify app auto-injects the widget via Theme App Extensions — no code needed.
                             </p>
-                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500">
+                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-faint">
                                 Coming soon to Shopify App Store
                             </span>
                         </div>

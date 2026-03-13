@@ -52,19 +52,19 @@ export default function SignUpPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-[#0a0a14]">
-        <div className="w-full max-w-md bg-[#181b21] border border-white/10 rounded-xl p-8 text-center">
-          <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-canvas">
+        <div className="w-full max-w-md bg-raised border border-edge rounded-xl p-8 text-center">
+          <div className="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-white mb-2">Check your email</h2>
-          <p className="text-slate-400 text-sm">
-            We sent a confirmation link to <strong className="text-white">{email}</strong>.
+          <h2 className="text-xl font-bold text-heading mb-2">Check your email</h2>
+          <p className="text-muted text-sm">
+            We sent a confirmation link to <strong className="text-heading">{email}</strong>.
             Click the link to activate your account.
           </p>
-          <Link href="/auth/sign-in" className="inline-block mt-6 text-blue-500 hover:text-blue-400 text-sm font-medium">
+          <Link href="/auth/sign-in" className="inline-block mt-6 text-primary-400 hover:text-primary-300 text-sm font-medium">
             Back to Sign In
           </Link>
         </div>
@@ -73,20 +73,20 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-[#0a0a14]">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-canvas">
       <Link href="/" className="flex items-center gap-2.5 mb-8">
-        <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
           <Mic className="w-4 h-4 text-white" />
         </div>
-        <span className="text-lg font-bold text-white">SimplifyOps</span>
+        <span className="text-lg font-bold text-heading">SimplifyOps</span>
       </Link>
 
-      <div className="w-full max-w-md bg-[#181b21] border border-white/10 rounded-xl p-8">
-        <h1 className="text-2xl font-bold text-white mb-2">Sign Up</h1>
-        <p className="text-slate-400 text-sm mb-6">Enter your information to create an account</p>
+      <div className="w-full max-w-md bg-raised border border-edge rounded-xl p-8">
+        <h1 className="text-2xl font-bold text-heading mb-2">Sign Up</h1>
+        <p className="text-muted text-sm mb-6">Enter your information to create an account</p>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg p-3 mb-4">
+          <div className="bg-error/10 border border-error/30 text-error text-sm rounded-lg p-3 mb-4">
             {error}
           </div>
         )}
@@ -105,36 +105,36 @@ export default function SignUpPage() {
         </button>
 
         <div className="flex items-center gap-4 my-4">
-          <div className="flex-1 h-px bg-white/10" />
-          <span className="text-xs text-slate-500">or</span>
-          <div className="flex-1 h-px bg-white/10" />
+          <div className="flex-1 h-px bg-edge" />
+          <span className="text-xs text-faint">or</span>
+          <div className="flex-1 h-px bg-edge" />
         </div>
 
         <form onSubmit={handleSignUp} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1.5">Name</label>
+            <label className="block text-sm font-medium text-body mb-1.5">Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
               required
-              className="w-full bg-[#0f1115] border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+              className="w-full bg-canvas border border-edge rounded-lg px-4 py-3 text-heading placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
+            <label className="block text-sm font-medium text-body mb-1.5">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="m@example.com"
               required
-              className="w-full bg-[#0f1115] border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+              className="w-full bg-canvas border border-edge rounded-lg px-4 py-3 text-heading placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
+            <label className="block text-sm font-medium text-body mb-1.5">Password</label>
             <input
               type="password"
               value={password}
@@ -142,22 +142,22 @@ export default function SignUpPage() {
               placeholder="Min 6 characters"
               required
               minLength={6}
-              className="w-full bg-[#0f1115] border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+              className="w-full bg-canvas border border-edge rounded-lg px-4 py-3 text-heading placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-4 py-3 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full bg-primary hover:bg-primary-hover text-white font-medium rounded-lg px-4 py-3 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             Create an account
           </button>
         </form>
 
-        <p className="text-center text-sm text-slate-400 mt-6">
+        <p className="text-center text-sm text-muted mt-6">
           Already have an account?{" "}
-          <Link href="/auth/sign-in" className="text-blue-500 hover:text-blue-400 font-medium">
+          <Link href="/auth/sign-in" className="text-primary-400 hover:text-primary-300 font-medium">
             Sign In
           </Link>
         </p>

@@ -45,20 +45,20 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-[#0a0a14]">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-canvas">
       <Link href="/" className="flex items-center gap-2.5 mb-8">
-        <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
           <Mic className="w-4 h-4 text-white" />
         </div>
-        <span className="text-lg font-bold text-white">SimplifyOps</span>
+        <span className="text-lg font-bold text-heading">SimplifyOps</span>
       </Link>
 
-      <div className="w-full max-w-md bg-[#181b21] border border-white/10 rounded-xl p-8">
-        <h1 className="text-2xl font-bold text-white mb-2">Sign In</h1>
-        <p className="text-slate-400 text-sm mb-6">Welcome back! Sign in to your account</p>
+      <div className="w-full max-w-md bg-raised border border-edge rounded-xl p-8">
+        <h1 className="text-2xl font-bold text-heading mb-2">Sign In</h1>
+        <p className="text-muted text-sm mb-6">Welcome back! Sign in to your account</p>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-lg p-3 mb-4">
+          <div className="bg-error/10 border border-error/30 text-error text-sm rounded-lg p-3 mb-4">
             {error}
           </div>
         )}
@@ -77,47 +77,47 @@ export default function SignInPage() {
         </button>
 
         <div className="flex items-center gap-4 my-4">
-          <div className="flex-1 h-px bg-white/10" />
-          <span className="text-xs text-slate-500">or</span>
-          <div className="flex-1 h-px bg-white/10" />
+          <div className="flex-1 h-px bg-edge" />
+          <span className="text-xs text-faint">or</span>
+          <div className="flex-1 h-px bg-edge" />
         </div>
 
         <form onSubmit={handleSignIn} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
+            <label className="block text-sm font-medium text-body mb-1.5">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="m@example.com"
               required
-              className="w-full bg-[#0f1115] border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+              className="w-full bg-canvas border border-edge rounded-lg px-4 py-3 text-heading placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
+            <label className="block text-sm font-medium text-body mb-1.5">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
               required
-              className="w-full bg-[#0f1115] border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+              className="w-full bg-canvas border border-edge rounded-lg px-4 py-3 text-heading placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-4 py-3 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full bg-primary hover:bg-primary-hover text-white font-medium rounded-lg px-4 py-3 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             Sign In
           </button>
         </form>
 
-        <p className="text-center text-sm text-slate-400 mt-6">
+        <p className="text-center text-sm text-muted mt-6">
           Don&apos;t have an account?{" "}
-          <Link href="/auth/sign-up" className="text-blue-500 hover:text-blue-400 font-medium">
+          <Link href="/auth/sign-up" className="text-primary-400 hover:text-primary-300 font-medium">
             Sign Up
           </Link>
         </p>

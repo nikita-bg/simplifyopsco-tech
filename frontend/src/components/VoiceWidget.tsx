@@ -142,7 +142,7 @@ export function FloatingVoiceWidget() {
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
                         className="fixed bottom-6 right-6 z-50 w-[340px] rounded-2xl overflow-hidden shadow-2xl shadow-black/60"
                         style={{
-                            background: "#0d0d1a",
+                            background: "oklch(9% 0.02 270)",
                             border: "1px solid rgba(255,255,255,0.08)",
                         }}
                     >

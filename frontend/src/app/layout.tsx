@@ -21,7 +21,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       </head>
-      <body className="bg-[#0f1115] text-slate-100 min-h-screen flex flex-col overflow-x-hidden antialiased selection:bg-[#256af4] selection:text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+      <body className="bg-canvas text-body min-h-screen flex flex-col overflow-x-hidden antialiased selection:bg-primary selection:text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
         {children}
         <FloatingVoiceWidget />
       </body>

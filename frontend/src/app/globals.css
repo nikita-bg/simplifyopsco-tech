@@ -1,10 +1,53 @@
 @import "tailwindcss";
 
+/*
+ * OKLCH Design Token System — Four Layers of Color Theory
+ *
+ * Layer 1: Neutral Foundation (backgrounds, borders, text)
+ * Layer 2: Functional Accents (brand primary scale)
+ * Layer 3: Semantic Communication (success, error, warning, info)
+ * Layer 4: Dark mode theming (elevation = lighter surfaces)
+ */
+
 @theme {
-  --color-primary: #256af4;
-  --color-primary-dark: #1a4bbd;
-  --color-background-dark: #0f1115;
-  --color-surface-dark: #181b21;
+  /* ─── Layer 1: Neutral Foundation ─── */
+
+  /* Background hierarchy: darker → lighter = deeper → elevated */
+  --color-canvas: oklch(7% 0.02 270);          /* deepest: dashboard main area */
+  --color-canvas-inset: oklch(8.5% 0.015 265); /* body bg, recessed panels */
+  --color-panel: oklch(9% 0.02 270);           /* sidebar, cards */
+  --color-raised: oklch(13% 0.015 265);        /* elevated surface, surface-dark */
+  --color-overlay: oklch(16% 0.008 260);       /* tooltips, code blocks, modals */
+
+  /* Borders — subtle definition without overpowering */
+  --color-edge: oklch(20% 0.01 260);           /* default card/panel borders */
+  --color-edge-strong: oklch(28% 0.01 260);    /* hover/active borders */
+
+  /* Text hierarchy (darkest label → lightest heading) */
+  --color-heading: oklch(95% 0.003 260);       /* h1, h2, important labels */
+  --color-body: oklch(91% 0.008 255);          /* primary body text */
+  --color-muted: oklch(65% 0.015 250);         /* subtext, descriptions */
+  --color-faint: oklch(45% 0.02 250);          /* placeholder, disabled */
+
+  /* ─── Layer 2: Brand Primary Scale ─── */
+  --color-primary-50: oklch(95% 0.02 260);
+  --color-primary-100: oklch(90% 0.05 260);
+  --color-primary-200: oklch(82% 0.09 260);
+  --color-primary-300: oklch(72% 0.13 260);
+  --color-primary-400: oklch(62% 0.17 260);
+  --color-primary: oklch(52% 0.22 260);        /* 500 — main brand */
+  --color-primary-hover: oklch(45% 0.22 260);  /* 600 — hover, active */
+  --color-primary-700: oklch(38% 0.18 260);
+  --color-primary-800: oklch(32% 0.15 260);
+  --color-primary-900: oklch(25% 0.12 260);
+
+  /* ─── Layer 3: Semantic (locked L=65%, C=0.18, varying Hue) ─── */
+  --color-success: oklch(65% 0.18 150);
+  --color-error: oklch(65% 0.18 25);
+  --color-warning: oklch(72% 0.17 80);
+  --color-info: oklch(65% 0.18 230);
+
+  /* ─── Font ─── */
   --font-family-display: "Space Grotesk", sans-serif;
 }
 
@@ -17,8 +60,8 @@
 
   body {
     font-family: "Space Grotesk", sans-serif;
-    background-color: #0f1115;
-    color: #e2e8f0;
+    background-color: var(--color-canvas-inset);
+    color: var(--color-body);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -26,23 +69,23 @@
   }
 
   ::selection {
-    background-color: #256af4;
+    background-color: var(--color-primary);
     color: white;
   }
 }
 
 @utility glass-panel {
-  background: rgba(24, 27, 33, 0.6);
+  background: oklch(13% 0.015 265 / 0.6);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid oklch(100% 0 0 / 0.08);
 }
 
 @utility glow-text {
-  text-shadow: 0 0 20px rgba(37, 106, 244, 0.5);
+  text-shadow: 0 0 20px oklch(52% 0.22 260 / 0.5);
 }
 
 @utility text-gradient {
-  background: linear-gradient(to right, #256af4, #818cf8);
+  background: linear-gradient(to right, var(--color-primary), oklch(65% 0.14 280));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -50,70 +93,70 @@
 
 /* Neon Auth dark theme overrides — targets data-slot attributes from shadcn/ui */
 [data-better-auth-ui] [data-slot="card"] {
-  background-color: #0d0d1a !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-  color: #e2e8f0 !important;
+  background-color: var(--color-panel) !important;
+  border-color: oklch(100% 0 0 / 0.08) !important;
+  color: var(--color-body) !important;
   border-radius: 1rem !important;
-  box-shadow: 0 0 40px -10px rgba(37, 106, 244, 0.1) !important;
+  box-shadow: 0 0 40px -10px oklch(52% 0.22 260 / 0.1) !important;
 }
 
 [data-better-auth-ui] [data-slot="card-title"] {
-  color: #f1f5f9 !important;
+  color: var(--color-heading) !important;
 }
 
 [data-better-auth-ui] [data-slot="card-description"] {
-  color: #94a3b8 !important;
+  color: var(--color-muted) !important;
 }
 
 [data-better-auth-ui] [data-slot="form-label"] {
-  color: #e2e8f0 !important;
+  color: var(--color-body) !important;
 }
 
 [data-better-auth-ui] [data-slot="form-control"],
 [data-better-auth-ui] input {
-  background-color: rgba(255, 255, 255, 0.05) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  color: #e2e8f0 !important;
+  background-color: oklch(100% 0 0 / 0.05) !important;
+  border-color: oklch(100% 0 0 / 0.1) !important;
+  color: var(--color-body) !important;
 }
 
 [data-better-auth-ui] [data-slot="form-control"]::placeholder,
 [data-better-auth-ui] input::placeholder {
-  color: #64748b !important;
+  color: var(--color-faint) !important;
 }
 
 [data-better-auth-ui] [data-slot="form-control"]:focus,
 [data-better-auth-ui] input:focus {
-  border-color: #256af4 !important;
-  box-shadow: 0 0 0 3px rgba(37, 106, 244, 0.2) !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px oklch(52% 0.22 260 / 0.2) !important;
 }
 
 [data-better-auth-ui] button[type="submit"],
 [data-better-auth-ui] [data-slot="button"] {
-  background-color: #256af4 !important;
+  background-color: var(--color-primary) !important;
   color: white !important;
   border: none !important;
 }
 
 [data-better-auth-ui] button[type="submit"]:hover,
 [data-better-auth-ui] [data-slot="button"]:hover {
-  background-color: #1a4bbd !important;
+  background-color: var(--color-primary-hover) !important;
 }
 
 [data-better-auth-ui] a {
-  color: #60a5fa !important;
+  color: var(--color-primary-400) !important;
 }
 
 [data-better-auth-ui] a:hover {
-  color: #93bbfc !important;
+  color: var(--color-primary-300) !important;
 }
 
 [data-better-auth-ui] p,
 [data-better-auth-ui] span:not([data-slot="card-title"]) {
-  color: #94a3b8 !important;
+  color: var(--color-muted) !important;
 }
 
 /* Password visibility toggle */
 [data-better-auth-ui] button[type="button"] {
-  color: #94a3b8 !important;
+  color: var(--color-muted) !important;
   background: transparent !important;
 }
