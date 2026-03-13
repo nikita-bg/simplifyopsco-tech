@@ -151,23 +151,81 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEC-01 through SEC-04 | Phase 0 | Pending |
-| AGT-01 through AGT-06 | Phase 1 | Pending |
-| KB-01 through KB-07 | Phase 2 | Pending |
-| DB-01 through DB-04 | Phase 1 | Pending |
-| WDG-01 through WDG-07 | Phase 3 | Pending |
-| AUT-01 through AUT-06 | Phase 4 | Pending |
-| ONB-01 through ONB-07 | Phase 5 | Pending |
-| CFG-01 through CFG-08 | Phase 6 | Pending |
-| BIL-01 through BIL-09 | Phase 7 | Pending |
-| ANL-01 through ANL-06 | Phase 8 | Pending |
-| DSN-01 through DSN-05 | Phase 9 | Pending |
+| SEC-01 | Phase 0: Security Lockdown | Pending |
+| SEC-02 | Phase 0: Security Lockdown | Pending |
+| SEC-03 | Phase 0: Security Lockdown | Pending |
+| SEC-04 | Phase 0: Security Lockdown | Pending |
+| AGT-01 | Phase 1: Agent Infrastructure | Pending |
+| AGT-02 | Phase 1: Agent Infrastructure | Pending |
+| AGT-03 | Phase 1: Agent Infrastructure | Pending |
+| AGT-04 | Phase 1: Agent Infrastructure | Pending |
+| AGT-05 | Phase 1: Agent Infrastructure | Pending |
+| AGT-06 | Phase 1: Agent Infrastructure | Pending |
+| DB-01 | Phase 1: Agent Infrastructure | Pending |
+| DB-02 | Phase 1: Agent Infrastructure | Pending |
+| DB-03 | Phase 1: Agent Infrastructure | Pending |
+| DB-04 | Phase 1: Agent Infrastructure | Pending |
+| KB-01 | Phase 2: Knowledge Base | Pending |
+| KB-02 | Phase 2: Knowledge Base | Pending |
+| KB-03 | Phase 2: Knowledge Base | Pending |
+| KB-04 | Phase 2: Knowledge Base | Pending |
+| KB-05 | Phase 2: Knowledge Base | Pending |
+| KB-06 | Phase 2: Knowledge Base | Pending |
+| KB-07 | Phase 2: Knowledge Base | Pending |
+| WDG-01 | Phase 3: Widget | Pending |
+| WDG-02 | Phase 3: Widget | Pending |
+| WDG-03 | Phase 3: Widget | Pending |
+| WDG-04 | Phase 3: Widget | Pending |
+| WDG-05 | Phase 3: Widget | Pending |
+| WDG-06 | Phase 3: Widget | Pending |
+| WDG-07 | Phase 3: Widget | Pending |
+| AUT-01 | Phase 4: Automation | Pending |
+| AUT-02 | Phase 4: Automation | Pending |
+| AUT-03 | Phase 4: Automation | Pending |
+| AUT-04 | Phase 4: Automation | Pending |
+| AUT-05 | Phase 4: Automation | Pending |
+| AUT-06 | Phase 4: Automation | Pending |
+| ONB-01 | Phase 5: Onboarding | Pending |
+| ONB-02 | Phase 5: Onboarding | Pending |
+| ONB-03 | Phase 5: Onboarding | Pending |
+| ONB-04 | Phase 5: Onboarding | Pending |
+| ONB-05 | Phase 5: Onboarding | Pending |
+| ONB-06 | Phase 5: Onboarding | Pending |
+| ONB-07 | Phase 5: Onboarding | Pending |
+| CFG-01 | Phase 6: Agent Configuration | Pending |
+| CFG-02 | Phase 6: Agent Configuration | Pending |
+| CFG-03 | Phase 6: Agent Configuration | Pending |
+| CFG-04 | Phase 6: Agent Configuration | Pending |
+| CFG-05 | Phase 6: Agent Configuration | Pending |
+| CFG-06 | Phase 6: Agent Configuration | Pending |
+| CFG-07 | Phase 6: Agent Configuration | Pending |
+| CFG-08 | Phase 6: Agent Configuration | Pending |
+| BIL-01 | Phase 7: Billing | Pending |
+| BIL-02 | Phase 7: Billing | Pending |
+| BIL-03 | Phase 7: Billing | Pending |
+| BIL-04 | Phase 7: Billing | Pending |
+| BIL-05 | Phase 7: Billing | Pending |
+| BIL-06 | Phase 7: Billing | Pending |
+| BIL-07 | Phase 7: Billing | Pending |
+| BIL-08 | Phase 7: Billing | Pending |
+| BIL-09 | Phase 7: Billing | Pending |
+| ANL-01 | Phase 8: Analytics | Pending |
+| ANL-02 | Phase 8: Analytics | Pending |
+| ANL-03 | Phase 8: Analytics | Pending |
+| ANL-04 | Phase 8: Analytics | Pending |
+| ANL-05 | Phase 8: Analytics | Pending |
+| ANL-06 | Phase 8: Analytics | Pending |
+| DSN-01 | Phase 9: Design Polish | Pending |
+| DSN-02 | Phase 9: Design Polish | Pending |
+| DSN-03 | Phase 9: Design Polish | Pending |
+| DSN-04 | Phase 9: Design Polish | Pending |
+| DSN-05 | Phase 9: Design Polish | Pending |
 
 **Coverage:**
-- v1 requirements: 62 total
-- Mapped to phases: 62
-- Unmapped: 0 ✓
+- v1 requirements: 69 total (SEC: 4, AGT: 6, KB: 7, WDG: 7, ONB: 7, CFG: 8, BIL: 9, AUT: 6, ANL: 6, DSN: 5, DB: 4)
+- Mapped to phases: 69
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-13*
-*Last updated: 2026-03-13 after research synthesis*
+*Last updated: 2026-03-13 after roadmap creation*
