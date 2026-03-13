@@ -81,12 +81,11 @@ Plans:
   3. Voice connection uses a signed URL from the backend (never exposes ElevenLabs API key to browser)
   4. The widget works on mobile (including iOS Safari audio context handling) and handles microphone permissions with clear prompts
   5. When an agent is disabled or the merchant exceeds plan limits, the widget shows a graceful fallback instead of erroring
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
-- [ ] 03-03: TBD
+- [ ] 03-01-PLAN.md — Backend /api/widget/config endpoint with response model, wildcard CORS, and tests
+- [ ] 03-02-PLAN.md — Widget JS refactor: dynamic config, 4-corner positioning, iOS AudioContext, mic permissions, graceful fallback
 
 ### Phase 4: Automation
 **Goal**: Core business workflows run automatically via n8n without manual intervention
@@ -198,7 +197,7 @@ Note: Phases 6, 7, 8 can potentially run in parallel after their dependencies ar
 | 0. Security Lockdown | 2/2 | Complete | 2026-03-13 |
 | 1. Agent Infrastructure | 2/2 | Complete | 2026-03-13 |
 | 2. Knowledge Base | 2/3 | In Progress|  |
-| 3. Widget | 0/3 | Not started | - |
+| 3. Widget | 0/2 | Not started | - |
 | 4. Automation | 0/2 | Not started | - |
 | 5. Onboarding | 0/2 | Not started | - |
 | 6. Agent Configuration | 0/3 | Not started | - |
