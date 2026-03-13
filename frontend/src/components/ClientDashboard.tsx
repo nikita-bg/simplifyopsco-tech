@@ -70,7 +70,7 @@ export function ClientDashboard({ user, storeId }: { user?: UserInfo; storeId: s
                 const res = await apiFetch(`/api/dashboard/${storeId}/stats`, { signal: AbortSignal.timeout(5000) });
                 if (res.ok) {
                     const json = await res.json();
-                    setData(json);
+                    setData({ ...FALLBACK, ...json });
                     setBackendOnline(true);
                 }
             } catch {
@@ -214,9 +214,9 @@ export function ClientDashboard({ user, storeId }: { user?: UserInfo; storeId: s
                     <>
                         {/* Stat Cards */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
-                            <StatCard title="Total Calls" value={data.total_calls.toLocaleString()} icon={<Phone className="w-5 h-5 text-blue-400" />} />
-                            <StatCard title="Avg. Lead Score" value={String(data.avg_lead_score)} suffix="/10" icon={<Star className="w-5 h-5 text-yellow-400" />} />
-                            <StatCard title="Conversion Rate" value={String(data.conversion_rate)} suffix="%" icon={<TrendingUp className="w-5 h-5 text-emerald-400" />} />
+                            <StatCard title="Total Calls" value={(data.total_calls ?? 0).toLocaleString()} icon={<Phone className="w-5 h-5 text-blue-400" />} />
+                            <StatCard title="Avg. Lead Score" value={String(data.avg_lead_score ?? 0)} suffix="/10" icon={<Star className="w-5 h-5 text-yellow-400" />} />
+                            <StatCard title="Conversion Rate" value={String(data.conversion_rate ?? 0)} suffix="%" icon={<TrendingUp className="w-5 h-5 text-emerald-400" />} />
                         </div>
 
                         {/* Charts */}
