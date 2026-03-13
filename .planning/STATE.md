@@ -1,3 +1,19 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: executing
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-03-13T18:36:39.169Z"
+last_activity: 2026-03-13 — Completed 01-01 (Agent Infrastructure Foundation)
+progress:
+  total_phases: 10
+  completed_phases: 0
+  total_plans: 4
+  completed_plans: 1
+  percent: 25
+---
+
 # Project State
 
 ## Project Reference
@@ -5,33 +21,33 @@
 See: .planning/PROJECT.md (updated 2026-03-13)
 
 **Core value:** Any merchant can have a working, personalized AI voice sales assistant live on their website in under 10 minutes — no code, no technical help needed.
-**Current focus:** Phase 0 - Security Lockdown
+**Current focus:** Phase 1 - Agent Infrastructure
 
 ## Current Position
 
-Phase: 0 of 9 (Security Lockdown)
-Plan: 0 of 2 in current phase
-Status: Ready to plan
-Last activity: 2026-03-13 — Roadmap created (10 phases, 69 requirements mapped)
+Phase: 1 of 9 (Agent Infrastructure)
+Plan: 1 of 2 in current phase
+Status: Executing
+Last activity: 2026-03-13 — Completed 01-01 (Agent Infrastructure Foundation)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███░░░░░░░] 25%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0 hours
+- Total plans completed: 1
+- Average duration: 2min
+- Total execution time: 0.03 hours
 
 **By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| - | - | - | - |
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| Phase 01 | P01 | 2min | 2 | 4 |
 
 **Recent Trend:**
-- Last 5 plans: -
-- Trend: -
+- Last 5 plans: 2min
+- Trend: Starting
 
 *Updated after each plan completion*
 
@@ -45,6 +61,9 @@ Recent decisions affecting current work:
 - [Roadmap]: Phase 0 is credential rotation (P0 emergency before any feature work)
 - [Roadmap]: Agent infrastructure (Phase 1) is dependency root — widget, sync, billing all need agent_id per store
 - [Roadmap]: Knowledge base and widget are separate phases (2, 3) despite tight coupling — KB can be tested via API before widget exists
+- [Phase 01]: Used raw httpx for ElevenLabs CRUD (consistent with shopify_service.py pattern)
+- [Phase 01]: JSONB for conversation_config matching ElevenLabs API payload format exactly
+- [Phase 01]: UNIQUE(type, is_default) on agent_templates enforces one default per business type
 
 ### Pending Todos
 
@@ -58,6 +77,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13
-Stopped at: Roadmap created, ready to plan Phase 0
+Last session: 2026-03-13T18:36:39.165Z
+Stopped at: Completed 01-01-PLAN.md
 Resume file: None

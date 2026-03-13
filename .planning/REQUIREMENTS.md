@@ -19,7 +19,7 @@
 - [ ] **AGT-03**: Agent can be deleted when merchant churns (via Agent Delete API)
 - [ ] **AGT-04**: Agent status tracked in DB (`stores.elevenlabs_agent_id`, `stores.agent_status`)
 - [ ] **AGT-05**: Agent guardrails set at creation (max_duration_seconds, daily_limit, blocked topics)
-- [ ] **AGT-06**: Agent templates exist per type: Online Store, Service Business, Lead Gen
+- [x] **AGT-06**: Agent templates exist per type: Online Store, Service Business, Lead Gen
 
 ### Knowledge Base (KB)
 
@@ -102,10 +102,10 @@
 
 ### Database (DB)
 
-- [ ] **DB-01**: Additive migrations: agent columns on `stores` table (agent_id, kb_doc_id, agent_status, etc.)
-- [ ] **DB-02**: pgvector extension enabled, product embeddings column
-- [ ] **DB-03**: Agent templates table for agent type presets
-- [ ] **DB-04**: Usage tracking columns (minutes_used, billing_period_start)
+- [x] **DB-01**: Additive migrations: agent columns on `stores` table (agent_id, kb_doc_id, agent_status, etc.)
+- [x] **DB-02**: pgvector extension enabled, product embeddings column
+- [x] **DB-03**: Agent templates table for agent type presets
+- [x] **DB-04**: Usage tracking columns (minutes_used, billing_period_start)
 
 ## v2 Requirements (Deferred)
 
@@ -160,11 +160,11 @@
 | AGT-03 | Phase 1: Agent Infrastructure | Pending |
 | AGT-04 | Phase 1: Agent Infrastructure | Pending |
 | AGT-05 | Phase 1: Agent Infrastructure | Pending |
-| AGT-06 | Phase 1: Agent Infrastructure | Pending |
-| DB-01 | Phase 1: Agent Infrastructure | Pending |
-| DB-02 | Phase 1: Agent Infrastructure | Pending |
-| DB-03 | Phase 1: Agent Infrastructure | Pending |
-| DB-04 | Phase 1: Agent Infrastructure | Pending |
+| AGT-06 | Phase 1: Agent Infrastructure | Complete |
+| DB-01 | Phase 1: Agent Infrastructure | Complete |
+| DB-02 | Phase 1: Agent Infrastructure | Complete |
+| DB-03 | Phase 1: Agent Infrastructure | Complete |
+| DB-04 | Phase 1: Agent Infrastructure | Complete |
 | KB-01 | Phase 2: Knowledge Base | Pending |
 | KB-02 | Phase 2: Knowledge Base | Pending |
 | KB-03 | Phase 2: Knowledge Base | Pending |
