@@ -206,6 +206,11 @@ def mask_sensitive_data(text: str) -> str:
     return text
 
 
+import logging
+
+_logger = logging.getLogger("simplifyops")
+
+
 class SecurityLogger:
     """Logger with automatic sensitive data masking"""
 
@@ -213,14 +218,14 @@ class SecurityLogger:
     def log(message: str, level: str = "INFO"):
         """Log message with sensitive data masked"""
         masked = mask_sensitive_data(message)
-        print(f"[{level}] {masked}")
+        getattr(_logger, level.lower(), _logger.info)(masked)
 
     @staticmethod
     def log_error(message: str, error: Exception):
         """Log error with masked sensitive data"""
         masked_msg = mask_sensitive_data(message)
         masked_err = mask_sensitive_data(str(error))
-        print(f"[ERROR] {masked_msg}: {masked_err}")
+        _logger.error(f"{masked_msg}: {masked_err}")
 
 
 # Export

@@ -8,7 +8,7 @@ import hashlib
 import hmac
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Any, Optional
 
 import httpx  # type: ignore[import-not-found]
@@ -76,7 +76,7 @@ class ShopifyService:
                 SET access_token_encrypted = $3, owner_id = $4::uuid
                 RETURNING id
                 """,
-                store_id, shop, encrypted_token, owner_id, datetime.utcnow(),
+                store_id, shop, encrypted_token, owner_id, datetime.now(UTC),
             )
         else:
             await db.execute(
@@ -87,7 +87,7 @@ class ShopifyService:
                 SET access_token_encrypted = $3
                 RETURNING id
                 """,
-                store_id, shop, encrypted_token, datetime.utcnow(),
+                store_id, shop, encrypted_token, datetime.now(UTC),
             )
 
         SecurityLogger.log(f"Store registered: {shop}", "INFO")
@@ -241,7 +241,7 @@ class ShopifyService:
             product.get("body_html", ""), product_type,
             category, subcategory, tags,
             price_min, price_max, json.dumps(images),
-            datetime.utcnow(),
+            datetime.now(UTC),
         )
 
     @staticmethod

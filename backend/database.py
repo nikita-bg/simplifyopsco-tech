@@ -1,11 +1,15 @@
 """
 Database Layer — Neon PostgreSQL with asyncpg + connection pooling
 """
+import logging
+
 import asyncpg  # type: ignore[import-not-found]
 from typing import Optional, Any
 from contextlib import asynccontextmanager
 
 from backend.config import settings  # type: ignore[import]
+
+logger = logging.getLogger("simplifyops.db")
 
 
 class Database:
@@ -17,7 +21,7 @@ class Database:
     async def connect(self) -> None:
         """Create connection pool using Neon pooled URL"""
         if not settings.DATABASE_URL:
-            print("[WARNING] DATABASE_URL not configured — database DISABLED")
+            logger.warning("DATABASE_URL not configured — database DISABLED")
             return
 
         try:
@@ -25,7 +29,7 @@ class Database:
             import re
             raw = settings.DATABASE_URL
             dsn = re.sub(r'[?&]sslmode=[^&]*', '', raw).rstrip('?')
-            print(f"[DEBUG v5] DSN: ...{dsn[-50:]!r}")
+            logger.debug(f"DSN: ...{dsn[-50:]!r}")
 
             self.pool = await asyncpg.create_pool(
                 dsn=dsn,
@@ -35,9 +39,9 @@ class Database:
                 command_timeout=30,
                 statement_cache_size=0,  # Required for Neon PgBouncer
             )
-            print("[OK] Database pool created")
+            logger.info("Database pool created")
         except Exception as e:
-            print(f"[ERROR] Database connection failed: {e}")
+            logger.error(f"Database connection failed: {e}")
             self.pool = None
 
     async def disconnect(self) -> None:
@@ -46,7 +50,7 @@ class Database:
         if pool is not None:
             await pool.close()
             self.pool = None
-            print("[OK] Database pool closed")
+            logger.info("Database pool closed")
 
     @asynccontextmanager
     async def acquire(self):  # type: ignore[misc]

@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse  # type: ignore[import-not-found]
 import httpx  # type: ignore[import-not-found]
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Any
 
 from backend.models import (  # type: ignore[import]
@@ -383,7 +383,7 @@ async def post_call_webhook(
                 json.dumps([]),
                 json.dumps(payload.cart_actions or []),
                 payload.duration or 0,
-                datetime.utcnow(),
+                datetime.now(UTC),
             )
 
             # Upsert daily_analytics
@@ -445,7 +445,7 @@ async def update_store_settings(store_id: str, settings_data: StoreSettings, req
     await db.execute(
         "UPDATE stores SET settings = $1, updated_at = $2 WHERE id = $3::uuid",
         json.dumps(settings_data.model_dump()),
-        datetime.utcnow(),
+        datetime.now(UTC),
         store_id,
     )
     return {"message": "Settings updated", "settings": settings_data}
@@ -457,7 +457,7 @@ async def update_store_settings(store_id: str, settings_data: StoreSettings, req
 
 def _time_ago(dt: datetime) -> str:
     """Format datetime as 'X mins ago', etc."""
-    delta = datetime.utcnow() - dt
+    delta = datetime.now(UTC) - dt
     seconds = delta.total_seconds()
     if seconds < 60:
         return "just now"
