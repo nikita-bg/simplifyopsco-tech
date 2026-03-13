@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { Loader2, CreditCard, Calendar, TrendingUp, ExternalLink } from "lucide-react";
 import { useStore } from "@/lib/store-context";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiFetch } from "@/lib/api";
 
 interface SubscriptionInfo {
     tier: string;
@@ -32,7 +31,7 @@ export default function BillingPage() {
     const fetchSubscription = async () => {
         if (!storeId) return;
         try {
-            const res = await fetch(`${API_URL}/api/stores/${storeId}/subscription`, { credentials: "include" });
+            const res = await apiFetch(`/api/stores/${storeId}/subscription`);
             if (res.ok) {
                 const data = await res.json();
                 setSubscription(data);
@@ -48,10 +47,8 @@ export default function BillingPage() {
         if (!storeId) return;
         setPortalLoading(true);
         try {
-            const res = await fetch(`${API_URL}/api/stripe/portal`, {
+            const res = await apiFetch("/api/stripe/portal", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
                 body: JSON.stringify({
                     store_id: storeId,
                     return_url: window.location.href,

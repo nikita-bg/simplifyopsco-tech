@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { Loader2, MessageSquare, Clock, TrendingUp, User, ShoppingCart } from "lucide-react";
 import { useStore } from "@/lib/store-context";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiFetch } from "@/lib/api";
 
 interface Conversation {
     id: string;
@@ -36,9 +35,8 @@ export default function ConversationsPage() {
     const fetchConversations = async (newOffset: number) => {
         setLoading(true);
         try {
-            const res = await fetch(
-                `${API_URL}/api/conversations?store_id=${storeId}&offset=${newOffset}&limit=${PAGE_SIZE}`,
-                { credentials: "include" },
+            const res = await apiFetch(
+                `/api/conversations?store_id=${storeId}&offset=${newOffset}&limit=${PAGE_SIZE}`,
             );
             if (res.ok) {
                 const data = await res.json();

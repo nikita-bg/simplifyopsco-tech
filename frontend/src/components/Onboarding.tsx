@@ -3,8 +3,7 @@
 import React, { useState } from "react";
 import { Globe, ShoppingBag, ArrowRight, Loader2 } from "lucide-react";
 import { useStore } from "@/lib/store-context";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiFetch } from "@/lib/api";
 
 interface OnboardingProps {
   userId: string;
@@ -26,8 +25,8 @@ export function Onboarding({ userId }: OnboardingProps) {
       const domain = shopDomain.includes(".myshopify.com")
         ? shopDomain
         : `${shopDomain}.myshopify.com`;
-      const res = await fetch(
-        `${API_URL}/shopify/auth?shop=${encodeURIComponent(domain)}&user_id=${encodeURIComponent(userId)}`
+      const res = await apiFetch(
+        `/shopify/auth?shop=${encodeURIComponent(domain)}&user_id=${encodeURIComponent(userId)}`
       );
       const data = await res.json();
       if (data.install_url) {
@@ -48,12 +47,8 @@ export function Onboarding({ userId }: OnboardingProps) {
     setError("");
     try {
       const url = siteUrl.startsWith("http") ? siteUrl : `https://${siteUrl}`;
-      const res = await fetch(`${API_URL}/api/stores/create`, {
+      const res = await apiFetch("/api/stores/create", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
         body: JSON.stringify({ site_url: url }),
       });
       if (res.ok) {

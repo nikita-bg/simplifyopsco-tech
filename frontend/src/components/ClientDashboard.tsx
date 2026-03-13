@@ -11,10 +11,10 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createSupabaseBrowser } from "@/lib/supabase/client";
+import { apiFetch } from "@/lib/api";
 import { LogOut } from "lucide-react";
 
 const INTENT_COLORS = ["#3b82f6", "#8b5cf6", "#10b981", "#f59e0b", "#ef4444"];
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 // Fallback static data
 const FALLBACK = {
@@ -67,7 +67,7 @@ export function ClientDashboard({ user, storeId }: { user?: UserInfo; storeId: s
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const res = await fetch(`${API_URL}/api/dashboard/${storeId}/stats`, { credentials: "include", signal: AbortSignal.timeout(5000) });
+                const res = await apiFetch(`/api/dashboard/${storeId}/stats`, { signal: AbortSignal.timeout(5000) });
                 if (res.ok) {
                     const json = await res.json();
                     setData(json);

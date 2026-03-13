@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Copy, Check, Mic, ArrowLeft, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useStore } from "@/lib/store-context";
+import { apiFetch } from "@/lib/api";
 
 const AGENT_ID = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || "agent_6401kec12s0ff6hbwjmgdw2s0kt0";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -16,7 +17,7 @@ export default function SettingsPage() {
 
     useEffect(() => {
         if (storeId) {
-            fetch(`${API_URL}/api/install/${storeId}`, { credentials: "include" })
+            apiFetch(`/api/install/${storeId}`)
                 .then((res) => res.json())
                 .then((data) => setEmbedCode(data.embed_code || ""))
                 .catch(() => {});

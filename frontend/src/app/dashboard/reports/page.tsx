@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { Loader2, TrendingUp, Users, MessageSquare, ShoppingCart, BarChart3, PieChart } from "lucide-react";
 import { useStore } from "@/lib/store-context";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiFetch } from "@/lib/api";
 
 interface DashboardStats {
     total_conversations: number;
@@ -40,9 +39,9 @@ export default function ReportsPage() {
     const fetchReports = async () => {
         try {
             const [statsRes, sentimentRes, insightsRes] = await Promise.all([
-                fetch(`${API_URL}/api/dashboard/${storeId}/stats`, { credentials: "include" }),
-                fetch(`${API_URL}/api/reports/sentiment`, { credentials: "include" }),
-                fetch(`${API_URL}/api/stores/${storeId}/reports/insights`, { credentials: "include" }),
+                apiFetch(`/api/dashboard/${storeId}/stats`),
+                apiFetch("/api/reports/sentiment"),
+                apiFetch(`/api/stores/${storeId}/reports/insights`),
             ]);
 
             if (statsRes.ok) {

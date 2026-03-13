@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { CheckCircle2, Mic, ArrowLeft, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiFetch } from "@/lib/api";
 
 export default function PricingPage() {
     const [storeId, setStoreId] = useState<string | null>(null);
@@ -12,7 +11,7 @@ export default function PricingPage() {
 
     useEffect(() => {
         // Check if user is logged in and has a store
-        fetch(`${API_URL}/api/me`, { credentials: "include" })
+        apiFetch("/api/me")
             .then((res) => {
                 if (res.ok) return res.json();
                 return null;
@@ -138,10 +137,8 @@ function PricingCard({ title, price, plan, storeId, isLoggedIn, desc, features, 
         // Logged in with a store - create Stripe checkout
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/api/stripe/checkout`, {
+            const res = await apiFetch("/api/stripe/checkout", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
                 body: JSON.stringify({ store_id: storeId, plan }),
             });
             const data = await res.json();

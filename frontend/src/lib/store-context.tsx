@@ -1,8 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { apiFetch } from "@/lib/api";
 
 interface Store {
   id: string;
@@ -39,8 +38,7 @@ export function StoreProvider({
 
   const fetchStores = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/api/me`, {
-        credentials: "include",
+      const res = await apiFetch("/api/me", {
         signal: AbortSignal.timeout(5000),
       });
       if (res.ok) {
