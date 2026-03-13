@@ -23,13 +23,13 @@
 
 ### Knowledge Base (KB)
 
-- [ ] **KB-01**: Shopify products auto-sync to ElevenLabs agent knowledge base (webhook-driven)
-- [ ] **KB-02**: Products transformed to natural language format for optimal RAG retrieval
-- [ ] **KB-03**: Knowledge base character count tracked per merchant (300k limit warning at 80%)
+- [x] **KB-01**: Shopify products auto-sync to ElevenLabs agent knowledge base (webhook-driven)
+- [x] **KB-02**: Products transformed to natural language format for optimal RAG retrieval
+- [x] **KB-03**: Knowledge base character count tracked per merchant (300k limit warning at 80%)
 - [ ] **KB-04**: Manual product add/edit for non-Shopify merchants (name, description, price, URL)
 - [ ] **KB-05**: Sync status visible in dashboard (last synced, product count, health badge)
 - [ ] **KB-06**: Manual "Sync Now" button for immediate re-sync
-- [ ] **KB-07**: pgvector embeddings for precision product search via server tools
+- [x] **KB-07**: pgvector embeddings for precision product search via server tools
 
 ### Widget (WDG)
 
@@ -165,13 +165,13 @@
 | DB-02 | Phase 1: Agent Infrastructure | Complete |
 | DB-03 | Phase 1: Agent Infrastructure | Complete |
 | DB-04 | Phase 1: Agent Infrastructure | Complete |
-| KB-01 | Phase 2: Knowledge Base | Pending |
-| KB-02 | Phase 2: Knowledge Base | Pending |
-| KB-03 | Phase 2: Knowledge Base | Pending |
+| KB-01 | Phase 2: Knowledge Base | Complete |
+| KB-02 | Phase 2: Knowledge Base | Complete |
+| KB-03 | Phase 2: Knowledge Base | Complete |
 | KB-04 | Phase 2: Knowledge Base | Pending |
 | KB-05 | Phase 2: Knowledge Base | Pending |
 | KB-06 | Phase 2: Knowledge Base | Pending |
-| KB-07 | Phase 2: Knowledge Base | Pending |
+| KB-07 | Phase 2: Knowledge Base | Complete |
 | WDG-01 | Phase 3: Widget | Pending |
 | WDG-02 | Phase 3: Widget | Pending |
 | WDG-03 | Phase 3: Widget | Pending |

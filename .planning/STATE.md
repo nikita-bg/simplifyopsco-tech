@@ -3,30 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-02-PLAN.md (Phase 1 complete)
-last_updated: "2026-03-13T18:52:01.179Z"
-last_activity: 2026-03-13 — Completed 01-02 (Agent CRUD Endpoints and Signed URL Refactor)
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-13T19:50:23.956Z"
+last_activity: 2026-03-13 — Completed 02-01 (KB Foundation)
 progress:
   total_phases: 10
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 2
----
-
----
-gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: executing
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-03-13T18:45:16.000Z"
-last_activity: 2026-03-13 — Completed 01-02 (Agent CRUD Endpoints and Signed URL Refactor)
-progress:
-  total_phases: 10
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 2
-  percent: 30
+  total_plans: 7
+  completed_plans: 3
+  percent: 43
 ---
 
 # Project State
@@ -36,23 +21,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-13)
 
 **Core value:** Any merchant can have a working, personalized AI voice sales assistant live on their website in under 10 minutes — no code, no technical help needed.
-**Current focus:** Phase 1 - Agent Infrastructure
+**Current focus:** Phase 2 - Knowledge Base
 
 ## Current Position
 
-Phase: 1 of 9 (Agent Infrastructure) -- COMPLETE
-Plan: 2 of 2 in current phase
-Status: Phase Complete
-Last activity: 2026-03-13 — Completed 01-02 (Agent CRUD Endpoints and Signed URL Refactor)
+Phase: 2 of 10 (Knowledge Base)
+Plan: 1 of 3 in current phase
+Status: Executing
+Last activity: 2026-03-13 — Completed 02-01 (KB Foundation)
 
-Progress: [████░░░░░░] 30%
+Progress: [████░░░░░░] 43%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 3.5min
-- Total execution time: 0.12 hours
+- Total plans completed: 3
+- Average duration: 4.7min
+- Total execution time: 0.23 hours
 
 **By Phase:**
 
@@ -60,9 +45,10 @@ Progress: [████░░░░░░] 30%
 |-------|------|----------|-------|-------|
 | Phase 01 | P01 | 2min | 2 | 4 |
 | Phase 01 | P02 | 5min | 2 | 3 |
+| Phase 02 | P01 | 7min | 2 | 8 |
 
 **Recent Trend:**
-- Last 5 plans: 2min, 5min
+- Last 5 plans: 2min, 5min, 7min
 - Trend: Steady
 
 *Updated after each plan completion*
@@ -83,6 +69,11 @@ Recent decisions affecting current work:
 - [Phase 01]: Update ElevenLabs FIRST then DB to prevent config drift (research pitfall #4)
 - [Phase 01]: Per-store signed URL with global fallback preserves backward compatibility
 - [Phase 01]: Used pytest-asyncio for service tests (Python 3.14 deprecated get_event_loop)
+- [Phase 02]: Lazy Gemini client init to avoid import-time API key validation in tests
+- [Phase 02]: Single text document per store for ElevenLabs KB (atomic rebuild)
+- [Phase 02]: pgvector registered via asyncpg pool init callback
+- [Phase 02]: PRODUCT_SEARCH_TOOL as module-level constant for agent server tool registration
+- [Phase 02]: Description truncation at 500 chars to preserve 300k char budget
 
 ### Pending Todos
 
@@ -96,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T18:45:16Z
-Stopped at: Completed 01-02-PLAN.md (Phase 1 complete)
+Last session: 2026-03-13T19:49:17Z
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None
