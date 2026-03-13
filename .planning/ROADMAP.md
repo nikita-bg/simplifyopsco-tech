@@ -32,11 +32,11 @@ SimplifyOps transforms from a single-agent prototype into a multi-tenant product
   2. A developer cannot commit a file containing an API key or password -- pre-commit hook blocks it
   3. The ElevenLabs API key is never sent to the browser; widget connects via a signed URL with a 15-minute TTL
   4. All environment variables are managed through Railway secrets and Vercel env (no hardcoded values in code)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 00-01: TBD
-- [ ] 00-02: TBD
+- [ ] 00-01-PLAN.md — Rotate all leaked credentials and install gitleaks pre-commit hook
+- [ ] 00-02-PLAN.md — Implement ElevenLabs signed URL endpoint and migrate frontend
 
 ### Phase 1: Agent Infrastructure
 **Goal**: Each merchant has their own isolated ElevenLabs agent with full lifecycle management
@@ -191,12 +191,12 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9
+Phases execute in numeric order: 0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 Note: Phases 6, 7, 8 can potentially run in parallel after their dependencies are met.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 0. Security Lockdown | 0/2 | Not started | - |
+| 0. Security Lockdown | 0/2 | Planned | - |
 | 1. Agent Infrastructure | 0/3 | Not started | - |
 | 2. Knowledge Base | 0/3 | Not started | - |
 | 3. Widget | 0/3 | Not started | - |
