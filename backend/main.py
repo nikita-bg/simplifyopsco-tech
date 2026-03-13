@@ -23,7 +23,14 @@ from backend.models import (  # type: ignore[import]
     IntentDataPoint,
     ConversationSummary,
     StoreSettings,
+    AgentCreateRequest,
+    AgentCreateResponse,
+    AgentUpdateRequest,
+    AgentInfo,
+    AgentDeleteResponse,
+    AgentTemplateInfo,
 )
+from backend.elevenlabs_service import elevenlabs_service  # type: ignore[import]
 from backend.config import settings  # type: ignore[import]
 from backend.database import db  # type: ignore[import]
 from backend.shopify_service import shopify_service  # type: ignore[import]
@@ -549,6 +556,254 @@ async def get_dashboard_stats(store_id: str, request: Request):
 
 
 # ===========================
+# Agent Management
+# ===========================
+
+
+def _parse_jsonb(value: Any) -> dict:
+    """Parse JSONB value -- asyncpg may return string or dict."""
+    if isinstance(value, str):
+        return json.loads(value)
+    if isinstance(value, dict):
+        return value
+    return {}
+
+
+@app.post("/api/agents/create", status_code=201)
+async def create_agent_for_store(body: AgentCreateRequest, request: Request):
+    """
+    Create an ElevenLabs agent for a store from a template.
+    Lifecycle: none -> pending -> active (or failed).
+    """
+    store_id = body.store_id
+    await require_store_owner(request, store_id)
+
+    # Check store exists and has no active agent
+    store = await db.fetchrow(
+        "SELECT agent_status, elevenlabs_agent_id, shop_domain FROM stores WHERE id = $1::uuid",
+        store_id,
+    )
+    if not store:
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    if store["agent_status"] == "active" and store["elevenlabs_agent_id"]:
+        raise HTTPException(status_code=409, detail="Store already has an active agent")
+
+    # Fetch template
+    template = await db.fetchrow(
+        "SELECT id, conversation_config, platform_settings FROM agent_templates WHERE type = $1 AND is_default = TRUE",
+        body.template_type,
+    )
+    if not template:
+        raise HTTPException(status_code=404, detail=f"No template found for type: {body.template_type}")
+
+    conversation_config = _parse_jsonb(template["conversation_config"])
+    platform_settings = _parse_jsonb(template["platform_settings"])
+
+    # Set pending status
+    await db.execute(
+        "UPDATE stores SET agent_status = 'pending' WHERE id = $1::uuid",
+        store_id,
+    )
+
+    # Create ElevenLabs agent
+    try:
+        shop_domain = store.get("shop_domain", "unknown")
+        result = await elevenlabs_service.create_agent(
+            name=f"SimplifyOps - {shop_domain}",
+            conversation_config=conversation_config,
+            platform_settings=platform_settings,
+        )
+        agent_id = result["agent_id"]
+    except Exception as e:
+        # Set status to failed on error
+        await db.execute(
+            "UPDATE stores SET agent_status = 'failed' WHERE id = $1::uuid",
+            store_id,
+        )
+        SecurityLogger.log(f"Agent creation failed for store {store_id}: {e}", "ERROR")
+        raise HTTPException(status_code=502, detail="Failed to create agent via ElevenLabs API")
+
+    # Update DB with successful agent creation
+    await db.execute(
+        """UPDATE stores
+           SET elevenlabs_agent_id = $1,
+               agent_status = 'active',
+               agent_config = $2::jsonb,
+               agent_template_id = $3::uuid,
+               updated_at = NOW()
+           WHERE id = $4::uuid""",
+        agent_id,
+        json.dumps(conversation_config),
+        str(template["id"]),
+        store_id,
+    )
+
+    return AgentCreateResponse(
+        agent_id=agent_id,
+        store_id=store_id,
+        agent_status="active",
+    )
+
+
+@app.get("/api/agents/templates")
+async def list_agent_templates(request: Request):
+    """List all available agent templates."""
+    await get_authenticated_user(request)
+
+    rows = await db.fetch(
+        "SELECT id, name, type, description, conversation_config, platform_settings, is_default FROM agent_templates ORDER BY type"
+    )
+
+    templates = []
+    for row in rows:
+        templates.append(AgentTemplateInfo(
+            id=str(row["id"]),
+            name=row["name"],
+            type=row["type"],
+            description=row.get("description"),
+            conversation_config=_parse_jsonb(row["conversation_config"]),
+            platform_settings=_parse_jsonb(row["platform_settings"]),
+            is_default=row["is_default"],
+        ))
+
+    return templates
+
+
+@app.get("/api/agents/{store_id}")
+async def get_agent_info(store_id: str, request: Request):
+    """Get agent information for a store."""
+    await require_store_owner(request, store_id)
+
+    row = await db.fetchrow(
+        """SELECT elevenlabs_agent_id, agent_status, agent_config,
+                  agent_template_id, minutes_used
+           FROM stores WHERE id = $1::uuid""",
+        store_id,
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    # Look up template type if agent_template_id is set
+    template_type = None
+    if row.get("agent_template_id"):
+        template_type = await db.fetchval(
+            "SELECT type FROM agent_templates WHERE id = $1::uuid",
+            str(row["agent_template_id"]),
+        )
+
+    return AgentInfo(
+        store_id=store_id,
+        elevenlabs_agent_id=row.get("elevenlabs_agent_id"),
+        agent_status=row.get("agent_status", "none"),
+        agent_config=_parse_jsonb(row.get("agent_config", {})),
+        template_type=template_type,
+        minutes_used=row.get("minutes_used", 0) or 0,
+    )
+
+
+@app.patch("/api/agents/{store_id}")
+async def update_agent(store_id: str, body: AgentUpdateRequest, request: Request):
+    """
+    Update an agent's configuration.
+    Writes to ElevenLabs FIRST, then DB (no config drift).
+    """
+    await require_store_owner(request, store_id)
+
+    row = await db.fetchrow(
+        "SELECT elevenlabs_agent_id, agent_status, agent_config FROM stores WHERE id = $1::uuid",
+        store_id,
+    )
+    if not row or not row.get("elevenlabs_agent_id") or row.get("agent_status") != "active":
+        raise HTTPException(status_code=404, detail="No active agent found for this store")
+
+    agent_id = row["elevenlabs_agent_id"]
+
+    # Build conversation_config from non-None fields
+    merged_config: dict[str, Any] = {}
+    if body.voice_id is not None:
+        merged_config["tts"] = {"voice_id": body.voice_id}
+    if body.greeting is not None:
+        merged_config["agent"] = merged_config.get("agent", {})
+        merged_config["agent"]["first_message"] = body.greeting
+    if body.language is not None:
+        merged_config["agent"] = merged_config.get("agent", {})
+        merged_config["agent"]["language"] = body.language
+    if body.system_prompt is not None:
+        merged_config["agent"] = merged_config.get("agent", {})
+        merged_config["agent"]["prompt"] = {"prompt": body.system_prompt}
+    if body.max_duration_seconds is not None:
+        merged_config["conversation"] = {"max_duration_seconds": body.max_duration_seconds}
+
+    # Update ElevenLabs FIRST (per research pitfall #4)
+    try:
+        await elevenlabs_service.update_agent(agent_id, conversation_config=merged_config)
+    except Exception as e:
+        SecurityLogger.log(f"Agent update failed for store {store_id}: {e}", "ERROR")
+        raise HTTPException(status_code=502, detail="Failed to update agent via ElevenLabs API")
+
+    # Then update DB
+    await db.execute(
+        "UPDATE stores SET agent_config = agent_config || $1::jsonb, updated_at = NOW() WHERE id = $2::uuid",
+        json.dumps(merged_config),
+        store_id,
+    )
+
+    # Return updated info
+    updated_config = _parse_jsonb(row.get("agent_config", {}))
+    updated_config.update(merged_config)
+
+    return AgentInfo(
+        store_id=store_id,
+        elevenlabs_agent_id=agent_id,
+        agent_status="active",
+        agent_config=updated_config,
+    )
+
+
+@app.delete("/api/agents/{store_id}")
+async def delete_agent(store_id: str, request: Request):
+    """
+    Delete an agent from ElevenLabs and clean up DB.
+    Logs warning if ElevenLabs deletion fails but continues with DB cleanup.
+    """
+    await require_store_owner(request, store_id)
+
+    row = await db.fetchrow(
+        "SELECT elevenlabs_agent_id, agent_status FROM stores WHERE id = $1::uuid",
+        store_id,
+    )
+    if not row or not row.get("elevenlabs_agent_id"):
+        raise HTTPException(status_code=404, detail="No agent found for this store")
+
+    agent_id = row["elevenlabs_agent_id"]
+
+    # Delete from ElevenLabs -- log warning if fails but continue
+    try:
+        await elevenlabs_service.delete_agent(agent_id)
+    except Exception as e:
+        SecurityLogger.log(f"Warning: ElevenLabs agent deletion failed for {agent_id}: {e}", "WARNING")
+
+    # Clean up DB regardless
+    await db.execute(
+        """UPDATE stores
+           SET elevenlabs_agent_id = NULL,
+               agent_status = 'none',
+               agent_config = '{}'::jsonb,
+               agent_template_id = NULL,
+               updated_at = NOW()
+           WHERE id = $1::uuid""",
+        store_id,
+    )
+
+    return AgentDeleteResponse(
+        store_id=store_id,
+        deleted=True,
+        message="Agent deleted successfully",
+    )
+
+
+# ===========================
 # Voice Config (for widget)
 # ===========================
 
@@ -556,8 +811,25 @@ async def get_dashboard_stats(store_id: str, request: Request):
 async def get_voice_config(store_id: str = ""):
     """
     Return ElevenLabs Agent ID for the widget.
-    Widget calls this on init so the agent_id is never hardcoded in the JS.
+    If store_id is provided, resolves per-store agent_id from DB.
+    Falls back to global ELEVENLABS_AGENT_ID.
     """
+    # Per-store lookup
+    if store_id:
+        try:
+            row = await db.fetchrow(
+                "SELECT elevenlabs_agent_id, agent_status FROM stores WHERE id = $1::uuid",
+                store_id,
+            )
+            if row and row.get("elevenlabs_agent_id") and row.get("agent_status") == "active":
+                return {
+                    "agent_id": row["elevenlabs_agent_id"],
+                    "has_agent": True,
+                }
+        except Exception:
+            pass  # Fall through to global fallback
+
+    # Global fallback
     return {
         "agent_id": settings.ELEVENLABS_AGENT_ID or "",
         "has_agent": bool(settings.ELEVENLABS_AGENT_ID),
@@ -568,15 +840,47 @@ async def get_voice_config(store_id: str = ""):
 async def get_voice_signed_url(store_id: str = ""):
     """
     Generate a signed URL for ElevenLabs WebRTC connection.
-    The API key never leaves the server -- only the signed URL is returned.
+    If store_id is provided, resolves per-store agent_id from DB.
+    Falls back to global ELEVENLABS_AGENT_ID.
     """
     if not settings.ELEVENLABS_API_KEY:
         raise HTTPException(status_code=503, detail="Voice AI not configured")
 
-    agent_id = settings.ELEVENLABS_AGENT_ID
+    agent_id = None
+
+    # Per-store lookup
+    if store_id:
+        try:
+            row = await db.fetchrow(
+                "SELECT elevenlabs_agent_id, agent_status FROM stores WHERE id = $1::uuid",
+                store_id,
+            )
+            if row:
+                if row.get("agent_status") != "active":
+                    raise HTTPException(status_code=503, detail="Agent is not active")
+                agent_id = row.get("elevenlabs_agent_id")
+        except HTTPException:
+            raise
+        except Exception:
+            pass  # Fall through to global fallback
+
+    # Global fallback
+    if not agent_id:
+        agent_id = settings.ELEVENLABS_AGENT_ID
+
     if not agent_id:
         raise HTTPException(status_code=503, detail="Agent not configured")
 
+    # Use elevenlabs_service for per-store agents, httpx for global (backward compat)
+    if store_id and agent_id != settings.ELEVENLABS_AGENT_ID:
+        try:
+            signed_url = await elevenlabs_service.get_signed_url(agent_id)
+            return {"signed_url": signed_url}
+        except Exception as e:
+            SecurityLogger.log(f"Signed URL error for agent {agent_id}: {e}", "ERROR")
+            raise HTTPException(status_code=502, detail="Failed to get signed URL")
+
+    # Global fallback path (original logic)
     async with httpx.AsyncClient() as client:
         response = await client.get(
             "https://api.elevenlabs.io/v1/convai/conversation/get-signed-url",

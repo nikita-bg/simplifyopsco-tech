@@ -291,7 +291,10 @@ class TestSignedUrlPerStore:
             "agent_status": "active",
         }
 
-        with patch("backend.main.elevenlabs_service") as mock_el:
+        with patch("backend.main.settings") as mock_settings, \
+             patch("backend.main.elevenlabs_service") as mock_el:
+            mock_settings.ELEVENLABS_API_KEY = "sk_test_key"
+            mock_settings.ELEVENLABS_AGENT_ID = "global_agent_fallback"
             mock_el.get_signed_url = AsyncMock(
                 return_value="wss://api.elevenlabs.io/signed?token=abc"
             )
@@ -311,9 +314,13 @@ class TestSignedUrlPerStore:
             "agent_status": "pending",
         }
 
-        response = client.get(
-            "/api/voice/signed-url?store_id=00000000-0000-0000-0000-000000000001"
-        )
+        with patch("backend.main.settings") as mock_settings:
+            mock_settings.ELEVENLABS_API_KEY = "sk_test_key"
+            mock_settings.ELEVENLABS_AGENT_ID = "global_agent_fallback"
+
+            response = client.get(
+                "/api/voice/signed-url?store_id=00000000-0000-0000-0000-000000000001"
+            )
 
         assert response.status_code == 503
 
