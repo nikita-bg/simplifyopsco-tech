@@ -1,0 +1,18 @@
+{
+  "mode": "yolo",
+  "granularity": "fine",
+  "parallelization": true,
+  "commit_docs": true,
+  "model_profile": "quality",
+  "researcher_model": "sonnet",
+  "synthesizer_model": "opus",
+  "roadmapper_model": "opus",
+  "workflow": {
+    "research": true,
+    "plan_check": true,
+    "verifier": true,
+    "nyquist_validation": true,
+    "auto_advance": true
+  },
+  "notes": "Sonnet for most agents, Opus for research synthesis and roadmap. Use NotebookLM for deep domain research if needed."
+}
