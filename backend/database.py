@@ -4,6 +4,7 @@ Database Layer — Neon PostgreSQL with asyncpg + connection pooling
 import logging
 
 import asyncpg  # type: ignore[import-not-found]
+from pgvector.asyncpg import register_vector  # type: ignore[import-not-found]
 from typing import Optional, Any
 from contextlib import asynccontextmanager
 
@@ -31,6 +32,10 @@ class Database:
             dsn = re.sub(r'[?&]sslmode=[^&]*', '', raw).rstrip('?')
             logger.debug(f"DSN: ...{dsn[-50:]!r}")
 
+            async def init_connection(conn):
+                """Register pgvector type on each new connection."""
+                await register_vector(conn)
+
             self.pool = await asyncpg.create_pool(
                 dsn=dsn,
                 ssl='require',
@@ -38,6 +43,7 @@ class Database:
                 max_size=10,
                 command_timeout=30,
                 statement_cache_size=0,  # Required for Neon PgBouncer
+                init=init_connection,    # Register pgvector on each connection
             )
             logger.info("Database pool created")
         except Exception as e:

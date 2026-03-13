@@ -64,6 +64,7 @@ class ElevenLabsService:
         conversation_config: Optional[dict[str, Any]] = None,
         platform_settings: Optional[dict[str, Any]] = None,
         name: Optional[str] = None,
+        tools: Optional[list[dict[str, Any]]] = None,
     ) -> dict[str, Any]:
         """Patch an existing agent's configuration.
 
@@ -76,6 +77,8 @@ class ElevenLabsService:
             payload["platform_settings"] = platform_settings
         if name is not None:
             payload["name"] = name
+        if tools is not None:
+            payload["tools"] = tools
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.patch(
@@ -94,6 +97,55 @@ class ElevenLabsService:
                 headers=self._headers(),
             )
             return response.status_code == 200
+
+    # -----------------------------------------------------------------
+    # Knowledge Base Document Methods
+    # -----------------------------------------------------------------
+
+    async def create_kb_document_text(
+        self, text: str, name: str
+    ) -> dict[str, Any]:
+        """Create a knowledge base document from text.
+
+        Returns {"id": "doc_xxx", "name": "..."}.
+        Uses 60s timeout for large documents.
+        """
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                f"{self.BASE_URL}/knowledge-base/text",
+                json={"text": text, "name": name},
+                headers=self._headers(),
+            )
+            response.raise_for_status()
+            return response.json()
+
+    async def delete_kb_document(self, doc_id: str) -> bool:
+        """Delete a knowledge base document.
+
+        Returns True on success (200), False otherwise.
+        Uses force=True to remove from all agents.
+        """
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.delete(
+                f"{self.BASE_URL}/knowledge-base/{doc_id}",
+                params={"force": True},
+                headers=self._headers(),
+            )
+            return response.status_code == 200
+
+    async def get_kb_document(self, doc_id: str) -> dict[str, Any]:
+        """Get knowledge base document metadata."""
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(
+                f"{self.BASE_URL}/knowledge-base/{doc_id}",
+                headers=self._headers(),
+            )
+            response.raise_for_status()
+            return response.json()
+
+    # -----------------------------------------------------------------
+    # Signed URL
+    # -----------------------------------------------------------------
 
     async def get_signed_url(self, agent_id: str) -> str:
         """Get a signed WebRTC URL for establishing a conversation session."""

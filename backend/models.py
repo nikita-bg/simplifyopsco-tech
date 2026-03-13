@@ -228,3 +228,45 @@ class AgentDeleteResponse(BaseModel):
     deleted: bool
     message: str
 
+
+# ==========================================
+# Knowledge Base Models
+# ==========================================
+
+class KBSyncStatus(BaseModel):
+    """Knowledge base sync status for a store"""
+    store_id: str
+    kb_sync_status: str = "none"
+    kb_last_synced: Optional[datetime] = None
+    kb_product_count: int = 0
+    kb_char_count: int = 0
+    kb_doc_id: Optional[str] = None
+
+
+class ManualProductCreate(BaseModel):
+    """Request to create a manual (non-Shopify) product"""
+    store_id: str
+    title: str = Field(min_length=1, max_length=200)
+    description: Optional[str] = None
+    price: float = Field(ge=0)
+    product_url: Optional[str] = None
+
+
+class ManualProductUpdate(BaseModel):
+    """Request to update a manual product (all fields optional)"""
+    title: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
+    product_url: Optional[str] = None
+
+
+class ProductSearchResult(BaseModel):
+    """Result from semantic product search"""
+    id: int
+    title: str
+    description: Optional[str] = None
+    price_min: float
+    price_max: float
+    category: Optional[str] = None
+    similarity: Optional[float] = None
+

@@ -15,6 +15,12 @@ class Settings(BaseSettings):
     # OpenAI API (for conversation analysis & embeddings)
     OPENAI_API_KEY: Optional[str] = None
 
+    # Google Gemini API (for embeddings)
+    GOOGLE_API_KEY: Optional[str] = None
+
+    # ElevenLabs server tool authentication secret
+    ELEVENLABS_TOOL_SECRET: Optional[str] = None
+
     # Shopify App credentials
     SHOPIFY_API_KEY: Optional[str] = None
     SHOPIFY_API_SECRET: Optional[str] = None
