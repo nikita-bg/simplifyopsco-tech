@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, CreditCard, Calendar, TrendingUp, ExternalLink } from "lucide-react";
+import { Loader2, CreditCard, Calendar, TrendingUp, ExternalLink, Zap } from "lucide-react";
 import { useStore } from "@/lib/store-context";
 import { apiFetch } from "@/lib/api";
 
@@ -79,9 +79,9 @@ export default function BillingPage() {
 
     const getPlanPrice = (tier: string) => {
         switch (tier) {
-            case "starter": return "$39/month";
-            case "growth": return "$99/month";
-            case "scale": return "$299/month";
+            case "starter": return "$39";
+            case "growth": return "$99";
+            case "scale": return "$299";
             default: return "$0";
         }
     };
@@ -89,39 +89,48 @@ export default function BillingPage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-96">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
         );
     }
 
+    const usagePercent = subscription
+        ? Math.min(100, ((subscription.sessions_used ?? 0) / (subscription.sessions_limit || 30)) * 100)
+        : 0;
+
     return (
         <div className="max-w-4xl">
             <div className="mb-8">
-                <h1 className="text-2xl font-bold mb-1">Billing & Subscription</h1>
-                <p className="text-sm text-gray-400">Manage your subscription and billing information</p>
+                <h1 className="text-2xl font-bold text-heading mb-1">Billing & Subscription</h1>
+                <p className="text-sm text-muted">Manage your subscription and billing information</p>
             </div>
 
             {/* Current Plan */}
-            <div className="bg-panel rounded-xl border border-white/5 p-6 mb-6">
+            <div className="bg-raised rounded-2xl border border-edge p-6 mb-6">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h2 className="text-lg font-semibold mb-1">Current Plan</h2>
-                        <p className="text-gray-400">
-                            {subscription ? getPlanName(subscription.tier) : "Free Trial"}
-                        </p>
+                        <h2 className="text-lg font-semibold text-heading mb-1">Current Plan</h2>
+                        <div className="flex items-center gap-2">
+                            <span className="text-muted">{subscription ? getPlanName(subscription.tier) : "Free Trial"}</span>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                                subscription?.status === "active" ? "bg-success/10 text-success" :
+                                subscription?.status === "trialing" ? "bg-warning/10 text-warning" :
+                                "bg-white/5 text-faint"
+                            }`}>
+                                {subscription?.status === "active" ? "Active" : subscription?.status === "trialing" ? "Trial" : "Inactive"}
+                            </span>
+                        </div>
                     </div>
                     <div className="text-right">
-                        <p className="text-2xl font-bold">
+                        <p className="text-3xl font-bold text-heading">
                             {subscription ? getPlanPrice(subscription.tier) : "$0"}
                         </p>
-                        <span className="text-sm text-gray-500">
-                            {subscription?.status === "active" ? "Active" : subscription?.status === "trialing" ? "Trial" : "Inactive"}
-                        </span>
+                        <span className="text-xs text-faint">/month</span>
                     </div>
                 </div>
 
                 {subscription?.current_period_end && (
-                    <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
+                    <div className="flex items-center gap-2 text-sm text-muted mb-6">
                         <Calendar className="w-4 h-4" />
                         <span>
                             Renews on {new Date(subscription.current_period_end).toLocaleDateString()}
@@ -129,31 +138,38 @@ export default function BillingPage() {
                     </div>
                 )}
 
-                <div className="grid sm:grid-cols-3 gap-4 mb-6">
-                    <div className="bg-white/5 rounded-lg p-4 border border-white/5">
-                        <div className="flex items-center gap-2 mb-2">
-                            <TrendingUp className="w-4 h-4 text-blue-400" />
-                            <span className="text-sm text-gray-400">Minutes Used</span>
-                        </div>
-                        <p className="text-xl font-bold">
+                {/* Usage meter */}
+                <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-faint uppercase tracking-wider font-medium">Minutes Used</span>
+                        <span className="text-sm font-semibold text-heading">
                             {subscription?.sessions_used ?? 0} / {subscription?.sessions_limit ?? 30}
-                        </p>
+                        </span>
                     </div>
-                    <div className="bg-white/5 rounded-lg p-4 border border-white/5">
+                    <div className="w-full bg-canvas rounded-full h-2.5 overflow-hidden">
+                        <div
+                            className={`h-full rounded-full transition-all ${usagePercent > 80 ? "bg-error" : usagePercent > 50 ? "bg-warning" : "bg-primary"}`}
+                            style={{ width: `${usagePercent}%` }}
+                        />
+                    </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4 mb-6">
+                    <div className="bg-canvas rounded-xl p-4 border border-edge">
                         <div className="flex items-center gap-2 mb-2">
-                            <Calendar className="w-4 h-4 text-green-400" />
-                            <span className="text-sm text-gray-400">Billing Cycle</span>
+                            <Calendar className="w-4 h-4 text-success" />
+                            <span className="text-sm text-muted">Billing Cycle</span>
                         </div>
-                        <p className="text-xl font-bold">Monthly</p>
+                        <p className="text-lg font-bold text-heading">Monthly</p>
                     </div>
-                    <div className="bg-white/5 rounded-lg p-4 border border-white/5">
+                    <div className="bg-canvas rounded-xl p-4 border border-edge">
                         <div className="flex items-center gap-2 mb-2">
                             <CreditCard className="w-4 h-4 text-purple-400" />
-                            <span className="text-sm text-gray-400">Payment Method</span>
+                            <span className="text-sm text-muted">Payment Method</span>
                         </div>
-                        <p className="text-xl font-bold">
+                        <p className="text-lg font-bold text-heading">
                             {subscription?.payment_method_last4
-                                ? `---- ${subscription.payment_method_last4}`
+                                ? `**** ${subscription.payment_method_last4}`
                                 : "No card on file"}
                         </p>
                     </div>
@@ -162,7 +178,7 @@ export default function BillingPage() {
                 <button
                     onClick={openCustomerPortal}
                     disabled={portalLoading}
-                    className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                    className="w-full sm:w-auto px-6 py-3 bg-primary hover:bg-primary-hover rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer text-white"
                 >
                     {portalLoading ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -178,14 +194,21 @@ export default function BillingPage() {
 
             {/* Upgrade Options */}
             {(!subscription || subscription.tier === "trial") && (
-                <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-xl border border-blue-500/30 p-6 mb-6">
-                    <h3 className="text-lg font-semibold mb-2">Unlock More with Growth</h3>
-                    <p className="text-gray-300 mb-4 text-sm">
-                        Get access to 300 minutes/month, custom brand voice, full analytics with transcripts, and priority support.
-                    </p>
+                <div className="bg-gradient-to-br from-primary/15 to-purple-500/15 rounded-2xl border border-primary/20 p-6 mb-6">
+                    <div className="flex items-start gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
+                            <Zap className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-heading mb-1">Unlock More with Growth</h3>
+                            <p className="text-muted text-sm">
+                                Get access to 300 minutes/month, custom brand voice, full analytics with transcripts, and priority support.
+                            </p>
+                        </div>
+                    </div>
                     <a
                         href="/pricing"
-                        className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-all"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-hover rounded-xl font-semibold transition-all text-white"
                     >
                         View Plans
                         <ExternalLink className="w-4 h-4" />
@@ -194,11 +217,12 @@ export default function BillingPage() {
             )}
 
             {/* Invoice History */}
-            <div className="bg-panel rounded-xl border border-white/5 p-6">
-                <h2 className="text-lg font-semibold mb-4">Invoice History</h2>
-                <div className="text-center py-8 text-gray-500">
-                    <p>No invoices yet</p>
-                    <p className="text-sm mt-2">Your invoice history will appear here</p>
+            <div className="bg-raised rounded-2xl border border-edge p-6">
+                <h2 className="text-base font-semibold text-heading mb-4">Invoice History</h2>
+                <div className="text-center py-10">
+                    <CreditCard className="w-8 h-8 text-faint mx-auto mb-2 opacity-40" />
+                    <p className="text-muted text-sm">No invoices yet</p>
+                    <p className="text-faint text-xs mt-1">Your invoice history will appear here</p>
                 </div>
             </div>
         </div>

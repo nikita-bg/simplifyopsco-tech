@@ -56,18 +56,28 @@ export default function ConversationsPage() {
 
     const getSentimentColor = (sentiment: string) => {
         switch (sentiment) {
-            case "Very Positive": return "text-green-400";
-            case "Positive": return "text-blue-400";
-            case "Neutral": return "text-gray-400";
-            case "Negative": return "text-orange-400";
-            default: return "text-gray-400";
+            case "Very Positive": return "text-success";
+            case "Positive": return "text-info";
+            case "Neutral": return "text-muted";
+            case "Negative": return "text-warning";
+            default: return "text-muted";
+        }
+    };
+
+    const getSentimentBg = (sentiment: string) => {
+        switch (sentiment) {
+            case "Very Positive": return "bg-success/10 text-success";
+            case "Positive": return "bg-info/10 text-info";
+            case "Neutral": return "bg-white/5 text-muted";
+            case "Negative": return "bg-warning/10 text-warning";
+            default: return "bg-white/5 text-muted";
         }
     };
 
     if (loading) {
         return (
             <div className="flex items-center justify-center h-96">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
         );
     }
@@ -75,38 +85,41 @@ export default function ConversationsPage() {
     return (
         <>
             <div className="mb-8">
-                <h1 className="text-2xl font-bold mb-1">Conversations</h1>
-                <p className="text-sm text-gray-400">View and analyze customer voice interactions</p>
+                <h1 className="text-2xl font-bold text-heading mb-1">Conversations</h1>
+                <p className="text-sm text-muted">View and analyze customer voice interactions</p>
             </div>
 
             <div className="grid lg:grid-cols-3 gap-6">
                 {/* Conversations List */}
-                <div className="lg:col-span-1 bg-panel rounded-xl border border-white/5 p-4 max-h-[calc(100vh-200px)] overflow-y-auto">
-                    <h2 className="text-base font-semibold mb-4 flex items-center gap-2">
-                        <MessageSquare className="w-4 h-4 text-blue-400" />
+                <div className="lg:col-span-1 bg-raised rounded-2xl border border-edge p-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+                    <h2 className="text-sm font-semibold mb-4 flex items-center gap-2 text-heading">
+                        <MessageSquare className="w-4 h-4 text-primary" />
                         All Conversations ({total})
                     </h2>
                     {conversations.length === 0 ? (
-                        <p className="text-gray-500 text-sm">No conversations yet</p>
+                        <div className="text-center py-8">
+                            <MessageSquare className="w-8 h-8 text-faint mx-auto mb-2 opacity-40" />
+                            <p className="text-faint text-sm">No conversations yet</p>
+                        </div>
                     ) : (
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                             {conversations.map((conv) => (
                                 <button
                                     key={conv.id}
                                     onClick={() => setSelectedConv(conv)}
-                                    className={`w-full text-left p-3 rounded-lg transition-all cursor-pointer ${
+                                    className={`w-full text-left p-3 rounded-xl transition-all cursor-pointer ${
                                         selectedConv?.id === conv.id
-                                            ? "bg-blue-600/20 border border-blue-500/30"
-                                            : "bg-white/5 hover:bg-white/10 border border-white/5"
+                                            ? "bg-primary/15 border border-primary/30 shadow-sm"
+                                            : "bg-white/[0.03] hover:bg-white/[0.06] border border-transparent"
                                     }`}
                                 >
-                                    <div className="flex items-start justify-between gap-2 mb-1">
-                                        <span className="text-sm font-medium truncate">{conv.intent || "Unknown Intent"}</span>
-                                        <span className={`text-xs ${getSentimentColor(conv.sentiment)}`}>
+                                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                                        <span className="text-sm font-medium truncate text-heading">{conv.intent || "Unknown Intent"}</span>
+                                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${getSentimentBg(conv.sentiment)}`}>
                                             {conv.sentiment}
                                         </span>
                                     </div>
-                                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                                    <div className="flex items-center gap-1 text-[11px] text-faint">
                                         <Clock className="w-3 h-3" />
                                         {new Date(conv.started_at).toLocaleDateString()}
                                     </div>
@@ -115,21 +128,21 @@ export default function ConversationsPage() {
                         </div>
                     )}
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
+                        <div className="flex items-center justify-between mt-4 pt-4 border-t border-edge">
                             <button
                                 onClick={() => fetchConversations(offset - PAGE_SIZE)}
                                 disabled={currentPage <= 1}
-                                className="px-3 py-1.5 text-xs bg-white/5 hover:bg-white/10 rounded-lg disabled:opacity-30 transition-all cursor-pointer"
+                                className="px-3 py-1.5 text-xs bg-white/5 hover:bg-white/10 rounded-lg disabled:opacity-30 transition-all cursor-pointer text-muted"
                             >
                                 Previous
                             </button>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-faint">
                                 Page {currentPage} of {totalPages}
                             </span>
                             <button
                                 onClick={() => fetchConversations(offset + PAGE_SIZE)}
                                 disabled={currentPage >= totalPages}
-                                className="px-3 py-1.5 text-xs bg-white/5 hover:bg-white/10 rounded-lg disabled:opacity-30 transition-all cursor-pointer"
+                                className="px-3 py-1.5 text-xs bg-white/5 hover:bg-white/10 rounded-lg disabled:opacity-30 transition-all cursor-pointer text-muted"
                             >
                                 Next
                             </button>
@@ -138,13 +151,13 @@ export default function ConversationsPage() {
                 </div>
 
                 {/* Conversation Details */}
-                <div className="lg:col-span-2 bg-panel rounded-xl border border-white/5 p-6">
+                <div className="lg:col-span-2 bg-raised rounded-2xl border border-edge p-6">
                     {selectedConv ? (
                         <div>
                             <div className="flex items-start justify-between mb-6">
                                 <div>
-                                    <h2 className="text-xl font-bold mb-1">{selectedConv.intent || "Conversation"}</h2>
-                                    <div className="flex items-center gap-4 text-sm text-gray-400">
+                                    <h2 className="text-xl font-bold text-heading mb-1">{selectedConv.intent || "Conversation"}</h2>
+                                    <div className="flex items-center gap-4 text-sm text-muted">
                                         <span className="flex items-center gap-1">
                                             <Clock className="w-4 h-4" />
                                             {new Date(selectedConv.started_at).toLocaleString()}
@@ -157,26 +170,30 @@ export default function ConversationsPage() {
                                         )}
                                     </div>
                                 </div>
-                                <div className={`px-3 py-1 rounded-full text-sm font-medium ${getSentimentColor(selectedConv.sentiment)}`}>
+                                <div className={`px-3 py-1 rounded-full text-sm font-medium ${getSentimentBg(selectedConv.sentiment)}`}>
                                     {selectedConv.sentiment}
                                 </div>
                             </div>
 
                             {/* Metrics */}
                             <div className="grid grid-cols-2 gap-4 mb-6">
-                                <div className="bg-white/5 rounded-lg p-4 border border-white/5">
+                                <div className="bg-canvas rounded-xl p-4 border border-edge">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <ShoppingCart className="w-4 h-4 text-blue-400" />
-                                        <span className="text-sm text-gray-400">Cart Actions</span>
+                                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                                            <ShoppingCart className="w-4 h-4 text-primary" />
+                                        </div>
+                                        <span className="text-sm text-muted">Cart Actions</span>
                                     </div>
-                                    <p className="text-2xl font-bold">{selectedConv.cart_actions}</p>
+                                    <p className="text-2xl font-bold text-heading">{selectedConv.cart_actions}</p>
                                 </div>
-                                <div className="bg-white/5 rounded-lg p-4 border border-white/5">
+                                <div className="bg-canvas rounded-xl p-4 border border-edge">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <TrendingUp className="w-4 h-4 text-green-400" />
-                                        <span className="text-sm text-gray-400">Products Discussed</span>
+                                        <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
+                                            <TrendingUp className="w-4 h-4 text-success" />
+                                        </div>
+                                        <span className="text-sm text-muted">Products Discussed</span>
                                     </div>
-                                    <p className="text-2xl font-bold">
+                                    <p className="text-2xl font-bold text-heading">
                                         {selectedConv.products_discussed?.length || 0}
                                     </p>
                                 </div>
@@ -185,12 +202,12 @@ export default function ConversationsPage() {
                             {/* Products */}
                             {selectedConv.products_discussed && selectedConv.products_discussed.length > 0 && (
                                 <div className="mb-6">
-                                    <h3 className="text-sm font-semibold text-gray-400 mb-3">Products Discussed</h3>
+                                    <h3 className="text-xs font-semibold text-faint uppercase tracking-wider mb-3">Products Discussed</h3>
                                     <div className="flex flex-wrap gap-2">
                                         {selectedConv.products_discussed.map((product, idx) => (
                                             <span
                                                 key={idx}
-                                                className="px-3 py-1 bg-blue-600/20 text-blue-300 rounded-full text-sm border border-blue-500/30"
+                                                className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm border border-primary/20"
                                             >
                                                 {product}
                                             </span>
@@ -201,18 +218,18 @@ export default function ConversationsPage() {
 
                             {/* Transcript */}
                             <div>
-                                <h3 className="text-sm font-semibold text-gray-400 mb-3">Transcript</h3>
-                                <div className="bg-white/5 rounded-lg p-4 border border-white/5 max-h-96 overflow-y-auto">
-                                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                                <h3 className="text-xs font-semibold text-faint uppercase tracking-wider mb-3">Transcript</h3>
+                                <div className="bg-canvas rounded-xl p-4 border border-edge max-h-96 overflow-y-auto">
+                                    <p className="text-sm leading-relaxed whitespace-pre-wrap text-body">
                                         {selectedConv.transcript || "No transcript available"}
                                     </p>
                                 </div>
                             </div>
                         </div>
                     ) : (
-                        <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-gray-500">
-                            <MessageSquare className="w-16 h-16 mb-4 opacity-20" />
-                            <p>Select a conversation to view details</p>
+                        <div className="flex flex-col items-center justify-center h-full min-h-[300px]">
+                            <MessageSquare className="w-12 h-12 mb-3 text-faint opacity-30" />
+                            <p className="text-muted text-sm">Select a conversation to view details</p>
                         </div>
                     )}
                 </div>

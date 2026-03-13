@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   PieChart, MessageSquare, BarChart3, CreditCard,
-  Settings, HelpCircle, LogOut, Mic, Menu, X,
+  Settings, HelpCircle, LogOut, Mic, Menu, X, ChevronRight,
 } from "lucide-react";
 import { createSupabaseBrowser } from "@/lib/supabase/client";
 
@@ -46,26 +46,26 @@ export function DashboardSidebar({
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-60 bg-panel border-r border-white/5 flex flex-col py-6 px-4 shrink-0 transform transition-transform duration-200 lg:translate-x-0 ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-[260px] bg-gradient-to-b from-panel to-canvas border-r border-edge flex flex-col py-5 px-3 shrink-0 transform transition-transform duration-200 lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between px-2 mb-8">
-          <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Mic className="w-4 h-4 text-white" />
+        <div className="flex items-center justify-between px-3 mb-8">
+          <Link href="/dashboard" className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center shadow-lg shadow-primary/25">
+              <Mic className="w-4.5 h-4.5 text-white" />
             </div>
             <div>
-              <p className="text-sm font-bold text-heading">SimplifyOps</p>
-              <p className="text-[10px] text-faint">Dashboard</p>
+              <p className="text-sm font-bold text-heading tracking-tight">SimplifyOps</p>
+              <p className="text-[10px] text-faint tracking-wide uppercase">Dashboard</p>
             </div>
           </Link>
           <button
@@ -78,59 +78,71 @@ export function DashboardSidebar({
         </div>
 
         {/* Main nav */}
-        <div className="flex-1 flex flex-col gap-1">
+        <nav className="flex-1 flex flex-col gap-0.5 px-1">
+          <p className="text-[10px] font-semibold text-faint uppercase tracking-widest px-3 mb-2">Menu</p>
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all relative ${
                   isActive
-                    ? "bg-primary text-white"
-                    : "text-muted hover:text-heading hover:bg-white/5"
+                    ? "bg-primary/15 text-primary shadow-sm"
+                    : "text-muted hover:text-heading hover:bg-white/[0.04]"
                 }`}
               >
-                <item.icon className="w-4 h-4" />
+                {isActive && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary" />
+                )}
+                <item.icon className={`w-[18px] h-[18px] ${isActive ? "text-primary" : "text-faint group-hover:text-muted"}`} />
+                {item.label}
+                {isActive && <ChevronRight className="w-3.5 h-3.5 ml-auto text-primary/50" />}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Bottom nav */}
+        <div className="flex flex-col gap-0.5 border-t border-edge pt-3 mt-3 px-1">
+          {bottomNav.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  isActive
+                    ? "bg-primary/15 text-primary"
+                    : "text-muted hover:text-heading hover:bg-white/[0.04]"
+                }`}
+              >
+                <item.icon className="w-[18px] h-[18px]" />
                 {item.label}
               </Link>
             );
           })}
-        </div>
-
-        {/* Bottom nav */}
-        <div className="flex flex-col gap-1 border-t border-white/5 pt-4 mt-4">
-          {bottomNav.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted hover:text-heading hover:bg-white/5 transition-all"
-            >
-              <item.icon className="w-4 h-4" />
-              {item.label}
-            </Link>
-          ))}
           <button
             onClick={async () => {
               const supabase = createSupabaseBrowser();
               await supabase.auth.signOut();
               window.location.href = "/";
             }}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted hover:text-error hover:bg-error/5 transition-all cursor-pointer"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted hover:text-error hover:bg-error/5 transition-all cursor-pointer"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-[18px] h-[18px]" />
             Sign Out
           </button>
         </div>
 
         {/* User card */}
-        <div className="border-t border-white/5 pt-4 mt-4 px-2">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-xs font-bold text-white">
+        <div className="border-t border-edge pt-4 mt-3 mx-1">
+          <div className="flex items-center gap-3 px-2 py-2 rounded-xl bg-white/[0.03] border border-edge">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center text-xs font-bold text-white shadow-sm">
               {user.name?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || "U"}
             </div>
-            <div className="min-w-0">
-              <p className="text-xs font-medium truncate text-heading">{user.name || "User"}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold truncate text-heading">{user.name || "User"}</p>
               <p className="text-[10px] text-faint truncate">{user.email}</p>
             </div>
           </div>
@@ -140,19 +152,19 @@ export function DashboardSidebar({
       {/* Main content area */}
       <main className="flex-1 overflow-auto">
         {/* Mobile top bar */}
-        <div className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 bg-canvas/95 backdrop-blur-sm border-b border-white/5">
+        <div className="lg:hidden sticky top-0 z-30 flex items-center gap-3 px-4 py-3 bg-canvas/95 backdrop-blur-sm border-b border-edge">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+            className="flex items-center justify-center w-10 h-10 rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
             aria-label="Open menu"
           >
             <Menu className="w-5 h-5 text-heading" />
           </button>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
-              <Mic className="w-3 h-3 text-white" />
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-blue-400 flex items-center justify-center">
+              <Mic className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="text-sm font-bold text-heading">SimplifyOps</span>
+            <span className="text-sm font-bold text-heading tracking-tight">SimplifyOps</span>
           </div>
         </div>
 
