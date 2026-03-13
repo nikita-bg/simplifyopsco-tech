@@ -45,6 +45,16 @@ prisma/migrations/
 *.sqlite
 *.sqlite-journal
 
+# Playwright test artifacts
+frontend/e2e/screenshots/
+frontend/e2e/test-results/
+frontend/e2e/report/
+.playwright/
+
+# Build artifacts
+frontend/out/
+frontend/tsconfig.tsbuildinfo
+
 # Logs
 *.log
 npm-debug.log*

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, ArrowLeft, Globe, Mail, Copy, Check, ExternalLink, Code2, Zap, Shield, BarChart3 } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://ai-voice-shopping-assistant-production.up.railway.app";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface InstallResult {
     store_id: string;
@@ -291,12 +291,9 @@ export default function InstallPage() {
                             <p className="text-xs text-gray-400 mb-4">
                                 The Shopify app auto-injects the widget via Theme App Extensions — no code needed.
                             </p>
-                            <a
-                                href="#"
-                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#256af4] hover:text-blue-300 transition-colors"
-                            >
-                                View Shopify App <ExternalLink className="w-3 h-3" />
-                            </a>
+                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500">
+                                Coming soon to Shopify App Store
+                            </span>
                         </div>
                     </motion.div>
                 </div>
