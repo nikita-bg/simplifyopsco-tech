@@ -86,10 +86,17 @@ export function FloatingVoiceWidget() {
                 return;
             }
             await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            const urlResponse = await fetch(`${apiUrl}/api/voice/signed-url`);
+            if (!urlResponse.ok) {
+                throw new Error("Failed to get voice connection URL");
+            }
+            const { signed_url } = await urlResponse.json();
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             await conversation.startSession({
-                agentId: process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || "agent_6401kec12s0ff6hbwjmgdw2s0kt0",
-                connectionType: "webrtc",
+                signedUrl: signed_url,
                 clientTools: {
                     navigateToPricing,
                     scrollToFeatures,

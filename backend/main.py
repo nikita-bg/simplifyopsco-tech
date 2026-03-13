@@ -564,6 +564,31 @@ async def get_voice_config(store_id: str = ""):
     }
 
 
+@app.get("/api/voice/signed-url")
+async def get_voice_signed_url(store_id: str = ""):
+    """
+    Generate a signed URL for ElevenLabs WebRTC connection.
+    The API key never leaves the server -- only the signed URL is returned.
+    """
+    if not settings.ELEVENLABS_API_KEY:
+        raise HTTPException(status_code=503, detail="Voice AI not configured")
+
+    agent_id = settings.ELEVENLABS_AGENT_ID
+    if not agent_id:
+        raise HTTPException(status_code=503, detail="Agent not configured")
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            "https://api.elevenlabs.io/v1/convai/conversation/get-signed-url",
+            params={"agent_id": agent_id},
+            headers={"xi-api-key": settings.ELEVENLABS_API_KEY},
+            timeout=10.0,
+        )
+        if response.status_code != 200:
+            raise HTTPException(status_code=502, detail="Failed to get signed URL")
+        return response.json()
+
+
 # ===========================
 # Global Dashboard Stats (for Next.js frontend - no store_id required)
 # ===========================

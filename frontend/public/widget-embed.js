@@ -409,9 +409,17 @@
       // Request microphone
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      // Start ElevenLabs conversation session
+      // Fetch a fresh signed URL (15-min TTL) for each conversation
+      const urlRes = await fetch(`${API_BASE}/api/voice/signed-url?store_id=${STORE_ID}`);
+      if (!urlRes.ok) {
+        updateStatus("Voice AI unavailable", "error");
+        return;
+      }
+      const { signed_url } = await urlRes.json();
+
+      // Start ElevenLabs conversation session via signed URL (API key stays server-side)
       conversation = await ElevenLabs.Conversation.startSession({
-        agentId: agentId,
+        signedUrl: signed_url,
 
         onConnect: ({ conversationId }) => {
           console.log("[AVSA] Connected. Session:", conversationId);

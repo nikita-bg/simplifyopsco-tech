@@ -5,7 +5,6 @@ import { Copy, Check, Mic, ExternalLink, Wifi } from "lucide-react";
 import { useStore } from "@/lib/store-context";
 import { apiFetch } from "@/lib/api";
 
-const AGENT_ID = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || "agent_6401kec12s0ff6hbwjmgdw2s0kt0";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default function SettingsPage() {
@@ -13,6 +12,14 @@ export default function SettingsPage() {
     const [copiedScript, setCopiedScript] = useState(false);
     const [copiedWebhook, setCopiedWebhook] = useState(false);
     const [embedCode, setEmbedCode] = useState("");
+    const [agentId, setAgentId] = useState<string>("Loading...");
+
+    useEffect(() => {
+        fetch(`${API_URL}/api/voice/config`)
+            .then((res) => res.json())
+            .then((data) => setAgentId(data.agent_id || "Not configured"))
+            .catch(() => setAgentId("Unavailable"));
+    }, []);
 
     useEffect(() => {
         if (storeId) {
@@ -52,7 +59,7 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="bg-canvas rounded-xl p-3 border border-edge">
                         <p className="text-[10px] text-faint uppercase tracking-wider mb-1">Agent ID</p>
-                        <p className="text-sm font-mono text-primary truncate">{AGENT_ID}</p>
+                        <p className="text-sm font-mono text-primary truncate">{agentId}</p>
                     </div>
                     <div className="bg-canvas rounded-xl p-3 border border-edge">
                         <p className="text-[10px] text-faint uppercase tracking-wider mb-1">Store ID</p>
