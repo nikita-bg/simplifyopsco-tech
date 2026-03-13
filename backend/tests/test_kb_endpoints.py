@@ -1,4 +1,4 @@
-"""Tests for KB management endpoints: manual CRUD, sync status, sync now, webhook KB rebuild."""
+"""Tests for KB management endpoints: manual CRUD, sync status, sync now, server tool, webhook KB rebuild."""
 import pytest
 import json
 from unittest.mock import patch, AsyncMock, MagicMock
@@ -219,3 +219,182 @@ class TestSyncNow:
         )
 
         assert response.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# Server Tool (product search for ElevenLabs agent)
+# ---------------------------------------------------------------------------
+
+class TestServerTool:
+    def test_product_search_success(self, client, mock_db):
+        """POST /api/tools/product-search with valid secret returns formatted results."""
+        with patch("backend.main.kb_service") as mock_kb, \
+             patch("backend.main.settings") as mock_settings:
+            mock_settings.ELEVENLABS_TOOL_SECRET = "test-secret-123"
+            mock_kb.search_products_semantic = AsyncMock(return_value=[
+                {
+                    "id": 1,
+                    "title": "Cool Sneakers",
+                    "description": "Very comfortable running shoes for daily use",
+                    "price_min": 89.99,
+                    "price_max": 89.99,
+                    "category": "footwear",
+                    "similarity": 0.92,
+                },
+                {
+                    "id": 2,
+                    "title": "Sport Shoes",
+                    "description": "Lightweight sport shoes",
+                    "price_min": 59.99,
+                    "price_max": 79.99,
+                    "category": "footwear",
+                    "similarity": 0.85,
+                },
+            ])
+
+            response = client.post(
+                "/api/tools/product-search",
+                json={
+                    "query": "comfortable shoes",
+                    "store_id": "00000000-0000-0000-0000-000000000001",
+                },
+                headers={"X-Tool-Secret": "test-secret-123"},
+            )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["results"]) == 2
+        assert data["results"][0]["name"] == "Cool Sneakers"
+        assert "Found 2 matching products" in data["message"]
+
+    def test_product_search_no_secret(self, client, mock_db):
+        """POST /api/tools/product-search without secret returns 401."""
+        with patch("backend.main.settings") as mock_settings:
+            mock_settings.ELEVENLABS_TOOL_SECRET = "test-secret-123"
+
+            response = client.post(
+                "/api/tools/product-search",
+                json={
+                    "query": "shoes",
+                    "store_id": "00000000-0000-0000-0000-000000000001",
+                },
+            )
+
+        assert response.status_code == 401
+
+    def test_product_search_wrong_secret(self, client, mock_db):
+        """POST /api/tools/product-search with wrong secret returns 401."""
+        with patch("backend.main.settings") as mock_settings:
+            mock_settings.ELEVENLABS_TOOL_SECRET = "correct-secret"
+
+            response = client.post(
+                "/api/tools/product-search",
+                json={
+                    "query": "shoes",
+                    "store_id": "00000000-0000-0000-0000-000000000001",
+                },
+                headers={"X-Tool-Secret": "wrong-secret"},
+            )
+
+        assert response.status_code == 401
+
+    def test_product_search_empty_query(self, client, mock_db):
+        """POST /api/tools/product-search with empty query returns empty results."""
+        with patch("backend.main.kb_service") as mock_kb, \
+             patch("backend.main.settings") as mock_settings:
+            mock_settings.ELEVENLABS_TOOL_SECRET = "test-secret-123"
+            mock_kb.search_products_semantic = AsyncMock(return_value=[])
+
+            response = client.post(
+                "/api/tools/product-search",
+                json={
+                    "query": "",
+                    "store_id": "00000000-0000-0000-0000-000000000001",
+                },
+                headers={"X-Tool-Secret": "test-secret-123"},
+            )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["results"] == []
+        assert "No matching products found" in data["message"]
+
+    def test_product_search_with_filters(self, client, mock_db):
+        """POST with max_price and category passes filters to search service."""
+        with patch("backend.main.kb_service") as mock_kb, \
+             patch("backend.main.settings") as mock_settings:
+            mock_settings.ELEVENLABS_TOOL_SECRET = "test-secret-123"
+            mock_kb.search_products_semantic = AsyncMock(return_value=[
+                {
+                    "id": 3,
+                    "title": "Budget Shoes",
+                    "description": "Affordable shoes",
+                    "price_min": 29.99,
+                    "price_max": 29.99,
+                    "category": "footwear",
+                    "similarity": 0.88,
+                },
+            ])
+
+            response = client.post(
+                "/api/tools/product-search",
+                json={
+                    "query": "shoes",
+                    "store_id": "00000000-0000-0000-0000-000000000001",
+                    "max_price": 50.0,
+                    "category": "footwear",
+                },
+                headers={"X-Tool-Secret": "test-secret-123"},
+            )
+
+        assert response.status_code == 200
+        # Verify filters were passed to service
+        mock_kb.search_products_semantic.assert_called_once_with(
+            "00000000-0000-0000-0000-000000000001",
+            "shoes",
+            50.0,
+            "footwear",
+            limit=5,
+        )
+
+
+# ---------------------------------------------------------------------------
+# Webhook KB Rebuild
+# ---------------------------------------------------------------------------
+
+class TestWebhookKBRebuild:
+    def test_shopify_webhook_triggers_kb_rebuild(self, client, mock_db):
+        """Shopify product webhook should add KB rebuild as background task."""
+        mock_db.fetchrow.return_value = {"id": "00000000-0000-0000-0000-000000000001"}
+
+        with patch("backend.main.kb_service") as mock_kb, \
+             patch("backend.main.shopify_service") as mock_shopify:
+            mock_shopify.verify_hmac.return_value = True
+            mock_shopify.handle_product_webhook = AsyncMock()
+            mock_kb.trigger_kb_rebuild = AsyncMock()
+
+            response = client.post(
+                "/shopify/webhooks/products/create",
+                content=json.dumps({"id": 123, "title": "Test"}),
+                headers={
+                    "X-Shopify-Hmac-SHA256": "valid-hmac",
+                    "X-Shopify-Shop-Domain": "test.myshopify.com",
+                },
+            )
+
+        assert response.status_code == 200
+
+    def test_product_sync_triggers_kb_rebuild(self, client, mock_db):
+        """Product sync endpoint should also trigger KB rebuild."""
+        with patch("backend.main.kb_service") as mock_kb, \
+             patch("backend.main.shopify_service") as mock_shopify:
+            mock_shopify.sync_all_products = AsyncMock(return_value=10)
+            mock_kb.trigger_kb_rebuild = AsyncMock()
+
+            response = client.post(
+                "/api/stores/00000000-0000-0000-0000-000000000001/sync",
+            )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["message"] == "Product sync started"

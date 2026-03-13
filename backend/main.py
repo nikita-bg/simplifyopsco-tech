@@ -1015,6 +1015,64 @@ async def kb_sync_now(
 
 
 # ===========================
+# Server Tool (ElevenLabs agent product search)
+# ===========================
+
+
+@app.post("/api/tools/product-search")
+async def server_tool_product_search(request: Request):
+    """
+    Server tool endpoint called by ElevenLabs agent during conversation.
+    Authenticates via X-Tool-Secret header (shared secret, NOT user auth).
+    Returns formatted product search results for the voice agent.
+    """
+    # Authenticate via shared secret
+    tool_secret = request.headers.get("X-Tool-Secret", "")
+    if not tool_secret or tool_secret != settings.ELEVENLABS_TOOL_SECRET:
+        raise HTTPException(status_code=401, detail="Invalid or missing tool secret")
+
+    # Parse request body
+    body = await request.json()
+    query = body.get("query", "")
+    store_id = body.get("store_id", "")
+    max_price = body.get("max_price")
+    category = body.get("category")
+
+    if not store_id:
+        raise HTTPException(status_code=400, detail="store_id is required")
+
+    # Search products
+    results = await kb_service.search_products_semantic(
+        store_id, query, max_price, category, limit=5
+    )
+
+    # Format results for agent consumption
+    formatted = []
+    for r in results:
+        desc = r.get("description", "") or ""
+        price_min = float(r.get("price_min", 0))
+        price_max = float(r.get("price_max", 0))
+        if price_min == price_max or price_max == 0:
+            price_str = f"${price_min:.2f}"
+        else:
+            price_str = f"${price_min:.2f} - ${price_max:.2f}"
+
+        formatted.append({
+            "name": r["title"],
+            "price": price_str,
+            "description": desc[:200],
+            "category": r.get("category"),
+        })
+
+    if formatted:
+        message = f"Found {len(formatted)} matching products."
+    else:
+        message = "No matching products found."
+
+    return {"results": formatted, "message": message}
+
+
+# ===========================
 # Voice Config (for widget)
 # ===========================
 
