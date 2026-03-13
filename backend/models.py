@@ -270,3 +270,18 @@ class ProductSearchResult(BaseModel):
     category: Optional[str] = None
     similarity: Optional[float] = None
 
+
+# ==========================================
+# Widget Config Models
+# ==========================================
+
+class WidgetConfigResponse(BaseModel):
+    """Widget initialization config returned to embed.js"""
+    has_agent: bool = False
+    enabled: bool = False
+    agent_id: Optional[str] = None
+    widget_color: str = "#256af4"
+    widget_position: str = "bottom-right"
+    greeting_message: Optional[str] = None
+    status: str = "unknown"
+

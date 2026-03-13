@@ -3,7 +3,7 @@ SimplifyOps — FastAPI Backend
 Intelligent voice-powered sales agent for Shopify stores
 """
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Request  # type: ignore[import-not-found]
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Response  # type: ignore[import-not-found]
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore[import-not-found]
 from fastapi.responses import JSONResponse  # type: ignore[import-not-found]
 import httpx  # type: ignore[import-not-found]
@@ -31,6 +31,7 @@ from backend.models import (  # type: ignore[import]
     AgentTemplateInfo,
     ManualProductCreate,
     ManualProductUpdate,
+    WidgetConfigResponse,
 )
 from backend.elevenlabs_service import elevenlabs_service  # type: ignore[import]
 from backend.config import settings  # type: ignore[import]
@@ -1073,6 +1074,74 @@ async def server_tool_product_search(request: Request):
 
 
 # ===========================
+# Widget Config (public, wildcard CORS)
+# ===========================
+
+@app.get("/api/widget/config", response_model=WidgetConfigResponse)
+async def get_widget_config(response: Response, store_id: str = ""):
+    """
+    Return per-store widget initialization config for embed.js.
+    Public endpoint — no auth required. Wildcard CORS for cross-origin widget access.
+    """
+    response.headers["Access-Control-Allow-Origin"] = "*"
+
+    if not store_id:
+        return WidgetConfigResponse(
+            has_agent=False,
+            enabled=False,
+            status="no_store_id",
+        )
+
+    try:
+        row = await db.fetchrow(
+            "SELECT elevenlabs_agent_id, agent_status, settings FROM stores WHERE id = $1::uuid",
+            store_id,
+        )
+    except Exception:
+        return WidgetConfigResponse(
+            has_agent=False,
+            enabled=False,
+            status="error",
+        )
+
+    if not row:
+        return WidgetConfigResponse(
+            has_agent=False,
+            enabled=False,
+            status="store_not_found",
+        )
+
+    # Parse settings JSONB (may be str, dict, or None)
+    raw_settings = row.get("settings")
+    if isinstance(raw_settings, str):
+        try:
+            store_settings = json.loads(raw_settings)
+        except (json.JSONDecodeError, TypeError):
+            store_settings = {}
+    elif isinstance(raw_settings, dict):
+        store_settings = raw_settings
+    else:
+        store_settings = {}
+
+    agent_id = row.get("elevenlabs_agent_id")
+    agent_status = row.get("agent_status", "none")
+    enabled = store_settings.get("enabled", True)
+
+    # Only expose agent_id when agent is active AND enabled
+    exposed_agent_id = agent_id if (agent_status == "active" and enabled) else None
+
+    return WidgetConfigResponse(
+        has_agent=bool(agent_id),
+        enabled=enabled,
+        agent_id=exposed_agent_id,
+        widget_color=store_settings.get("widget_color", "#256af4"),
+        widget_position=store_settings.get("widget_position", "bottom-right"),
+        greeting_message=store_settings.get("greeting_message"),
+        status=agent_status,
+    )
+
+
+# ===========================
 # Voice Config (for widget)
 # ===========================
 
@@ -1106,12 +1175,15 @@ async def get_voice_config(store_id: str = ""):
 
 
 @app.get("/api/voice/signed-url")
-async def get_voice_signed_url(store_id: str = ""):
+async def get_voice_signed_url(response: Response, store_id: str = ""):
     """
     Generate a signed URL for ElevenLabs WebRTC connection.
     If store_id is provided, resolves per-store agent_id from DB.
     Falls back to global ELEVENLABS_AGENT_ID.
+    Wildcard CORS for cross-origin widget access.
     """
+    response.headers["Access-Control-Allow-Origin"] = "*"
+
     if not settings.ELEVENLABS_API_KEY:
         raise HTTPException(status_code=503, detail="Voice AI not configured")
 
@@ -1150,16 +1222,16 @@ async def get_voice_signed_url(store_id: str = ""):
             raise HTTPException(status_code=502, detail="Failed to get signed URL")
 
     # Global fallback path (original logic)
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
+    async with httpx.AsyncClient() as el_client:
+        el_resp = await el_client.get(
             "https://api.elevenlabs.io/v1/convai/conversation/get-signed-url",
             params={"agent_id": agent_id},
             headers={"xi-api-key": settings.ELEVENLABS_API_KEY},
             timeout=10.0,
         )
-        if response.status_code != 200:
+        if el_resp.status_code != 200:
             raise HTTPException(status_code=502, detail="Failed to get signed URL")
-        return response.json()
+        return el_resp.json()
 
 
 # ===========================
