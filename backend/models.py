@@ -174,3 +174,57 @@ class DashboardStats(BaseModel):
     intent_data: List[IntentDataPoint] = []
     recent_conversations: List[ConversationSummary] = []
 
+
+# ==========================================
+# Agent System Models
+# ==========================================
+
+class AgentTemplateInfo(BaseModel):
+    """Agent template configuration from agent_templates table"""
+    id: str
+    name: str
+    type: str  # 'online_store', 'service_business', 'lead_gen'
+    description: Optional[str] = None
+    conversation_config: dict = {}
+    platform_settings: dict = {}
+    is_default: bool = False
+
+
+class AgentCreateRequest(BaseModel):
+    """Request to create an ElevenLabs agent for a store"""
+    store_id: str
+    template_type: str = "online_store"  # Which template to use
+
+
+class AgentCreateResponse(BaseModel):
+    """Response after creating an ElevenLabs agent"""
+    agent_id: str
+    store_id: str
+    agent_status: str
+
+
+class AgentUpdateRequest(BaseModel):
+    """Request to update an agent's configuration"""
+    voice_id: Optional[str] = None
+    greeting: Optional[str] = None
+    language: Optional[str] = None
+    system_prompt: Optional[str] = None
+    max_duration_seconds: Optional[int] = None
+
+
+class AgentInfo(BaseModel):
+    """Agent information for a store"""
+    store_id: str
+    elevenlabs_agent_id: Optional[str] = None
+    agent_status: str = "none"
+    agent_config: dict = {}
+    template_type: Optional[str] = None
+    minutes_used: int = 0
+
+
+class AgentDeleteResponse(BaseModel):
+    """Response after deleting an agent"""
+    store_id: str
+    deleted: bool
+    message: str
+
