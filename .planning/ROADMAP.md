@@ -11,7 +11,7 @@ SimplifyOps transforms from a single-agent prototype into a multi-tenant product
 - Decimal phases (e.g., 3.1): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 0: Security Lockdown** - Rotate all leaked credentials, add secret scanning, secure API key delivery
-- [ ] **Phase 1: Agent Infrastructure** - Multi-tenant ElevenLabs agent CRUD with DB schema and agent templates
+- [x] **Phase 1: Agent Infrastructure** - Multi-tenant ElevenLabs agent CRUD with DB schema and agent templates
 - [ ] **Phase 2: Knowledge Base** - Product sync pipeline (Shopify + manual) with pgvector search and KB management
 - [ ] **Phase 3: Widget** - Customer-facing embed.js that loads the correct agent per merchant via signed URLs
 - [ ] **Phase 4: Automation** - n8n production deployment with onboarding, sync, alert, and analysis workflows
@@ -51,8 +51,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — DB schema migrations, ElevenLabs service module, and Pydantic models
-- [ ] 01-02-PLAN.md — Agent CRUD endpoints, signed URL refactor, and comprehensive tests
+- [x] 01-01-PLAN.md — DB schema migrations, ElevenLabs service module, and Pydantic models
+- [x] 01-02-PLAN.md — Agent CRUD endpoints, signed URL refactor, and comprehensive tests
 
 ### Phase 2: Knowledge Base
 **Goal**: Every agent knows its merchant's products and can answer product questions accurately
@@ -196,7 +196,7 @@ Note: Phases 6, 7, 8 can potentially run in parallel after their dependencies ar
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 0. Security Lockdown | 2/2 | Complete | 2026-03-13 |
-| 1. Agent Infrastructure | 1/2 | In Progress | - |
+| 1. Agent Infrastructure | 2/2 | Complete | 2026-03-13 |
 | 2. Knowledge Base | 0/3 | Not started | - |
 | 3. Widget | 0/3 | Not started | - |
 | 4. Automation | 0/2 | Not started | - |

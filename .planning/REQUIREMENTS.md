@@ -14,11 +14,11 @@
 
 ### Agent System (AGT)
 
-- [ ] **AGT-01**: Each merchant gets their own ElevenLabs agent on signup (via Agent Create API)
-- [ ] **AGT-02**: Agent can be updated (voice, greeting, personality) via Agent Update API
-- [ ] **AGT-03**: Agent can be deleted when merchant churns (via Agent Delete API)
-- [ ] **AGT-04**: Agent status tracked in DB (`stores.elevenlabs_agent_id`, `stores.agent_status`)
-- [ ] **AGT-05**: Agent guardrails set at creation (max_duration_seconds, daily_limit, blocked topics)
+- [x] **AGT-01**: Each merchant gets their own ElevenLabs agent on signup (via Agent Create API)
+- [x] **AGT-02**: Agent can be updated (voice, greeting, personality) via Agent Update API
+- [x] **AGT-03**: Agent can be deleted when merchant churns (via Agent Delete API)
+- [x] **AGT-04**: Agent status tracked in DB (`stores.elevenlabs_agent_id`, `stores.agent_status`)
+- [x] **AGT-05**: Agent guardrails set at creation (max_duration_seconds, daily_limit, blocked topics)
 - [x] **AGT-06**: Agent templates exist per type: Online Store, Service Business, Lead Gen
 
 ### Knowledge Base (KB)
@@ -155,11 +155,11 @@
 | SEC-02 | Phase 0: Security Lockdown | Pending |
 | SEC-03 | Phase 0: Security Lockdown | Pending |
 | SEC-04 | Phase 0: Security Lockdown | Pending |
-| AGT-01 | Phase 1: Agent Infrastructure | Pending |
-| AGT-02 | Phase 1: Agent Infrastructure | Pending |
-| AGT-03 | Phase 1: Agent Infrastructure | Pending |
-| AGT-04 | Phase 1: Agent Infrastructure | Pending |
-| AGT-05 | Phase 1: Agent Infrastructure | Pending |
+| AGT-01 | Phase 1: Agent Infrastructure | Complete |
+| AGT-02 | Phase 1: Agent Infrastructure | Complete |
+| AGT-03 | Phase 1: Agent Infrastructure | Complete |
+| AGT-04 | Phase 1: Agent Infrastructure | Complete |
+| AGT-05 | Phase 1: Agent Infrastructure | Complete |
 | AGT-06 | Phase 1: Agent Infrastructure | Complete |
 | DB-01 | Phase 1: Agent Infrastructure | Complete |
 | DB-02 | Phase 1: Agent Infrastructure | Complete |
