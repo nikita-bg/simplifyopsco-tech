@@ -161,11 +161,11 @@ Plans:
   3. A recent conversations list is available with click-through to full transcripts
   4. Peak usage hours are visualized so merchants know when their agent is busiest
   5. An "unanswered questions" log surfaces questions the agent could not answer, giving merchants actionable knowledge base improvement suggestions
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
+- [ ] 08-01-PLAN.md — Backend analytics endpoints: overview with trends, intents, peak hours, unanswered questions
+- [ ] 08-02-PLAN.md — Frontend analytics dashboard: KPI cards, Recharts peak hours chart, intents, unanswered questions
 
 ### Phase 9: Design Polish
 **Goal**: The landing page and dashboard look premium and professional, matching the glassmorphism design direction
