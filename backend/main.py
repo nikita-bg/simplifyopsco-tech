@@ -1768,18 +1768,20 @@ async def create_store(request: Request, background_tasks: BackgroundTasks):
 
     store_id = str(uuid.uuid4())
 
-    if db.pool:
-        try:
-            await db.execute(
-                """INSERT INTO stores (id, shop_domain, owner_id, subscription_tier, settings, created_at, store_name, onboarding_step, trial_ends_at)
-                   VALUES ($1, $2, $3::uuid, 'trial', '{}', NOW(), $4, 'pending', NOW() + INTERVAL '14 days')
-                   ON CONFLICT (shop_domain) DO UPDATE SET owner_id = $3::uuid, store_name = $4, onboarding_step = 'pending'
-                   RETURNING id""",
-                store_id, site_url, user_id, store_name,
-            )
-        except Exception as e:
-            SecurityLogger.log_error("Create store error", e)
-            raise HTTPException(500, "Failed to create store")
+    if not db.pool:
+        raise HTTPException(503, "Database unavailable, please try again")
+
+    try:
+        await db.execute(
+            """INSERT INTO stores (id, shop_domain, owner_id, subscription_tier, settings, created_at, store_name, onboarding_step, trial_ends_at)
+               VALUES ($1, $2, $3::uuid, 'trial', '{}', NOW(), $4, 'pending', NOW() + INTERVAL '14 days')
+               ON CONFLICT (shop_domain) DO UPDATE SET owner_id = $3::uuid, store_name = $4, onboarding_step = 'pending'
+               RETURNING id""",
+            store_id, site_url, user_id, store_name,
+        )
+    except Exception as e:
+        SecurityLogger.log_error("Create store error", e)
+        raise HTTPException(500, "Failed to create store")
 
     # Trigger onboarding workflow in background (fire-and-forget)
     # owner_email=None: the workflow resolves it from DB using owner_id
