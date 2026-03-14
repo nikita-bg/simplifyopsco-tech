@@ -98,6 +98,31 @@ class ElevenLabsService:
             )
             return response.status_code == 200
 
+    async def register_webhook(self, agent_id: str, webhook_url: str) -> dict[str, Any]:
+        """Configure a post-call webhook on an ElevenLabs agent.
+
+        Wraps update_agent with platform_settings.webhooks for the
+        'conversation.ended' event. Returns empty dict on any failure.
+        """
+        try:
+            return await self.update_agent(
+                agent_id=agent_id,
+                platform_settings={
+                    "webhooks": [
+                        {
+                            "url": webhook_url,
+                            "events": ["conversation.ended"],
+                        }
+                    ]
+                },
+            )
+        except Exception as exc:
+            import logging
+            logging.getLogger("simplifyops.elevenlabs").error(
+                "register_webhook failed for agent %s: %s", agent_id, exc
+            )
+            return {}
+
     # -----------------------------------------------------------------
     # Knowledge Base Document Methods
     # -----------------------------------------------------------------

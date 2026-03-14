@@ -375,6 +375,8 @@ async def post_call_webhook(
     Records conversation and runs AI analysis.
     """
     try:
+        import math
+
         call_id = payload.call_id or str(uuid.uuid4())
         transcript = sanitize_input(payload.transcript or "", max_length=10000)
 
@@ -382,6 +384,15 @@ async def post_call_webhook(
         analysis = await analyze_shopping_conversation(transcript)
 
         store_id = payload.store_id or ""
+
+        # Resolve store_id from agent_id if not present in payload
+        if not store_id and payload.agent_id and db.pool:
+            row = await db.fetchrow(
+                "SELECT id FROM stores WHERE elevenlabs_agent_id = $1",
+                payload.agent_id,
+            )
+            if row:
+                store_id = str(row["id"])
 
         # Save to database if connected
         if db.pool and store_id:
@@ -422,6 +433,18 @@ async def post_call_webhook(
                 )
             except Exception as e:
                 SecurityLogger.log(f"daily_analytics upsert error: {e}", "WARNING")
+
+            # Track conversation minutes (round up to nearest minute)
+            try:
+                minutes = math.ceil((payload.duration or 0) / 60) if (payload.duration or 0) > 0 else 0
+                if minutes > 0:
+                    await db.execute(
+                        "UPDATE stores SET minutes_used = COALESCE(minutes_used, 0) + $1 WHERE id = $2::uuid",
+                        minutes,
+                        store_id,
+                    )
+            except Exception as e:
+                SecurityLogger.log(f"minutes_used update error: {e}", "WARNING")
 
         SecurityLogger.log(
             f"Shopping call recorded: {call_id} | Intent: {analysis.get('intent')} | "

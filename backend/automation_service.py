@@ -60,6 +60,28 @@ class AutomationService:
             self.scheduler.shutdown()
             logger.info("AutomationService scheduler stopped")
 
+    async def register_webhooks_for_store(self, store_id: str, agent_id: str) -> None:
+        """Register the post-call webhook URL on an ElevenLabs agent.
+
+        Builds the webhook URL from SHOPIFY_APP_URL setting and calls
+        elevenlabs_service.register_webhook. Errors are logged, not raised.
+        """
+        webhook_url = f"{settings.SHOPIFY_APP_URL}/webhook/elevenlabs/post-call"
+        try:
+            await elevenlabs_service.register_webhook(agent_id, webhook_url)
+            logger.info(
+                "Webhook registered for store %s agent %s: %s",
+                store_id,
+                agent_id,
+                webhook_url,
+            )
+        except Exception as exc:
+            logger.error(
+                "register_webhooks_for_store failed for store %s: %s",
+                store_id,
+                exc,
+            )
+
     async def daily_kb_resync(self) -> None:
         """Scheduled job: rebuild knowledge base for all active stores.
 
@@ -244,7 +266,10 @@ class AutomationService:
                 template_id,
             )
 
-            # --- Step 5: KB sync (non-blocking) ---
+            # --- Step 5: Register post-call webhook (non-blocking) ---
+            await self.register_webhooks_for_store(store_id, elevenlabs_agent_id)
+
+            # --- Step 6: KB sync (non-blocking) ---
             try:
                 await kb_service.trigger_kb_rebuild(store_id)
             except Exception as kb_exc:
@@ -254,7 +279,7 @@ class AutomationService:
                     kb_exc,
                 )
 
-            # --- Step 6: Send welcome email ---
+            # --- Step 7: Send welcome email ---
             resolved_email: Optional[str] = owner_email
 
             if resolved_email is None and owner_id:
