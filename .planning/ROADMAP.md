@@ -129,12 +129,11 @@ Plans:
   3. The agent can be enabled/disabled via toggle (propagates to embed.js) and language can be changed from 28+ options
   4. Personality presets (Friendly, Professional, Energetic, etc.) let merchants shape agent behavior without writing prompts
   5. A live preview lets merchants test their agent in-dashboard before going live, and the embed code is auto-generated and copy-paste ready
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
-- [ ] 06-03: TBD
+- [ ] 06-01-PLAN.md — Backend APIs: agent config CRUD, curated voices, personality presets, embed code generation
+- [ ] 06-02-PLAN.md — Frontend config page: voice picker, greeting, widget appearance, personality, language, preview, embed code
 
 ### Phase 7: Billing
 **Goal**: Merchants are on the right subscription tier with accurate usage tracking and self-service billing management
@@ -200,7 +199,7 @@ Note: Phases 6, 7, 8 can potentially run in parallel after their dependencies ar
 | 3. Widget | 0/2 | Not started | - |
 | 4. Automation | 2/2 | Complete   | 2026-03-14 |
 | 5. Onboarding | 2/2 | Complete   | 2026-03-14 |
-| 6. Agent Configuration | 0/3 | Not started | - |
+| 6. Agent Configuration | 0/2 | Not started | - |
 | 7. Billing | 0/3 | Not started | - |
 | 8. Analytics | 0/2 | Not started | - |
 | 9. Design Polish | 0/3 | Not started | - |
