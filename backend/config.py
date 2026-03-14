@@ -59,7 +59,7 @@ class Settings(BaseSettings):
 
     # Resend Email Service
     RESEND_API_KEY: Optional[str] = None
-    RESEND_FROM_EMAIL: str = "onboarding@simplifyops.co"
+    RESEND_FROM_EMAIL: str = "onboarding@simplifyopsco.tech"
 
     # Supabase Auth
     SUPABASE_URL: Optional[str] = None

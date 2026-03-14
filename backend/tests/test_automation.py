@@ -45,7 +45,7 @@ class TestEmailService:
 
         service = EmailService()
         service.api_key = "re_test_key"
-        service.from_email = "onboarding@simplifyops.co"
+        service.from_email = "onboarding@simplifyopsco.tech"
 
         mock_client, mock_response = _make_mock_http_client(
             response_data={"id": "email_123"},
@@ -78,7 +78,7 @@ class TestEmailService:
 
         service = EmailService()
         service.api_key = "re_test_key"
-        service.from_email = "noreply@simplifyops.co"
+        service.from_email = "noreply@simplifyopsco.tech"
 
         mock_client, _ = _make_mock_http_client(response_data={"id": "email_456"})
 
@@ -103,7 +103,7 @@ class TestEmailService:
 
         service = EmailService()
         service.api_key = "re_bad_key"
-        service.from_email = "noreply@simplifyops.co"
+        service.from_email = "noreply@simplifyopsco.tech"
 
         mock_client, _ = _make_mock_http_client(
             raise_exc=httpx.HTTPStatusError(
@@ -130,7 +130,7 @@ class TestEmailService:
 
         service = EmailService()
         service.api_key = "re_test_key"
-        service.from_email = "onboarding@simplifyops.co"
+        service.from_email = "onboarding@simplifyopsco.tech"
 
         mock_client, _ = _make_mock_http_client(response_data={"id": "email_789"})
 
@@ -156,7 +156,7 @@ class TestEmailService:
 
         service = EmailService()
         service.api_key = "re_test_key"
-        service.from_email = "noreply@simplifyops.co"
+        service.from_email = "noreply@simplifyopsco.tech"
 
         mock_client, _ = _make_mock_http_client(
             raise_exc=httpx.ConnectError("Connection refused")
@@ -799,7 +799,7 @@ class TestWebhookRegistration:
         with patch("backend.automation_service.elevenlabs_service") as mock_el, \
              patch("backend.automation_service.settings") as mock_settings:
 
-            mock_settings.SHOPIFY_APP_URL = "https://api.simplifyops.co"
+            mock_settings.SHOPIFY_APP_URL = "https://api.simplifyopsco.tech"
             mock_el.register_webhook = AsyncMock(return_value={"agent_id": "agt_wh"})
 
             await service.register_webhooks_for_store(
@@ -809,7 +809,7 @@ class TestWebhookRegistration:
 
         mock_el.register_webhook.assert_called_once_with(
             "agt_wh",
-            "https://api.simplifyops.co/webhook/elevenlabs/post-call",
+            "https://api.simplifyopsco.tech/webhook/elevenlabs/post-call",
         )
 
     @pytest.mark.asyncio
@@ -822,7 +822,7 @@ class TestWebhookRegistration:
         with patch("backend.automation_service.elevenlabs_service") as mock_el, \
              patch("backend.automation_service.settings") as mock_settings:
 
-            mock_settings.SHOPIFY_APP_URL = "https://api.simplifyops.co"
+            mock_settings.SHOPIFY_APP_URL = "https://api.simplifyopsco.tech"
             mock_el.register_webhook = AsyncMock(side_effect=Exception("timeout"))
 
             # Must NOT raise
