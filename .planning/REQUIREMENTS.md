@@ -88,7 +88,7 @@
 - [x] **ANL-01**: Total conversations with trend vs previous period
 - [x] **ANL-02**: Average conversation duration
 - [x] **ANL-03**: Top intents / what customers asked about (readable format)
-- [ ] **ANL-04**: Recent conversations list with full transcript click-through
+- [x] **ANL-04**: Recent conversations list with full transcript click-through
 - [x] **ANL-05**: Peak usage hours visualization
 - [x] **ANL-06**: Unanswered questions log ("Your agent couldn't answer these 23 questions")
 
@@ -212,7 +212,7 @@
 | ANL-01 | Phase 8: Analytics | Complete |
 | ANL-02 | Phase 8: Analytics | Complete |
 | ANL-03 | Phase 8: Analytics | Complete |
-| ANL-04 | Phase 8: Analytics | Pending |
+| ANL-04 | Phase 8: Analytics | Complete |
 | ANL-05 | Phase 8: Analytics | Complete |
 | ANL-06 | Phase 8: Analytics | Complete |
 | DSN-01 | Phase 9: Design Polish | Pending |
