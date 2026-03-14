@@ -64,15 +64,15 @@
 
 ### Billing (BIL)
 
-- [ ] **BIL-01**: Three subscription tiers: Starter ($39), Growth ($99), Scale ($299)
-- [ ] **BIL-02**: Included conversation minutes per tier (100/400/2000)
-- [ ] **BIL-03**: Usage tracking: minutes used per merchant per billing cycle
+- [x] **BIL-01**: Three subscription tiers: Starter ($39), Growth ($99), Scale ($299)
+- [x] **BIL-02**: Included conversation minutes per tier (100/400/2000)
+- [x] **BIL-03**: Usage tracking: minutes used per merchant per billing cycle
 - [ ] **BIL-04**: Usage meter visible in dashboard ("67 of 100 minutes used")
 - [ ] **BIL-05**: Warning email at 80% usage (n8n automation)
-- [ ] **BIL-06**: Soft limit: 10% overage buffer before disabling (not hard cutoff)
+- [x] **BIL-06**: Soft limit: 10% overage buffer before disabling (not hard cutoff)
 - [ ] **BIL-07**: Upgrade prompt in-app when limit approached/reached
-- [ ] **BIL-08**: Stripe Customer Portal for self-service billing management
-- [ ] **BIL-09**: 14-day free trial, no credit card required
+- [x] **BIL-08**: Stripe Customer Portal for self-service billing management
+- [x] **BIL-09**: 14-day free trial, no credit card required
 
 ### Automation (AUT)
 
@@ -200,15 +200,15 @@
 | CFG-06 | Phase 6: Agent Configuration | Complete |
 | CFG-07 | Phase 6: Agent Configuration | Complete |
 | CFG-08 | Phase 6: Agent Configuration | Complete |
-| BIL-01 | Phase 7: Billing | Pending |
-| BIL-02 | Phase 7: Billing | Pending |
-| BIL-03 | Phase 7: Billing | Pending |
+| BIL-01 | Phase 7: Billing | Complete |
+| BIL-02 | Phase 7: Billing | Complete |
+| BIL-03 | Phase 7: Billing | Complete |
 | BIL-04 | Phase 7: Billing | Pending |
 | BIL-05 | Phase 7: Billing | Pending |
-| BIL-06 | Phase 7: Billing | Pending |
+| BIL-06 | Phase 7: Billing | Complete |
 | BIL-07 | Phase 7: Billing | Pending |
-| BIL-08 | Phase 7: Billing | Pending |
-| BIL-09 | Phase 7: Billing | Pending |
+| BIL-08 | Phase 7: Billing | Complete |
+| BIL-09 | Phase 7: Billing | Complete |
 | ANL-01 | Phase 8: Analytics | Pending |
 | ANL-02 | Phase 8: Analytics | Pending |
 | ANL-03 | Phase 8: Analytics | Pending |
