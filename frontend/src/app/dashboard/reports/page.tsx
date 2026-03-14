@@ -238,7 +238,7 @@ export default function ReportsPage() {
       {/* KPI Cards */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         {/* Total Conversations */}
-        <div className="bg-raised rounded-2xl border border-edge p-6">
+        <div className="glass-card p-6">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <MessageSquare className="w-5 h-5 text-primary" />
@@ -254,7 +254,7 @@ export default function ReportsPage() {
         </div>
 
         {/* Avg Duration */}
-        <div className="bg-raised rounded-2xl border border-edge p-6">
+        <div className="glass-card p-6">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
               <Clock className="w-5 h-5 text-blue-400" />
@@ -270,7 +270,7 @@ export default function ReportsPage() {
         </div>
 
         {/* Total Duration */}
-        <div className="bg-raised rounded-2xl border border-edge p-6">
+        <div className="glass-card p-6">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
               <Timer className="w-5 h-5 text-purple-400" />
@@ -283,7 +283,7 @@ export default function ReportsPage() {
         </div>
 
         {/* Unanswered Questions */}
-        <div className="bg-raised rounded-2xl border border-edge p-6">
+        <div className="glass-card p-6">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
               <HelpCircle className="w-5 h-5 text-orange-400" />
@@ -299,7 +299,7 @@ export default function ReportsPage() {
       {/* Two-column: Peak Hours + Top Intents */}
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
         {/* Peak Hours Chart */}
-        <div className="bg-raised rounded-2xl border border-edge p-6">
+        <div className="glass-card p-6">
           <div className="flex items-center gap-2 mb-6">
             <BarChart3 className="w-5 h-5 text-primary" />
             <h2 className="text-base font-semibold text-heading">
@@ -340,7 +340,7 @@ export default function ReportsPage() {
         </div>
 
         {/* Top Intents */}
-        <div className="bg-raised rounded-2xl border border-edge p-6">
+        <div className="glass-card p-6">
           <div className="flex items-center gap-2 mb-6">
             <BarChart3 className="w-5 h-5 text-primary" />
             <h2 className="text-base font-semibold text-heading">
@@ -378,7 +378,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Unanswered Questions Section */}
-      <div className="bg-raised rounded-2xl border border-edge p-6">
+      <div className="glass-card p-6">
         <div className="flex items-center gap-2 mb-6">
           <HelpCircle className="w-5 h-5 text-orange-400" />
           <h2 className="text-base font-semibold text-heading">

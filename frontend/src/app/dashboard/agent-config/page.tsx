@@ -286,7 +286,7 @@ export default function AgentConfigPage() {
         <div className="lg:col-span-3 space-y-6">
 
           {/* Section A: Voice Selection */}
-          <section className="rounded-2xl bg-[#181b21] border border-white/10 p-6">
+          <section className="glass-card p-6">
             <h2 className="font-semibold text-xs text-white/40 uppercase tracking-widest mb-4">
               Voice Selection
             </h2>
@@ -338,7 +338,7 @@ export default function AgentConfigPage() {
           </section>
 
           {/* Section B: Greeting Message */}
-          <section className="rounded-2xl bg-[#181b21] border border-white/10 p-6">
+          <section className="glass-card p-6">
             <h2 className="font-semibold text-xs text-white/40 uppercase tracking-widest mb-4">
               Greeting Message
             </h2>
@@ -359,7 +359,7 @@ export default function AgentConfigPage() {
           </section>
 
           {/* Section C: Widget Appearance */}
-          <section className="rounded-2xl bg-[#181b21] border border-white/10 p-6">
+          <section className="glass-card p-6">
             <h2 className="font-semibold text-xs text-white/40 uppercase tracking-widest mb-4">
               Widget Appearance
             </h2>
@@ -407,7 +407,7 @@ export default function AgentConfigPage() {
           </section>
 
           {/* Section D: Enable/Disable Toggle */}
-          <section className="rounded-2xl bg-[#181b21] border border-white/10 p-6">
+          <section className="glass-card p-6">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-sm font-semibold text-white">
@@ -435,7 +435,7 @@ export default function AgentConfigPage() {
           </section>
 
           {/* Section E: Language */}
-          <section className="rounded-2xl bg-[#181b21] border border-white/10 p-6">
+          <section className="glass-card p-6">
             <h2 className="font-semibold text-xs text-white/40 uppercase tracking-widest mb-4">
               Language
             </h2>
@@ -453,7 +453,7 @@ export default function AgentConfigPage() {
           </section>
 
           {/* Section F: Personality Preset */}
-          <section className="rounded-2xl bg-[#181b21] border border-white/10 p-6">
+          <section className="glass-card p-6">
             <h2 className="font-semibold text-xs text-white/40 uppercase tracking-widest mb-4">
               Personality Preset
             </h2>
@@ -479,7 +479,7 @@ export default function AgentConfigPage() {
           </section>
 
           {/* Section G: Embed Code */}
-          <section className="rounded-2xl bg-[#181b21] border border-white/10 p-6">
+          <section className="glass-card p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-xs text-white/40 uppercase tracking-widest">
                 Embed Code
@@ -529,7 +529,7 @@ export default function AgentConfigPage() {
         {/* Right column: Live Preview */}
         <div className="lg:col-span-2">
           <div className="lg:sticky lg:top-6">
-            <section className="rounded-2xl bg-[#181b21] border border-white/10 p-6">
+            <section className="glass-card p-6">
               <h2 className="font-semibold text-xs text-white/40 uppercase tracking-widest mb-4">
                 Live Preview
               </h2>

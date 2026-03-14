@@ -109,7 +109,7 @@ export function ClientDashboard({ storeId }: { storeId: string }) {
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
                 {/* Call Volume Chart */}
-                <div className="rounded-2xl bg-raised border border-edge p-6">
+                <div className="glass-card p-6">
                     <div className="mb-6">
                         <h3 className="font-semibold text-heading text-sm mb-1">Call Volume</h3>
                         <p className="text-xs text-faint">Sessions per day of week</p>
@@ -142,7 +142,7 @@ export function ClientDashboard({ storeId }: { storeId: string }) {
                 </div>
 
                 {/* Intent Breakdown */}
-                <div className="rounded-2xl bg-raised border border-edge p-6">
+                <div className="glass-card p-6">
                     <div className="mb-6">
                         <h3 className="font-semibold text-heading text-sm mb-1">User Intent Breakdown</h3>
                         <p className="text-xs text-faint">Primary topics discussed</p>
@@ -173,7 +173,7 @@ export function ClientDashboard({ storeId }: { storeId: string }) {
             </div>
 
             {/* Recent Conversations Table */}
-            <div className="rounded-2xl bg-raised border border-edge p-6">
+            <div className="glass-card p-6">
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="font-semibold text-heading">Recent AI Conversations</h3>
                     <Link href="/dashboard/conversations" className="text-xs text-primary hover:text-primary-400 font-medium flex items-center gap-1 transition-colors">
@@ -249,7 +249,7 @@ function StatCard({ title, value, suffix, icon, color }: {
     const c = colorMap[color];
 
     return (
-        <div className={`rounded-2xl bg-raised border border-edge p-6 hover:border-edge-strong transition-all group`}>
+        <div className={`glass-card p-6 hover:border-edge-strong transition-all group`}>
             <div className="flex items-center justify-between mb-4">
                 <p className="text-xs text-faint font-medium uppercase tracking-wider">{title}</p>
                 <div className={`w-10 h-10 rounded-xl ${c.bg} flex items-center justify-center ${c.text}`}>{icon}</div>

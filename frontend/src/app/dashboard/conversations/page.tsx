@@ -91,7 +91,7 @@ export default function ConversationsPage() {
 
             <div className="grid lg:grid-cols-3 gap-6">
                 {/* Conversations List */}
-                <div className="lg:col-span-1 bg-raised rounded-2xl border border-edge p-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+                <div className="lg:col-span-1 glass-card p-4 max-h-[calc(100vh-200px)] overflow-y-auto">
                     <h2 className="text-sm font-semibold mb-4 flex items-center gap-2 text-heading">
                         <MessageSquare className="w-4 h-4 text-primary" />
                         All Conversations ({total})
@@ -151,7 +151,7 @@ export default function ConversationsPage() {
                 </div>
 
                 {/* Conversation Details */}
-                <div className="lg:col-span-2 bg-raised rounded-2xl border border-edge p-6">
+                <div className="lg:col-span-2 glass-card p-6">
                     {selectedConv ? (
                         <div>
                             <div className="flex items-start justify-between mb-6">

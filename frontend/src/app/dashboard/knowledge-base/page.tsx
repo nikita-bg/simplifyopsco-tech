@@ -252,7 +252,7 @@ export default function KnowledgeBasePage() {
       </div>
 
       {/* ---- Sync Status Card ---- */}
-      <div className="rounded-2xl bg-raised border border-edge p-6">
+      <div className="glass-card p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-xs text-faint uppercase tracking-widest">
             Sync Status
@@ -340,7 +340,7 @@ export default function KnowledgeBasePage() {
       )}
 
       {/* ---- Manual Products Card ---- */}
-      <div className="rounded-2xl bg-raised border border-edge p-6 mt-6">
+      <div className="glass-card p-6 mt-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-xs text-faint uppercase tracking-widest">
             Products

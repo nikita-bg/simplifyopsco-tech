@@ -216,7 +216,7 @@ export default function BillingPage() {
       )}
 
       {/* Usage Meter Card */}
-      <div className="bg-raised rounded-2xl border border-edge p-6 mb-6">
+      <div className="glass-card p-6 mb-6">
         <h2 className="text-base font-semibold text-heading mb-4">Usage This Period</h2>
         <div className="flex items-baseline justify-between mb-3">
           <p className="text-2xl font-bold text-heading">
@@ -255,10 +255,10 @@ export default function BillingPage() {
             return (
               <div
                 key={plan.id}
-                className={`relative bg-raised rounded-2xl border p-6 flex flex-col ${
+                className={`relative glass-card p-6 flex flex-col ${
                   plan.popular
-                    ? "border-primary shadow-lg shadow-primary/10"
-                    : "border-edge"
+                    ? "!border-primary shadow-lg shadow-primary/10"
+                    : ""
                 } ${isCurrentPlan ? "opacity-80" : ""}`}
               >
                 {plan.popular && (
@@ -327,7 +327,7 @@ export default function BillingPage() {
 
       {/* Billing Details Card (paid plans only) */}
       {isPaid && (
-        <div className="bg-raised rounded-2xl border border-edge p-6">
+        <div className="glass-card p-6">
           <h2 className="text-base font-semibold text-heading mb-4">Billing Details</h2>
           <div className="grid sm:grid-cols-2 gap-4 mb-6">
             <div className="bg-canvas rounded-xl p-4 border border-edge">
