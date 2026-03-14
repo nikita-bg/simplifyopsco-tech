@@ -23,14 +23,14 @@ const PLANS = [
   {
     id: "starter",
     name: "Starter",
-    price: 39,
+    price: 29,
     minutes: 100,
     features: ["100 minutes/month", "1 AI voice agent", "Basic analytics", "Email support"],
   },
   {
     id: "growth",
     name: "Growth",
-    price: 99,
+    price: 79,
     minutes: 400,
     features: ["400 minutes/month", "Custom voice & personality", "Full analytics + transcripts", "Priority support"],
     popular: true,
@@ -38,7 +38,7 @@ const PLANS = [
   {
     id: "scale",
     name: "Scale",
-    price: 299,
+    price: 199,
     minutes: 2000,
     features: ["2,000 minutes/month", "All Growth features", "Dedicated account manager", "Custom integrations"],
   },
