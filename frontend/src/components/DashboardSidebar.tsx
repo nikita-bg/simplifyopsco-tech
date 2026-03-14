@@ -13,6 +13,7 @@ const navItems = [
   { label: "Overview", icon: PieChart, href: "/dashboard" },
   { label: "Conversations", icon: MessageSquare, href: "/dashboard/conversations" },
   { label: "Knowledge Base", icon: Database, href: "/dashboard/knowledge-base" },
+  { label: "Agent Config", icon: Mic, href: "/dashboard/agent-config" },
   { label: "Reports", icon: BarChart3, href: "/dashboard/reports" },
   { label: "Billing", icon: CreditCard, href: "/dashboard/billing" },
 ];
