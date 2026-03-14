@@ -32,12 +32,23 @@ from backend.models import (  # type: ignore[import]
     ManualProductCreate,
     ManualProductUpdate,
     WidgetConfigResponse,
+    AgentConfigResponse,
+    AgentConfigUpdate,
+    EmbedCodeResponse,
 )
 from backend.elevenlabs_service import elevenlabs_service  # type: ignore[import]
 from backend.config import settings  # type: ignore[import]
 from backend.database import db  # type: ignore[import]
 from backend.shopify_service import shopify_service  # type: ignore[import]
 from backend.kb_service import kb_service  # type: ignore[import]
+from backend.agent_config_service import (  # type: ignore[import]
+    get_curated_voices,
+    get_personality_presets,
+    get_supported_languages,
+    generate_embed_code,
+    CURATED_VOICES,
+    PERSONALITY_PRESETS,
+)
 from backend.recommendation_engine import recommender  # type: ignore[import]
 from backend.security_middleware import (  # type: ignore[import]
     rate_limit_middleware,
@@ -2027,6 +2038,206 @@ async def gdpr_unified(request: Request):
     return {"received": True}
 
 
+
+
+# ===========================
+# Agent Configuration Endpoints
+# ===========================
+
+
+@app.get("/api/agent/config/{store_id}", response_model=AgentConfigResponse)
+async def get_agent_config(store_id: str, request: Request):
+    """Get full agent configuration for a store (voice, widget, personality, language)."""
+    await require_store_owner(request, store_id)
+
+    row = await db.fetchrow(
+        "SELECT elevenlabs_agent_id, agent_status, agent_config, settings FROM stores WHERE id = $1::uuid",
+        store_id,
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    settings_data = _parse_jsonb(row.get("settings", {}))
+    agent_config = _parse_jsonb(row.get("agent_config", {}))
+
+    # Resolve voice_id from settings or agent_config
+    voice_id = settings_data.get("voice_id") or agent_config.get("tts", {}).get("voice_id")
+
+    # Look up voice name from curated voices
+    voice_name = None
+    if voice_id:
+        for v in CURATED_VOICES:
+            if v["id"] == voice_id:
+                voice_name = v["name"]
+                break
+
+    return AgentConfigResponse(
+        voice_id=voice_id,
+        voice_name=voice_name,
+        greeting=settings_data.get("greeting_message", "Hi! I can help you find the perfect product."),
+        widget_color=settings_data.get("widget_color", "#256af4"),
+        widget_position=settings_data.get("widget_position", "bottom-right"),
+        enabled=settings_data.get("enabled", True),
+        language=settings_data.get("language", "en"),
+        personality_preset=settings_data.get("personality_preset"),
+        agent_status=row.get("agent_status", "none"),
+    )
+
+
+@app.put("/api/agent/config/{store_id}", response_model=AgentConfigResponse)
+async def update_agent_config(store_id: str, body: AgentConfigUpdate, request: Request):
+    """
+    Update agent configuration. Separates ElevenLabs-bound fields from DB-only fields.
+    ElevenLabs-bound: voice_id, greeting, language, personality_preset
+    DB-only: widget_color, widget_position, enabled
+    """
+    await require_store_owner(request, store_id)
+
+    row = await db.fetchrow(
+        "SELECT elevenlabs_agent_id, agent_status, agent_config, settings, shop_domain FROM stores WHERE id = $1::uuid",
+        store_id,
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    agent_id = row.get("elevenlabs_agent_id")
+    current_settings = _parse_jsonb(row.get("settings", {}))
+    current_status = row.get("agent_status", "none")
+    shop_domain = row.get("shop_domain", "your store")
+
+    # Determine which fields are ElevenLabs-bound
+    el_config: dict[str, Any] = {}
+    has_el_changes = False
+
+    if body.voice_id is not None:
+        el_config["tts"] = {"voice_id": body.voice_id}
+        has_el_changes = True
+
+    if body.greeting is not None:
+        el_config.setdefault("agent", {})["first_message"] = body.greeting
+        has_el_changes = True
+
+    if body.language is not None:
+        el_config.setdefault("agent", {})["language"] = body.language
+        has_el_changes = True
+
+    if body.personality_preset is not None:
+        # Look up preset system_prompt
+        preset = next((p for p in PERSONALITY_PRESETS if p["id"] == body.personality_preset), None)
+        if preset:
+            prompt_text = preset["system_prompt"].replace("{store_name}", shop_domain)
+            el_config.setdefault("agent", {})["prompt"] = {"prompt": prompt_text}
+            has_el_changes = True
+
+    # Push to ElevenLabs FIRST (only if agent exists and has el changes)
+    if has_el_changes and agent_id:
+        try:
+            await elevenlabs_service.update_agent(agent_id, conversation_config=el_config)
+        except Exception as e:
+            SecurityLogger.log(f"Agent config update failed for store {store_id}: {e}", "ERROR")
+            raise HTTPException(status_code=502, detail="Failed to update agent via ElevenLabs API")
+
+    # Build settings JSONB update
+    settings_update: dict[str, Any] = {}
+    if body.voice_id is not None:
+        settings_update["voice_id"] = body.voice_id
+    if body.greeting is not None:
+        settings_update["greeting_message"] = body.greeting
+    if body.widget_color is not None:
+        settings_update["widget_color"] = body.widget_color
+    if body.widget_position is not None:
+        settings_update["widget_position"] = body.widget_position
+    if body.language is not None:
+        settings_update["language"] = body.language
+    if body.personality_preset is not None:
+        settings_update["personality_preset"] = body.personality_preset
+
+    # Handle enabled toggle
+    new_status = current_status
+    if body.enabled is not None:
+        settings_update["enabled"] = body.enabled
+        new_status = "active" if body.enabled else "inactive"
+        await db.execute(
+            "UPDATE stores SET agent_status = $1, settings = COALESCE(settings, '{}'::jsonb) || $2::jsonb, updated_at = NOW() WHERE id = $3::uuid",
+            new_status,
+            json.dumps(settings_update),
+            store_id,
+        )
+    elif settings_update:
+        await db.execute(
+            "UPDATE stores SET settings = COALESCE(settings, '{}'::jsonb) || $1::jsonb, updated_at = NOW() WHERE id = $2::uuid",
+            json.dumps(settings_update),
+            store_id,
+        )
+
+    # Also update agent_config JSONB if ElevenLabs fields changed
+    if has_el_changes:
+        await db.execute(
+            "UPDATE stores SET agent_config = COALESCE(agent_config, '{}'::jsonb) || $1::jsonb WHERE id = $2::uuid",
+            json.dumps(el_config),
+            store_id,
+        )
+
+    # Build response from merged settings
+    merged = {**current_settings, **settings_update}
+
+    voice_id = merged.get("voice_id") or body.voice_id
+    voice_name = None
+    if voice_id:
+        for v in CURATED_VOICES:
+            if v["id"] == voice_id:
+                voice_name = v["name"]
+                break
+
+    return AgentConfigResponse(
+        voice_id=voice_id,
+        voice_name=voice_name,
+        greeting=merged.get("greeting_message", "Hi!"),
+        widget_color=merged.get("widget_color", "#256af4"),
+        widget_position=merged.get("widget_position", "bottom-right"),
+        enabled=merged.get("enabled", True) if body.enabled is None else body.enabled,
+        language=merged.get("language", "en"),
+        personality_preset=merged.get("personality_preset"),
+        agent_status=new_status,
+    )
+
+
+@app.get("/api/voices")
+async def get_voices():
+    """Return curated voices, supported languages, and personality presets.
+
+    Single endpoint for all agent configuration options.
+    No auth required -- public catalog data.
+    """
+    voices = get_curated_voices()
+    languages = get_supported_languages()
+    presets = get_personality_presets()
+
+    return {
+        "voices": [v.model_dump() for v in voices],
+        "languages": [l.model_dump() for l in languages],
+        "personality_presets": [p.model_dump() for p in presets],
+    }
+
+
+@app.get("/api/agent/embed-code/{store_id}", response_model=EmbedCodeResponse)
+async def get_embed_code(store_id: str, request: Request):
+    """Generate copy-paste embed code for a store's voice widget."""
+    await require_store_owner(request, store_id)
+
+    # Verify store exists
+    row = await db.fetchrow(
+        "SELECT id, elevenlabs_agent_id FROM stores WHERE id = $1::uuid",
+        store_id,
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    # Use request base URL or settings for API URL
+    api_url = str(request.base_url).rstrip("/")
+    embed_code = generate_embed_code(store_id, api_url)
+
+    return EmbedCodeResponse(embed_code=embed_code, store_id=store_id)
 
 
 # ===========================

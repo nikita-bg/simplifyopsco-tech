@@ -200,3 +200,225 @@ class TestAgentConfigModels:
 
         lang = LanguageOption(code="en", name="English")
         assert lang.code == "en"
+
+
+# ===========================================================================
+# Task 2: API Endpoint Tests
+# ===========================================================================
+
+STORE_ID = "00000000-0000-0000-0000-000000000001"
+
+
+class TestGetAgentConfig:
+    def test_returns_full_config(self, client, mock_db):
+        """GET /api/agent/config/{store_id} returns 200 with full config."""
+        mock_db.fetchrow.return_value = {
+            "elevenlabs_agent_id": "agt_123",
+            "agent_status": "active",
+            "agent_config": json.dumps({"tts": {"voice_id": "21m00Tcm4TlvDq8ikWAM"}}),
+            "settings": json.dumps({
+                "widget_color": "#256af4",
+                "widget_position": "bottom-right",
+                "greeting_message": "Hello there!",
+                "language": "en",
+                "enabled": True,
+                "voice_id": "21m00Tcm4TlvDq8ikWAM",
+                "personality_preset": "friendly",
+            }),
+        }
+
+        response = client.get(f"/api/agent/config/{STORE_ID}")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["widget_color"] == "#256af4"
+        assert data["enabled"] is True
+        assert data["language"] == "en"
+        assert data["agent_status"] == "active"
+        assert data["voice_name"] == "Rachel"  # looked up from curated voices
+
+    def test_returns_404_for_unknown_store(self, client, mock_db):
+        """GET /api/agent/config/{store_id} returns 404 for unknown store."""
+        mock_db.fetchrow.return_value = None
+
+        response = client.get(f"/api/agent/config/{STORE_ID}")
+
+        assert response.status_code == 404
+
+
+class TestPutAgentConfig:
+    def test_update_voice_id(self, client, mock_db):
+        """PUT with voice_id updates ElevenLabs then DB, returns updated config."""
+        mock_db.fetchrow.return_value = {
+            "elevenlabs_agent_id": "agt_123",
+            "agent_status": "active",
+            "agent_config": json.dumps({}),
+            "settings": json.dumps({
+                "widget_color": "#256af4",
+                "widget_position": "bottom-right",
+                "greeting_message": "Hi!",
+                "language": "en",
+                "enabled": True,
+            }),
+            "shop_domain": "test.myshopify.com",
+        }
+
+        with patch("backend.main.elevenlabs_service") as mock_el:
+            mock_el.update_agent = AsyncMock(return_value={"agent_id": "agt_123"})
+
+            response = client.put(
+                f"/api/agent/config/{STORE_ID}",
+                json={"voice_id": "abc"},
+            )
+
+        assert response.status_code == 200
+        # ElevenLabs should have been called
+        mock_el.update_agent.assert_called_once()
+        data = response.json()
+        assert data["voice_id"] == "abc"
+
+    def test_disable_agent(self, client, mock_db):
+        """PUT with enabled=false sets agent_status=inactive."""
+        mock_db.fetchrow.return_value = {
+            "elevenlabs_agent_id": "agt_123",
+            "agent_status": "active",
+            "agent_config": json.dumps({}),
+            "settings": json.dumps({
+                "widget_color": "#256af4",
+                "widget_position": "bottom-right",
+                "greeting_message": "Hi!",
+                "language": "en",
+                "enabled": True,
+            }),
+            "shop_domain": "test.myshopify.com",
+        }
+
+        response = client.put(
+            f"/api/agent/config/{STORE_ID}",
+            json={"enabled": False},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["enabled"] is False
+        assert data["agent_status"] == "inactive"
+
+    def test_enable_agent(self, client, mock_db):
+        """PUT with enabled=true sets agent_status=active."""
+        mock_db.fetchrow.return_value = {
+            "elevenlabs_agent_id": "agt_123",
+            "agent_status": "inactive",
+            "agent_config": json.dumps({}),
+            "settings": json.dumps({
+                "widget_color": "#256af4",
+                "widget_position": "bottom-right",
+                "greeting_message": "Hi!",
+                "language": "en",
+                "enabled": False,
+            }),
+            "shop_domain": "test.myshopify.com",
+        }
+
+        response = client.put(
+            f"/api/agent/config/{STORE_ID}",
+            json={"enabled": True},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["enabled"] is True
+        assert data["agent_status"] == "active"
+
+    def test_personality_preset_pushes_prompt(self, client, mock_db):
+        """PUT with personality_preset looks up system_prompt and pushes to ElevenLabs."""
+        mock_db.fetchrow.return_value = {
+            "elevenlabs_agent_id": "agt_123",
+            "agent_status": "active",
+            "agent_config": json.dumps({}),
+            "settings": json.dumps({
+                "widget_color": "#256af4",
+                "widget_position": "bottom-right",
+                "greeting_message": "Hi!",
+                "language": "en",
+                "enabled": True,
+            }),
+            "shop_domain": "test.myshopify.com",
+        }
+
+        with patch("backend.main.elevenlabs_service") as mock_el:
+            mock_el.update_agent = AsyncMock(return_value={"agent_id": "agt_123"})
+
+            response = client.put(
+                f"/api/agent/config/{STORE_ID}",
+                json={"personality_preset": "professional"},
+            )
+
+        assert response.status_code == 200
+        # Verify ElevenLabs was called with prompt containing store name
+        mock_el.update_agent.assert_called_once()
+        call_kwargs = mock_el.update_agent.call_args
+        conv_config = call_kwargs.kwargs.get("conversation_config") or call_kwargs[1].get("conversation_config", {})
+        assert "prompt" in conv_config.get("agent", {})
+
+    def test_widget_only_no_elevenlabs_call(self, client, mock_db):
+        """PUT with widget_color only does NOT call ElevenLabs."""
+        mock_db.fetchrow.return_value = {
+            "elevenlabs_agent_id": "agt_123",
+            "agent_status": "active",
+            "agent_config": json.dumps({}),
+            "settings": json.dumps({
+                "widget_color": "#256af4",
+                "widget_position": "bottom-right",
+                "greeting_message": "Hi!",
+                "language": "en",
+                "enabled": True,
+            }),
+            "shop_domain": "test.myshopify.com",
+        }
+
+        with patch("backend.main.elevenlabs_service") as mock_el:
+            mock_el.update_agent = AsyncMock(return_value={"agent_id": "agt_123"})
+
+            response = client.put(
+                f"/api/agent/config/{STORE_ID}",
+                json={"widget_color": "#ff0000"},
+            )
+
+        assert response.status_code == 200
+        # ElevenLabs should NOT have been called for widget-only change
+        mock_el.update_agent.assert_not_called()
+        data = response.json()
+        assert data["widget_color"] == "#ff0000"
+
+
+class TestGetVoices:
+    def test_returns_voices_and_languages(self, client, mock_db):
+        """GET /api/voices returns voices and languages in one response."""
+        response = client.get("/api/voices")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "voices" in data
+        assert "languages" in data
+        assert len(data["voices"]) == 10
+        assert len(data["languages"]) >= 28
+        # Also include personality presets
+        assert "personality_presets" in data
+        assert len(data["personality_presets"]) == 6
+
+
+class TestGetEmbedCode:
+    def test_returns_embed_html(self, client, mock_db):
+        """GET /api/agent/embed-code/{store_id} returns embed HTML."""
+        mock_db.fetchrow.return_value = {
+            "id": STORE_ID,
+            "elevenlabs_agent_id": "agt_123",
+        }
+
+        response = client.get(f"/api/agent/embed-code/{STORE_ID}")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "embed_code" in data
+        assert STORE_ID in data["embed_code"]
+        assert data["store_id"] == STORE_ID
