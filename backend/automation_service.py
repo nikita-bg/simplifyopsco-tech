@@ -198,16 +198,18 @@ class AutomationService:
 
         Steps:
         1. Fetch store row from DB (shop_domain, owner_id).
-        2. Fetch default agent template for 'online_store'.
-        3. Create ElevenLabs agent (on failure: set agent_status='failed', return early).
+        2. Fetch default agent template using store_type.
+        3. Create ElevenLabs agent (on failure: set onboarding_step='failed', return early).
         4. Update DB with agent info.
         5. Try KB sync (failure is non-blocking — log warning, continue).
         6. Send welcome email if owner_email available.
+        7. Set onboarding_step='complete'.
 
+        Updates onboarding_step at each stage so the frontend can poll progress.
         The entire method is wrapped in a top-level try/except so it never
         crashes the BackgroundTasks runner.
         """
-        logger.info("Starting onboarding for store %s", store_id)
+        logger.info("Starting onboarding for store %s (type=%s)", store_id, store_type)
 
         try:
             # --- Step 1: Fetch store row ---
@@ -222,9 +224,10 @@ class AutomationService:
             shop_domain: str = store_row["shop_domain"]
             owner_id: Optional[str] = store_row["owner_id"]
 
-            # --- Step 2: Fetch default template ---
+            # --- Step 2: Fetch default template (using store_type) ---
             template_row = await db.fetchrow(
-                "SELECT id, conversation_config FROM agent_templates WHERE type = 'online_store' AND is_default = TRUE LIMIT 1",
+                "SELECT id, conversation_config FROM agent_templates WHERE type = $1 AND is_default = TRUE LIMIT 1",
+                store_type,
             )
             conversation_config: dict = {}
             template_id: Optional[str] = None
@@ -233,6 +236,10 @@ class AutomationService:
                 conversation_config = template_row["conversation_config"] or {}
 
             # --- Step 3: Create ElevenLabs agent ---
+            await db.execute(
+                "UPDATE stores SET onboarding_step = 'creating_agent' WHERE id = $1::uuid",
+                store_id,
+            )
             try:
                 agent_name = f"SimplifyOps Agent — {shop_domain}"
                 agent_response = await elevenlabs_service.create_agent(
@@ -248,8 +255,9 @@ class AutomationService:
                 )
                 # Set recoverable failed state — do NOT send welcome email
                 await db.execute(
-                    "UPDATE stores SET agent_status = 'failed' WHERE id = $1::uuid",
+                    "UPDATE stores SET agent_status = 'failed', onboarding_step = 'failed', onboarding_error = $2 WHERE id = $1::uuid",
                     store_id,
+                    f"Agent creation failed: {exc}",
                 )
                 return
 
@@ -271,6 +279,10 @@ class AutomationService:
             await self.register_webhooks_for_store(store_id, elevenlabs_agent_id)
 
             # --- Step 6: KB sync (non-blocking) ---
+            await db.execute(
+                "UPDATE stores SET onboarding_step = 'syncing_kb' WHERE id = $1::uuid",
+                store_id,
+            )
             try:
                 await kb_service.trigger_kb_rebuild(store_id)
             except Exception as kb_exc:
@@ -281,6 +293,10 @@ class AutomationService:
                 )
 
             # --- Step 7: Send welcome email ---
+            await db.execute(
+                "UPDATE stores SET onboarding_step = 'sending_email' WHERE id = $1::uuid",
+                store_id,
+            )
             resolved_email: Optional[str] = owner_email
 
             if resolved_email is None and owner_id:
@@ -311,6 +327,12 @@ class AutomationService:
                     store_id=store_id,
                 )
 
+            # --- Step 8: Mark complete ---
+            await db.execute(
+                "UPDATE stores SET onboarding_step = 'complete' WHERE id = $1::uuid",
+                store_id,
+            )
+
             logger.info("Onboarding complete for store %s", store_id)
 
         except Exception as exc:
@@ -320,6 +342,14 @@ class AutomationService:
                 store_id,
                 exc,
             )
+            try:
+                await db.execute(
+                    "UPDATE stores SET onboarding_step = 'failed', onboarding_error = $2 WHERE id = $1::uuid",
+                    store_id,
+                    str(exc),
+                )
+            except Exception:
+                pass  # DB may be down — already in error handler
 
 
 # Singleton
