@@ -2299,6 +2299,200 @@ async def widget_embed_js():
 
 
 # ===========================
+# Analytics API
+# ===========================
+
+
+def _parse_period(period: str) -> int:
+    """Map period string to integer days. Default 7."""
+    mapping = {"7d": 7, "30d": 30, "90d": 90}
+    return mapping.get(period, 7)
+
+
+@app.get("/api/analytics/overview")
+async def analytics_overview(request: Request, store_id: str, period: str = "7d"):
+    """
+    Analytics overview: total conversations, avg duration, trend vs previous period.
+    """
+    await require_store_owner(request, store_id)
+
+    days = _parse_period(period)
+
+    if not db.pool:
+        return {
+            "total_conversations": 0,
+            "prev_total_conversations": 0,
+            "avg_duration_seconds": 0,
+            "prev_avg_duration_seconds": 0,
+            "total_duration_seconds": 0,
+            "period": period,
+        }
+
+    try:
+        # Current period
+        total = await db.fetchval(
+            f"SELECT COUNT(*) FROM conversations WHERE store_id = $1::uuid AND started_at >= NOW() - interval '{days} days'",
+            store_id,
+        ) or 0
+
+        avg_dur = await db.fetchval(
+            f"SELECT AVG(duration_seconds) FROM conversations WHERE store_id = $1::uuid AND started_at >= NOW() - interval '{days} days'",
+            store_id,
+        )
+        avg_dur = round(float(avg_dur), 1) if avg_dur else 0
+
+        total_dur = await db.fetchval(
+            f"SELECT COALESCE(SUM(duration_seconds), 0) FROM conversations WHERE store_id = $1::uuid AND started_at >= NOW() - interval '{days} days'",
+            store_id,
+        ) or 0
+
+        # Previous period
+        prev_total = await db.fetchval(
+            f"SELECT COUNT(*) FROM conversations WHERE store_id = $1::uuid AND started_at >= NOW() - interval '{days * 2} days' AND started_at < NOW() - interval '{days} days'",
+            store_id,
+        ) or 0
+
+        prev_avg_dur = await db.fetchval(
+            f"SELECT AVG(duration_seconds) FROM conversations WHERE store_id = $1::uuid AND started_at >= NOW() - interval '{days * 2} days' AND started_at < NOW() - interval '{days} days'",
+            store_id,
+        )
+        prev_avg_dur = round(float(prev_avg_dur), 1) if prev_avg_dur else 0
+
+        return {
+            "total_conversations": int(total),
+            "prev_total_conversations": int(prev_total),
+            "avg_duration_seconds": avg_dur,
+            "prev_avg_duration_seconds": prev_avg_dur,
+            "total_duration_seconds": int(total_dur),
+            "period": period,
+        }
+    except Exception as e:
+        SecurityLogger.log(f"Analytics overview error: {e}", "ERROR")
+        return {
+            "total_conversations": 0,
+            "prev_total_conversations": 0,
+            "avg_duration_seconds": 0,
+            "prev_avg_duration_seconds": 0,
+            "total_duration_seconds": 0,
+            "period": period,
+        }
+
+
+@app.get("/api/analytics/intents")
+async def analytics_intents(request: Request, store_id: str, period: str = "7d"):
+    """
+    Top customer intents with counts, filtered by period.
+    """
+    await require_store_owner(request, store_id)
+
+    days = _parse_period(period)
+
+    if not db.pool:
+        return {"intents": [], "period": period}
+
+    try:
+        rows = await db.fetch(
+            f"""SELECT intent, COUNT(*) as count
+                FROM conversations
+                WHERE store_id = $1::uuid
+                  AND started_at >= NOW() - interval '{days} days'
+                  AND intent IS NOT NULL
+                GROUP BY intent
+                ORDER BY count DESC
+                LIMIT 10""",
+            store_id,
+        )
+
+        intents = [{"intent": r["intent"], "count": int(r["count"])} for r in rows]
+        return {"intents": intents, "period": period}
+    except Exception as e:
+        SecurityLogger.log(f"Analytics intents error: {e}", "ERROR")
+        return {"intents": [], "period": period}
+
+
+@app.get("/api/analytics/peak-hours")
+async def analytics_peak_hours(request: Request, store_id: str, period: str = "7d"):
+    """
+    Hourly distribution of conversations, returns all 24 hours (zero-filled).
+    """
+    await require_store_owner(request, store_id)
+
+    days = _parse_period(period)
+
+    if not db.pool:
+        return {"hours": [{"hour": h, "count": 0} for h in range(24)], "period": period}
+
+    try:
+        rows = await db.fetch(
+            f"""SELECT EXTRACT(HOUR FROM started_at) as hour, COUNT(*) as count
+                FROM conversations
+                WHERE store_id = $1::uuid
+                  AND started_at >= NOW() - interval '{days} days'
+                GROUP BY hour
+                ORDER BY hour""",
+            store_id,
+        )
+
+        hour_map = {int(r["hour"]): int(r["count"]) for r in rows}
+        hours = [{"hour": h, "count": hour_map.get(h, 0)} for h in range(24)]
+
+        return {"hours": hours, "period": period}
+    except Exception as e:
+        SecurityLogger.log(f"Analytics peak hours error: {e}", "ERROR")
+        return {"hours": [{"hour": h, "count": 0} for h in range(24)], "period": period}
+
+
+@app.get("/api/analytics/unanswered")
+async def analytics_unanswered(request: Request, store_id: str, period: str = "7d"):
+    """
+    Aggregated unanswered questions from conversations (negative sentiment or unknown intent).
+    """
+    await require_store_owner(request, store_id)
+
+    days = _parse_period(period)
+
+    if not db.pool:
+        return {"questions": [], "total": 0, "period": period}
+
+    try:
+        rows = await db.fetch(
+            f"""SELECT intent, transcript, started_at, sentiment
+                FROM conversations
+                WHERE store_id = $1::uuid
+                  AND started_at >= NOW() - interval '{days} days'
+                  AND (intent ILIKE '%unanswered%' OR intent ILIKE '%unknown%' OR sentiment = 'Negative')
+                ORDER BY started_at DESC
+                LIMIT 50""",
+            store_id,
+        )
+
+        questions = []
+        for r in rows:
+            # Extract summary from transcript (first 200 chars as text)
+            transcript = r["transcript"]
+            if isinstance(transcript, list):
+                summary = " ".join(
+                    item.get("text", "") if isinstance(item, dict) else str(item)
+                    for item in transcript
+                )[:200]
+            elif isinstance(transcript, str):
+                summary = transcript[:200]
+            else:
+                summary = str(transcript)[:200] if transcript else ""
+
+            questions.append({
+                "intent": r["intent"],
+                "summary": summary,
+                "date": r["started_at"].isoformat() if r["started_at"] else None,
+            })
+
+        return {"questions": questions, "total": len(questions), "period": period}
+    except Exception as e:
+        SecurityLogger.log(f"Analytics unanswered error: {e}", "ERROR")
+        return {"questions": [], "total": 0, "period": period}
+
+
+# ===========================
 # Entry Point
 # ===========================
 
