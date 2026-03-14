@@ -177,12 +177,11 @@ Plans:
   3. The sidebar renders at consistent sizing across all breakpoints (375px, 768px, 1024px, 1440px) with no layout shifts
   4. A "Try it now" live demo agent on the landing page lets visitors experience the product before signing up
   5. All pages are mobile-responsive and tested across 375px, 768px, 1024px, and 1440px viewports
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 09-01: TBD
-- [ ] 09-02: TBD
-- [ ] 09-03: TBD
+- [ ] 09-01-PLAN.md — Design tokens (glass-card, glass-surface), dashboard glassmorphism, sidebar width fix
+- [ ] 09-02-PLAN.md — Landing page glassmorphism redesign and Try-it-now demo agent
 
 ## Progress
 
@@ -201,4 +200,4 @@ Note: Phases 6, 7, 8 can potentially run in parallel after their dependencies ar
 | 6. Agent Configuration | 2/2 | Complete   | 2026-03-14 |
 | 7. Billing | 2/2 | Complete   | 2026-03-14 |
 | 8. Analytics | 2/2 | Complete   | 2026-03-14 |
-| 9. Design Polish | 0/3 | Not started | - |
+| 9. Design Polish | 0/2 | Not started | - |
