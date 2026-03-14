@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 09-01-PLAN.md
-last_updated: "2026-03-14T12:20:46.869Z"
-last_activity: 2026-03-14 — Completed 06-02 (Agent Config Frontend Page)
+stopped_at: Completed 09-02-PLAN.md
+last_updated: "2026-03-14T12:26:00Z"
+last_activity: 2026-03-14 — Completed 09-02 (Landing Page Glassmorphism + Demo Agent)
 progress:
   total_phases: 10
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 21
-  completed_plans: 18
+  completed_plans: 19
 ---
 
 ---
@@ -71,12 +71,12 @@ See: .planning/PROJECT.md (updated 2026-03-13)
 
 ## Current Position
 
-Phase: 6 of 10 (Agent Configuration)
-Plan: 2 of 2 in current phase (06-02 complete)
+Phase: 9 of 10 (Design Polish)
+Plan: 2 of 2 in current phase (09-02 complete)
 Status: Executing
-Last activity: 2026-03-14 — Completed 06-02 (Agent Config Frontend Page)
+Last activity: 2026-03-14 — Completed 09-02 (Landing Page Glassmorphism + Demo Agent)
 
-Progress: [█████████░] 90%
+Progress: [█████████░] 95%
 
 ## Performance Metrics
 
@@ -113,6 +113,7 @@ Progress: [█████████░] 90%
 | Phase 08-analytics P01 | 3 | 2 tasks | 2 files |
 | Phase 08-analytics P02 | 2 | 1 tasks | 1 files |
 | Phase 09-design-polish P01 | 3 | 2 tasks | 8 files |
+| Phase 09-design-polish P02 | 4 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -168,6 +169,9 @@ Recent decisions affecting current work:
 - [Phase 08-analytics]: Query params for store_id on analytics endpoints (uniform with period parameter)
 - [Phase 08-analytics]: Recharts Tooltip labelFormatter uses generic ReactNode type with Number() cast for hour arithmetic
 - [Phase 09-design-polish]: glass-card replaces both bg-raised/border-edge AND bg-[#181b21]/border-white/10 patterns for unified dashboard styling
+- [Phase 09-design-polish]: WebRTC connectionType for ElevenLabs demo agent (lower latency for voice)
+- [Phase 09-design-polish]: DemoAgent returns null when NEXT_PUBLIC_DEMO_AGENT_ID not set (graceful opt-out)
+- [Phase 09-design-polish]: Inline SVG icons in DemoAgent instead of lucide-react dependency
 
 ### Pending Todos
 
@@ -181,6 +185,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T12:20:46.862Z
-Stopped at: Completed 09-01-PLAN.md
+Last session: 2026-03-14T12:26:00Z
+Stopped at: Completed 09-02-PLAN.md
 Resume file: None

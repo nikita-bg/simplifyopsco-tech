@@ -19,7 +19,7 @@ SimplifyOps transforms from a single-agent prototype into a multi-tenant product
 - [x] **Phase 6: Agent Configuration** - Merchant self-service agent customization (voice, personality, widget appearance, preview) (completed 2026-03-14)
 - [x] **Phase 7: Billing** - Stripe subscription tiers with usage tracking, enforcement, trial flow, and upgrade prompts (completed 2026-03-14)
 - [x] **Phase 8: Analytics** - Conversation analytics dashboard with trends, intents, transcripts, and unanswered questions (completed 2026-03-14)
-- [ ] **Phase 9: Design Polish** - Glassmorphism redesign for landing page and dashboard, responsive fixes, live demo
+- [x] **Phase 9: Design Polish** - Glassmorphism redesign for landing page and dashboard, responsive fixes, live demo (completed 2026-03-14)
 
 ## Phase Details
 
@@ -180,8 +180,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 09-01-PLAN.md — Design tokens (glass-card, glass-surface), dashboard glassmorphism, sidebar width fix
-- [ ] 09-02-PLAN.md — Landing page glassmorphism redesign and Try-it-now demo agent
+- [x] 09-01-PLAN.md — Design tokens (glass-card, glass-surface), dashboard glassmorphism, sidebar width fix
+- [x] 09-02-PLAN.md — Landing page glassmorphism redesign and Try-it-now demo agent
 
 ## Progress
 
@@ -200,4 +200,4 @@ Note: Phases 6, 7, 8 can potentially run in parallel after their dependencies ar
 | 6. Agent Configuration | 2/2 | Complete   | 2026-03-14 |
 | 7. Billing | 2/2 | Complete   | 2026-03-14 |
 | 8. Analytics | 2/2 | Complete   | 2026-03-14 |
-| 9. Design Polish | 1/2 | In Progress|  |
+| 9. Design Polish | 2/2 | Complete   | 2026-03-14 |
