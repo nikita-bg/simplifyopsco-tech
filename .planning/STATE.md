@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-03-14T10:10:09.021Z"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-14T10:27:42.504Z"
 last_activity: 2026-03-14 — Completed 05-01 (Backend Onboarding Status)
 progress:
   total_phases: 10
   completed_phases: 5
-  total_plans: 13
-  completed_plans: 11
+  total_plans: 15
+  completed_plans: 12
   percent: 85
 ---
 
@@ -91,6 +91,7 @@ Progress: [████████░░] 80%
 | Phase 04-automation P02 | 4 | 2 tasks | 4 files |
 | Phase 05-onboarding P01 | 4 | 2 tasks | 3 files |
 | Phase 05-onboarding P02 | 5 | 2 tasks | 2 files |
+| Phase 06-agent-configuration P01 | 320 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,10 @@ Recent decisions affecting current work:
 - [Phase 05-onboarding]: completed_steps derived from sequence position rather than stored separately
 - [Phase 05-onboarding]: Unified view state (form/progress/shopify) replaces choose/shopify/website mode
 - [Phase 05-onboarding]: OnboardingProgress polls every 2s with 1.5s redirect delay on completion
+- [Phase 06-agent-configuration]: GET /api/voices returns voices, languages, AND personality_presets in single response
+- [Phase 06-agent-configuration]: Widget-only changes (color, position) skip ElevenLabs API call
+- [Phase 06-agent-configuration]: Personality preset system_prompt uses {store_name} placeholder replaced with shop_domain at PUT time
+- [Phase 06-agent-configuration]: Enable/disable toggle propagates to both agent_status column and settings.enabled JSONB
 
 ### Pending Todos
 
@@ -149,6 +154,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T10:02:33.919Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-03-14T10:27:42.497Z
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None

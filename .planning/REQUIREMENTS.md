@@ -53,13 +53,13 @@
 
 ### Agent Configuration (CFG)
 
-- [ ] **CFG-01**: Voice selection from curated shortlist (8-12 voices with previews)
-- [ ] **CFG-02**: Greeting message customization (text field + preview)
-- [ ] **CFG-03**: Widget color picker + position selector (4 corners)
-- [ ] **CFG-04**: Enable/disable toggle (propagates to embed.js)
-- [ ] **CFG-05**: Language selection (28+ ElevenLabs-supported languages)
-- [ ] **CFG-06**: Embed code auto-generated and copy-paste ready
-- [ ] **CFG-07**: Agent personality presets (5-8 presets: Friendly, Professional, Energetic, etc.)
+- [x] **CFG-01**: Voice selection from curated shortlist (8-12 voices with previews)
+- [x] **CFG-02**: Greeting message customization (text field + preview)
+- [x] **CFG-03**: Widget color picker + position selector (4 corners)
+- [x] **CFG-04**: Enable/disable toggle (propagates to embed.js)
+- [x] **CFG-05**: Language selection (28+ ElevenLabs-supported languages)
+- [x] **CFG-06**: Embed code auto-generated and copy-paste ready
+- [x] **CFG-07**: Agent personality presets (5-8 presets: Friendly, Professional, Energetic, etc.)
 - [ ] **CFG-08**: Live preview — merchant can test their agent in-dashboard before going live
 
 ### Billing (BIL)
@@ -192,13 +192,13 @@
 | ONB-05 | Phase 5: Onboarding | Complete |
 | ONB-06 | Phase 5: Onboarding | Complete |
 | ONB-07 | Phase 5: Onboarding | Complete |
-| CFG-01 | Phase 6: Agent Configuration | Pending |
-| CFG-02 | Phase 6: Agent Configuration | Pending |
-| CFG-03 | Phase 6: Agent Configuration | Pending |
-| CFG-04 | Phase 6: Agent Configuration | Pending |
-| CFG-05 | Phase 6: Agent Configuration | Pending |
-| CFG-06 | Phase 6: Agent Configuration | Pending |
-| CFG-07 | Phase 6: Agent Configuration | Pending |
+| CFG-01 | Phase 6: Agent Configuration | Complete |
+| CFG-02 | Phase 6: Agent Configuration | Complete |
+| CFG-03 | Phase 6: Agent Configuration | Complete |
+| CFG-04 | Phase 6: Agent Configuration | Complete |
+| CFG-05 | Phase 6: Agent Configuration | Complete |
+| CFG-06 | Phase 6: Agent Configuration | Complete |
+| CFG-07 | Phase 6: Agent Configuration | Complete |
 | CFG-08 | Phase 6: Agent Configuration | Pending |
 | BIL-01 | Phase 7: Billing | Pending |
 | BIL-02 | Phase 7: Billing | Pending |
