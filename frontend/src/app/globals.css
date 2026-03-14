@@ -104,6 +104,12 @@
   background-clip: text;
 }
 
+/* Floating orb animation for landing page */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-30px); }
+}
+
 /* Neon Auth dark theme overrides — targets data-slot attributes from shadcn/ui */
 [data-better-auth-ui] [data-slot="card"] {
   background-color: var(--color-panel) !important;

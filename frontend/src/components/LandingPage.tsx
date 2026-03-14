@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { DemoAgent } from "./DemoAgent";
 
 export function LandingPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -81,7 +82,15 @@ export function LandingPage() {
             <main className="flex-grow">
                 {/* Hero Section */}
                 <section className="relative overflow-hidden pt-20 pb-24 lg:pt-32 lg:pb-40">
+                    {/* Gradient glow background */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1000px] h-[500px] bg-primary/20 blur-[120px] rounded-full pointer-events-none opacity-40" />
+                    {/* Secondary purple glow */}
+                    <div className="absolute top-20 right-1/4 w-[600px] h-[400px] bg-purple-500/15 blur-[120px] rounded-full pointer-events-none opacity-30" />
+
+                    {/* Animated gradient orbs */}
+                    <div className="absolute top-32 left-[10%] w-48 h-48 bg-primary/10 rounded-full blur-[80px] pointer-events-none animate-[float_8s_ease-in-out_infinite]" />
+                    <div className="absolute bottom-20 right-[15%] w-64 h-64 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none animate-[float_10s_ease-in-out_infinite_reverse]" />
+                    <div className="absolute top-1/2 left-1/3 w-32 h-32 bg-indigo-400/10 rounded-full blur-[60px] pointer-events-none animate-[float_12s_ease-in-out_infinite_2s]" />
 
                     <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-center">
@@ -95,11 +104,11 @@ export function LandingPage() {
                                     <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
                                     14-Day Free Trial &mdash; No credit card required
                                 </div>
-                                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-heading mb-6 leading-[1.1]">
+                                <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-heading mb-6 leading-[1.1]">
                                     Your Website,<br />
                                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-400 glow-text">Now With a Voice.</span>
                                 </h1>
-                                <p className="text-lg sm:text-xl text-muted mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                                <p className="text-base sm:text-lg lg:text-xl text-muted mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
                                     Transform your site into an interactive experience with AI-powered voice assistant. Engage visitors with natural conversation, not just clicks.
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -126,7 +135,7 @@ export function LandingPage() {
                                 transition={{ duration: 0.8, delay: 0.2 }}
                                 className="flex-1 w-full max-w-[600px] lg:max-w-none"
                             >
-                                <div className="relative rounded-2xl border border-edge bg-raised/50 shadow-2xl overflow-hidden aspect-[4/3] group">
+                                <div className="relative glass-card shadow-2xl overflow-hidden aspect-[4/3] group">
                                     <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent opacity-50" />
                                     <div className="absolute inset-4 rounded-xl border border-white/5 bg-canvas overflow-hidden flex flex-col">
                                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
@@ -159,21 +168,21 @@ export function LandingPage() {
                 <section id="features" className="py-24 bg-canvas">
                     <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center max-w-3xl mx-auto mb-16">
-                            <h2 className="text-3xl sm:text-4xl font-bold text-heading mb-4">Intelligent Capabilities</h2>
-                            <p className="text-lg text-muted">Powering the next generation of conversational web interfaces with state-of-the-art neural networks.</p>
+                            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-heading mb-4">Intelligent Capabilities</h2>
+                            <p className="text-base sm:text-lg text-muted">Powering the next generation of conversational web interfaces with state-of-the-art neural networks.</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[300px]">
                             {/* Feature 1: Web Automation */}
-                            <div className="md:col-span-2 relative group overflow-hidden rounded-2xl border border-white/5 bg-raised p-8 hover:border-primary/50 transition-colors duration-300">
+                            <div className="md:col-span-2 relative group overflow-hidden glass-card p-8 hover:border-primary/30 hover:shadow-[0_0_30px_-10px_oklch(52%_0.22_260/0.2)] transition-all duration-300">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 transition-opacity group-hover:opacity-100 opacity-50" />
                                 <div className="relative z-10 h-full flex flex-col justify-between">
                                     <div>
                                         <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-6">
                                             <span className="material-symbols-outlined text-3xl">smart_toy</span>
                                         </div>
-                                        <h3 className="text-2xl font-bold text-heading mb-2">Web Automation</h3>
-                                        <p className="text-muted max-w-md">Navigate and control complex web flows purely through voice commands. Our AI understands DOM structures and interacts like a human user.</p>
+                                        <h3 className="text-xl sm:text-2xl font-bold text-heading mb-2">Web Automation</h3>
+                                        <p className="text-muted text-sm sm:text-base max-w-md">Navigate and control complex web flows purely through voice commands. Our AI understands DOM structures and interacts like a human user.</p>
                                     </div>
                                     <div className="mt-8 relative h-32 w-full overflow-hidden rounded-lg bg-black/20 border border-white/5">
                                         <div className="absolute inset-0 flex items-center justify-center text-muted text-xs font-mono">
@@ -184,13 +193,13 @@ export function LandingPage() {
                             </div>
 
                             {/* Feature 2: Voice AI */}
-                            <div className="relative group overflow-hidden rounded-2xl border border-white/5 bg-raised p-8 hover:border-primary/50 transition-colors duration-300">
+                            <div className="relative group overflow-hidden glass-card p-8 hover:border-primary/30 hover:shadow-[0_0_30px_-10px_oklch(52%_0.22_260/0.2)] transition-all duration-300">
                                 <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                 <div className="relative z-10 h-full flex flex-col">
                                     <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-6">
                                         <span className="material-symbols-outlined text-3xl">graphic_eq</span>
                                     </div>
-                                    <h3 className="text-2xl font-bold text-heading mb-2">Voice AI</h3>
+                                    <h3 className="text-xl sm:text-2xl font-bold text-heading mb-2">Voice AI</h3>
                                     <p className="text-muted text-sm mb-6">Natural language processing that understands context, intent, and nuance in 40+ languages.</p>
                                     <div className="mt-auto flex justify-center gap-1 opacity-50">
                                         <div className="w-1.5 h-6 bg-primary rounded-full" />
@@ -203,12 +212,12 @@ export function LandingPage() {
                             </div>
 
                             {/* Feature 3: Analytics */}
-                            <div className="relative group overflow-hidden rounded-2xl border border-white/5 bg-raised p-8 hover:border-primary/50 transition-colors duration-300">
+                            <div className="relative group overflow-hidden glass-card p-8 hover:border-primary/30 hover:shadow-[0_0_30px_-10px_oklch(52%_0.22_260/0.2)] transition-all duration-300">
                                 <div className="relative z-10 h-full flex flex-col">
                                     <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-6">
                                         <span className="material-symbols-outlined text-3xl">monitoring</span>
                                     </div>
-                                    <h3 className="text-2xl font-bold text-heading mb-2">Real-time Analytics</h3>
+                                    <h3 className="text-xl sm:text-2xl font-bold text-heading mb-2">Real-time Analytics</h3>
                                     <p className="text-muted text-sm">Monitor user interactions and voice engagement metrics instantly with our live dashboard.</p>
                                     <div className="mt-auto pt-4">
                                         <div className="flex items-end gap-1 h-16">
@@ -223,13 +232,13 @@ export function LandingPage() {
                             </div>
 
                             {/* Feature 4: Integration */}
-                            <div className="md:col-span-2 relative group overflow-hidden rounded-2xl border border-white/5 bg-raised p-8 hover:border-primary/50 transition-colors duration-300 flex flex-col md:flex-row items-center gap-8">
+                            <div className="md:col-span-2 relative group overflow-hidden glass-card p-8 hover:border-primary/30 hover:shadow-[0_0_30px_-10px_oklch(52%_0.22_260/0.2)] transition-all duration-300 flex flex-col md:flex-row items-center gap-8">
                                 <div className="flex-1">
                                     <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-6">
                                         <span className="material-symbols-outlined text-3xl">integration_instructions</span>
                                     </div>
-                                    <h3 className="text-2xl font-bold text-heading mb-2">Seamless Integration</h3>
-                                    <p className="text-muted">Add SimplifyOps to any website in minutes. Just copy, paste the embed code, and your AI voice assistant is live.</p>
+                                    <h3 className="text-xl sm:text-2xl font-bold text-heading mb-2">Seamless Integration</h3>
+                                    <p className="text-muted text-sm sm:text-base">Add SimplifyOps to any website in minutes. Just copy, paste the embed code, and your AI voice assistant is live.</p>
                                 </div>
                                 <div className="flex-1 w-full bg-overlay rounded-lg p-4 font-mono text-xs text-slate-300 border border-edge shadow-inner">
                                     <p><span className="text-faint">&lt;!-- SimplifyOps Widget --&gt;</span></p>
@@ -250,13 +259,13 @@ export function LandingPage() {
 
                     <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                         <div className="text-center max-w-3xl mx-auto mb-16">
-                            <h2 className="text-3xl sm:text-4xl font-bold text-heading mb-4">Simple, Transparent Pricing</h2>
-                            <p className="text-lg text-muted">Choose the plan that fits your business needs. All plans include a 14-day free trial.</p>
+                            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-heading mb-4">Simple, Transparent Pricing</h2>
+                            <p className="text-base sm:text-lg text-muted">Choose the plan that fits your business needs. All plans include a 14-day free trial.</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
                             {/* Starter */}
-                            <div className="rounded-2xl border border-edge bg-raised p-8 flex flex-col gap-6 hover:shadow-xl transition-all duration-300">
+                            <div className="glass-card p-8 flex flex-col gap-6 hover:border-primary/30 hover:shadow-[0_0_30px_-10px_oklch(52%_0.22_260/0.2)] transition-all duration-300">
                                 <div>
                                     <h3 className="text-lg font-bold text-heading mb-2">Starter</h3>
                                     <div className="flex items-baseline gap-1">
@@ -277,7 +286,7 @@ export function LandingPage() {
                             </div>
 
                             {/* Growth (Highlighted) */}
-                            <div className="rounded-2xl border-2 border-primary bg-raised p-8 flex flex-col gap-6 relative shadow-[0_0_40px_-10px_oklch(52%_0.22_260/0.3)] transform md:-translate-y-4">
+                            <div className="glass-card !border-2 !border-primary p-8 flex flex-col gap-6 relative shadow-[0_0_50px_-10px_oklch(52%_0.22_260/0.3)] transform md:-translate-y-4">
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                                     Most Popular
                                 </div>
@@ -302,7 +311,7 @@ export function LandingPage() {
                             </div>
 
                             {/* Scale */}
-                            <div className="rounded-2xl border border-edge bg-raised p-8 flex flex-col gap-6 hover:shadow-xl transition-all duration-300">
+                            <div className="glass-card p-8 flex flex-col gap-6 hover:border-primary/30 hover:shadow-[0_0_30px_-10px_oklch(52%_0.22_260/0.2)] transition-all duration-300">
                                 <div>
                                     <h3 className="text-lg font-bold text-heading mb-2">Scale</h3>
                                     <div className="flex items-baseline gap-1">
@@ -329,12 +338,12 @@ export function LandingPage() {
                 {/* CTA Section */}
                 <section className="py-20 bg-canvas">
                     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="rounded-3xl bg-gradient-to-r from-raised to-overlay border border-edge p-10 md:p-16 text-center relative overflow-hidden">
+                        <div className="glass-card p-10 md:p-16 text-center relative overflow-hidden">
                             <div className="absolute top-0 left-0 w-64 h-64 bg-primary/20 blur-3xl rounded-full -translate-x-1/2 -translate-y-1/2" />
                             <div className="absolute bottom-0 right-0 w-64 h-64 bg-purple-500/20 blur-3xl rounded-full translate-x-1/2 translate-y-1/2" />
                             <div className="relative z-10">
-                                <h2 className="text-3xl md:text-5xl font-bold text-heading mb-6">Ready to give your site a voice?</h2>
-                                <p className="text-body text-lg mb-10 max-w-2xl mx-auto">Join innovative companies using SimplifyOps to transform their customer engagement.</p>
+                                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-heading mb-6">Ready to give your site a voice?</h2>
+                                <p className="text-body text-base sm:text-lg mb-10 max-w-2xl mx-auto">Join innovative companies using SimplifyOps to transform their customer engagement.</p>
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                                     <Link
                                         href="/auth/sign-up"
@@ -390,6 +399,8 @@ export function LandingPage() {
                     </div>
                 </div>
             </footer>
+
+            <DemoAgent />
         </>
     );
 }
