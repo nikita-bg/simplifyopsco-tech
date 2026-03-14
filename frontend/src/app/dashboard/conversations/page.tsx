@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, MessageSquare, Clock, TrendingUp, User, ShoppingCart } from "lucide-react";
+import { MessageSquare, Clock, TrendingUp, User, ShoppingCart } from "lucide-react";
 import { useStore } from "@/lib/store-context";
 import { apiFetch } from "@/lib/api";
 
@@ -76,8 +76,36 @@ export default function ConversationsPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-96">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="max-w-[1200px] animate-pulse">
+                <div className="mb-6">
+                    <div className="h-7 w-40 bg-white/5 rounded-lg mb-2" />
+                    <div className="h-4 w-64 bg-white/5 rounded-md" />
+                </div>
+                <div className="grid lg:grid-cols-3 gap-5">
+                    <div className="lg:col-span-1 bg-panel rounded-xl border border-edge overflow-hidden">
+                        <div className="p-4 border-b border-edge">
+                            <div className="h-4 w-36 bg-white/5 rounded" />
+                        </div>
+                        <div className="p-3 space-y-2">
+                            {[...Array(5)].map((_, i) => (
+                                <div key={i} className="p-3 rounded-lg bg-white/[0.02]">
+                                    <div className="flex justify-between mb-2">
+                                        <div className="h-3.5 w-28 bg-white/5 rounded" />
+                                        <div className="h-4 w-16 bg-white/5 rounded" />
+                                    </div>
+                                    <div className="h-3 w-24 bg-white/5 rounded" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="lg:col-span-2 bg-panel rounded-xl border border-edge flex items-center justify-center h-96">
+                        <div className="text-center">
+                            <div className="w-16 h-16 bg-white/5 rounded-full mx-auto mb-4" />
+                            <div className="h-4 w-40 bg-white/5 rounded mx-auto mb-2" />
+                            <div className="h-3 w-56 bg-white/5 rounded mx-auto" />
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }
