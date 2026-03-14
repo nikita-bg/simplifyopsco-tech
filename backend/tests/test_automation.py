@@ -436,3 +436,298 @@ class TestAutomationLifecycle:
 
         # Should not raise
         await service.stop()
+
+
+# ===========================================================================
+# TestScheduledSync
+# ===========================================================================
+
+class TestScheduledSync:
+    """Tests for AutomationService.daily_kb_resync scheduled job."""
+
+    @pytest.mark.asyncio
+    async def test_daily_kb_resync_syncs_all_active_stores(self):
+        """daily_kb_resync calls trigger_kb_rebuild for each active store."""
+        from backend.automation_service import AutomationService
+
+        service = AutomationService()
+
+        store1 = MagicMock()
+        store1.__getitem__ = lambda self, key: {"id": "store-aaa"}[key]
+        store2 = MagicMock()
+        store2.__getitem__ = lambda self, key: {"id": "store-bbb"}[key]
+
+        with patch("backend.automation_service.db") as mock_db, \
+             patch("backend.automation_service.kb_service") as mock_kb:
+
+            mock_db.fetch = AsyncMock(return_value=[store1, store2])
+            mock_kb.trigger_kb_rebuild = AsyncMock(return_value={"status": "ok"})
+
+            await service.daily_kb_resync()
+
+        assert mock_kb.trigger_kb_rebuild.call_count == 2
+        mock_kb.trigger_kb_rebuild.assert_any_call("store-aaa")
+        mock_kb.trigger_kb_rebuild.assert_any_call("store-bbb")
+
+    @pytest.mark.asyncio
+    async def test_daily_kb_resync_isolates_individual_failures(self):
+        """One store's sync failure does not prevent other stores from syncing."""
+        from backend.automation_service import AutomationService
+
+        service = AutomationService()
+
+        store1 = MagicMock()
+        store1.__getitem__ = lambda self, key: {"id": "store-ok"}[key]
+        store2 = MagicMock()
+        store2.__getitem__ = lambda self, key: {"id": "store-fail"}[key]
+
+        with patch("backend.automation_service.db") as mock_db, \
+             patch("backend.automation_service.kb_service") as mock_kb:
+
+            mock_db.fetch = AsyncMock(return_value=[store1, store2])
+            # First store succeeds, second raises
+            mock_kb.trigger_kb_rebuild = AsyncMock(
+                side_effect=[{"status": "ok"}, Exception("KB API timeout")]
+            )
+
+            # Must NOT raise
+            await service.daily_kb_resync()
+
+        # Both stores were attempted
+        assert mock_kb.trigger_kb_rebuild.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_daily_kb_resync_no_active_stores(self):
+        """daily_kb_resync completes gracefully when no active stores found."""
+        from backend.automation_service import AutomationService
+
+        service = AutomationService()
+
+        with patch("backend.automation_service.db") as mock_db, \
+             patch("backend.automation_service.kb_service") as mock_kb:
+
+            mock_db.fetch = AsyncMock(return_value=[])
+            mock_kb.trigger_kb_rebuild = AsyncMock()
+
+            await service.daily_kb_resync()
+
+        mock_kb.trigger_kb_rebuild.assert_not_called()
+
+
+# ===========================================================================
+# TestUsageAlerts
+# ===========================================================================
+
+class TestUsageAlerts:
+    """Tests for AutomationService.daily_usage_check scheduled job."""
+
+    @pytest.mark.asyncio
+    async def test_daily_usage_check_sends_alert_at_80_percent(self):
+        """daily_usage_check sends alert when minutes_used >= 80% of tier limit."""
+        from backend.automation_service import AutomationService
+
+        service = AutomationService()
+
+        # starter tier: limit=100, used=85 => 85% => alert
+        store_row = MagicMock()
+        store_row.__getitem__ = lambda self, key: {
+            "id": "store-alert",
+            "shop_domain": "alertstore.com",
+            "minutes_used": 85,
+            "subscription_tier": "starter",
+            "owner_id": "owner-alert",
+        }[key]
+
+        email_row = MagicMock()
+        email_row.__getitem__ = lambda self, key: {"email": "owner@alertstore.com"}[key]
+
+        with patch("backend.automation_service.db") as mock_db, \
+             patch("backend.automation_service.email_service") as mock_email:
+
+            mock_db.fetch = AsyncMock(return_value=[store_row])
+            mock_db.fetchrow = AsyncMock(return_value=email_row)
+            mock_email.send_usage_alert = AsyncMock(return_value={"sent": True})
+
+            await service.daily_usage_check()
+
+        mock_email.send_usage_alert.assert_called_once_with(
+            to_email="owner@alertstore.com",
+            store_domain="alertstore.com",
+            minutes_used=85,
+            minutes_limit=100,
+        )
+
+    @pytest.mark.asyncio
+    async def test_daily_usage_check_no_alert_below_threshold(self):
+        """daily_usage_check does NOT send alert when usage < 80% of tier limit."""
+        from backend.automation_service import AutomationService
+
+        service = AutomationService()
+
+        # growth tier: limit=400, used=200 => 50% => no alert
+        store_row = MagicMock()
+        store_row.__getitem__ = lambda self, key: {
+            "id": "store-safe",
+            "shop_domain": "safestore.com",
+            "minutes_used": 200,
+            "subscription_tier": "growth",
+            "owner_id": "owner-safe",
+        }[key]
+
+        with patch("backend.automation_service.db") as mock_db, \
+             patch("backend.automation_service.email_service") as mock_email:
+
+            mock_db.fetch = AsyncMock(return_value=[store_row])
+            mock_email.send_usage_alert = AsyncMock()
+
+            await service.daily_usage_check()
+
+        mock_email.send_usage_alert.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_daily_usage_check_resolves_owner_email_from_db(self):
+        """daily_usage_check looks up owner email from neon_auth.users_sync."""
+        from backend.automation_service import AutomationService
+
+        service = AutomationService()
+
+        # trial tier: limit=30, used=25 => 83% => alert
+        store_row = MagicMock()
+        store_row.__getitem__ = lambda self, key: {
+            "id": "store-trial",
+            "shop_domain": "trial.com",
+            "minutes_used": 25,
+            "subscription_tier": "trial",
+            "owner_id": "owner-trial-uuid",
+        }[key]
+
+        email_row = MagicMock()
+        email_row.__getitem__ = lambda self, key: {"email": "trial@trial.com"}[key]
+
+        with patch("backend.automation_service.db") as mock_db, \
+             patch("backend.automation_service.email_service") as mock_email:
+
+            mock_db.fetch = AsyncMock(return_value=[store_row])
+            mock_db.fetchrow = AsyncMock(return_value=email_row)
+            mock_email.send_usage_alert = AsyncMock(return_value={"sent": True})
+
+            await service.daily_usage_check()
+
+        # Verify email lookup was performed with owner_id
+        mock_db.fetchrow.assert_called_once()
+        call_args = mock_db.fetchrow.call_args
+        assert "owner-trial-uuid" in str(call_args)
+
+        mock_email.send_usage_alert.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_daily_usage_check_skips_store_with_no_owner_email(self):
+        """daily_usage_check skips alert (no crash) when owner email not found."""
+        from backend.automation_service import AutomationService
+
+        service = AutomationService()
+
+        store_row = MagicMock()
+        store_row.__getitem__ = lambda self, key: {
+            "id": "store-noemail",
+            "shop_domain": "noemail.com",
+            "minutes_used": 90,
+            "subscription_tier": "starter",
+            "owner_id": "owner-noemail",
+        }[key]
+
+        with patch("backend.automation_service.db") as mock_db, \
+             patch("backend.automation_service.email_service") as mock_email:
+
+            mock_db.fetch = AsyncMock(return_value=[store_row])
+            mock_db.fetchrow = AsyncMock(return_value=None)  # No email found
+            mock_email.send_usage_alert = AsyncMock()
+
+            # Must NOT raise
+            await service.daily_usage_check()
+
+        mock_email.send_usage_alert.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_daily_usage_check_tier_limits_mapping(self):
+        """daily_usage_check uses correct tier limits: trial=30, starter=100, growth=400, scale=2000."""
+        from backend.automation_service import AutomationService
+
+        service = AutomationService()
+
+        # scale tier: limit=2000, used=1600 => 80% => alert exactly at threshold
+        store_row = MagicMock()
+        store_row.__getitem__ = lambda self, key: {
+            "id": "store-scale",
+            "shop_domain": "scale.com",
+            "minutes_used": 1600,
+            "subscription_tier": "scale",
+            "owner_id": "owner-scale",
+        }[key]
+
+        email_row = MagicMock()
+        email_row.__getitem__ = lambda self, key: {"email": "scale@scale.com"}[key]
+
+        with patch("backend.automation_service.db") as mock_db, \
+             patch("backend.automation_service.email_service") as mock_email:
+
+            mock_db.fetch = AsyncMock(return_value=[store_row])
+            mock_db.fetchrow = AsyncMock(return_value=email_row)
+            mock_email.send_usage_alert = AsyncMock(return_value={"sent": True})
+
+            await service.daily_usage_check()
+
+        mock_email.send_usage_alert.assert_called_once_with(
+            to_email="scale@scale.com",
+            store_domain="scale.com",
+            minutes_used=1600,
+            minutes_limit=2000,
+        )
+
+
+# ===========================================================================
+# TestSchedulerJobs
+# ===========================================================================
+
+class TestSchedulerJobs:
+    """Tests that scheduled jobs are registered with APScheduler on start()."""
+
+    @pytest.mark.asyncio
+    async def test_start_registers_daily_kb_resync_job(self):
+        """start() registers daily_kb_resync job with APScheduler."""
+        from backend.automation_service import AutomationService
+
+        service = AutomationService()
+        mock_scheduler = MagicMock()
+        mock_scheduler.start = MagicMock()
+        mock_scheduler.running = False
+        mock_scheduler.add_job = MagicMock()
+        service.scheduler = mock_scheduler
+
+        await service.start()
+
+        job_ids = [call[1].get("id") or (call[0][2] if len(call[0]) > 2 else None)
+                   for call in mock_scheduler.add_job.call_args_list]
+        all_kwargs = [str(c) for c in mock_scheduler.add_job.call_args_list]
+        assert any("daily_kb_resync" in s for s in all_kwargs), (
+            "Expected daily_kb_resync job to be registered"
+        )
+
+    @pytest.mark.asyncio
+    async def test_start_registers_daily_usage_check_job(self):
+        """start() registers daily_usage_check job with APScheduler."""
+        from backend.automation_service import AutomationService
+
+        service = AutomationService()
+        mock_scheduler = MagicMock()
+        mock_scheduler.start = MagicMock()
+        mock_scheduler.running = False
+        mock_scheduler.add_job = MagicMock()
+        service.scheduler = mock_scheduler
+
+        await service.start()
+
+        all_kwargs = [str(c) for c in mock_scheduler.add_job.call_args_list]
+        assert any("daily_usage_check" in s for s in all_kwargs), (
+            "Expected daily_usage_check job to be registered"
+        )
