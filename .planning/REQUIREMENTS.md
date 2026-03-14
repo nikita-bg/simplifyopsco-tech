@@ -95,10 +95,10 @@
 ### Design (DSN)
 
 - [ ] **DSN-01**: Landing page glassmorphism + premium minimal redesign
-- [ ] **DSN-02**: Dashboard glassmorphism cards with consistent design tokens
-- [ ] **DSN-03**: Sidebar consistent sizing across all breakpoints
+- [x] **DSN-02**: Dashboard glassmorphism cards with consistent design tokens
+- [x] **DSN-03**: Sidebar consistent sizing across all breakpoints
 - [ ] **DSN-04**: "Try it now" live demo agent on landing page
-- [ ] **DSN-05**: Mobile-responsive across 375px, 768px, 1024px, 1440px
+- [x] **DSN-05**: Mobile-responsive across 375px, 768px, 1024px, 1440px
 
 ### Database (DB)
 
@@ -216,10 +216,10 @@
 | ANL-05 | Phase 8: Analytics | Complete |
 | ANL-06 | Phase 8: Analytics | Complete |
 | DSN-01 | Phase 9: Design Polish | Pending |
-| DSN-02 | Phase 9: Design Polish | Pending |
-| DSN-03 | Phase 9: Design Polish | Pending |
+| DSN-02 | Phase 9: Design Polish | Complete |
+| DSN-03 | Phase 9: Design Polish | Complete |
 | DSN-04 | Phase 9: Design Polish | Pending |
-| DSN-05 | Phase 9: Design Polish | Pending |
+| DSN-05 | Phase 9: Design Polish | Complete |
 
 **Coverage:**
 - v1 requirements: 69 total (SEC: 4, AGT: 6, KB: 7, WDG: 7, ONB: 7, CFG: 8, BIL: 9, AUT: 6, ANL: 6, DSN: 5, DB: 4)
