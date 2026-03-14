@@ -127,16 +127,18 @@ class TestGetSubscription:
             "subscription_tier": "starter",
             "stripe_customer_id": None,
             "stripe_subscription_id": None,
+            "minutes_used": 67,
+            "trial_ends_at": None,
         }
-        mock_db.fetchval.return_value = 5  # sessions used
 
         resp = client.get("/api/stores/store-123/subscription")
         assert resp.status_code == 200
         data = resp.json()
         assert data["tier"] == "starter"
         assert data["status"] == "active"
-        assert data["sessions_used"] == 5
-        assert data["sessions_limit"] == 100  # starter limit
+        assert data["minutes_used"] == 67
+        assert data["minutes_limit"] == 100  # starter limit
+        assert data["is_trial_expired"] is False
 
     def test_store_not_found_returns_404(self, client, mock_db):
         mock_db.fetchrow.return_value = None
@@ -151,7 +153,7 @@ class TestGetSubscription:
         assert resp.status_code == 200
         data = resp.json()
         assert data["tier"] == "trial"
-        assert data["sessions_limit"] == 30
+        assert data["minutes_limit"] == 30
 
 
 # ---------------------------------------------------------------------------
