@@ -57,6 +57,10 @@ class Settings(BaseSettings):
     STRIPE_PRO_PRICE_ID: Optional[str] = None  # Used for Growth plan
     STRIPE_SCALE_PRICE_ID: Optional[str] = None
 
+    # Resend Email Service
+    RESEND_API_KEY: Optional[str] = None
+    RESEND_FROM_EMAIL: str = "onboarding@simplifyops.co"
+
     # Supabase Auth
     SUPABASE_URL: Optional[str] = None
     SUPABASE_ANON_KEY: Optional[str] = None
