@@ -192,6 +192,7 @@ class AutomationService:
         self,
         store_id: str,
         owner_email: Optional[str] = None,
+        store_type: str = "online_store",
     ) -> None:
         """Orchestrate the full onboarding workflow for a new store.
 

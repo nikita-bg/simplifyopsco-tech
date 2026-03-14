@@ -1705,10 +1705,14 @@ async def get_current_user(request: Request):
         return {"user_id": user_id, "stores": [], "has_store": False}
 
 
+VALID_STORE_TYPES = {"online_store", "service_business", "lead_gen"}
+
+
 @app.post("/api/stores/create")
 async def create_store(request: Request, background_tasks: BackgroundTasks):
     """
     Create a store for non-Shopify users (manual website entry).
+    Accepts optional store_name and store_type fields.
     Triggers onboarding workflow (agent creation, KB sync, welcome email) in background.
     """
     user_id = await get_authenticated_user(request)
@@ -1720,16 +1724,26 @@ async def create_store(request: Request, background_tasks: BackgroundTasks):
     if not site_url:
         raise HTTPException(400, "site_url is required")
 
+    # Extract store_name (optional, max 100 chars)
+    store_name = data.get("store_name")
+    if store_name is not None:
+        store_name = sanitize_input(str(store_name).strip()[:100])
+
+    # Extract store_type (optional, defaults to 'online_store')
+    store_type = data.get("store_type", "online_store")
+    if store_type not in VALID_STORE_TYPES:
+        raise HTTPException(400, f"Invalid store_type. Must be one of: {', '.join(sorted(VALID_STORE_TYPES))}")
+
     store_id = str(uuid.uuid4())
 
     if db.pool:
         try:
             await db.execute(
-                """INSERT INTO stores (id, shop_domain, owner_id, subscription_tier, settings, created_at)
-                   VALUES ($1, $2, $3::uuid, 'trial', '{}', NOW())
-                   ON CONFLICT (shop_domain) DO UPDATE SET owner_id = $3::uuid
+                """INSERT INTO stores (id, shop_domain, owner_id, subscription_tier, settings, created_at, store_name, onboarding_step)
+                   VALUES ($1, $2, $3::uuid, 'trial', '{}', NOW(), $4, 'pending')
+                   ON CONFLICT (shop_domain) DO UPDATE SET owner_id = $3::uuid, store_name = $4, onboarding_step = 'pending'
                    RETURNING id""",
-                store_id, site_url, user_id,
+                store_id, site_url, user_id, store_name,
             )
         except Exception as e:
             SecurityLogger.log_error("Create store error", e)
@@ -1741,9 +1755,69 @@ async def create_store(request: Request, background_tasks: BackgroundTasks):
         automation_service.run_onboarding,
         store_id,
         None,
+        store_type,
     )
 
-    return {"store_id": store_id, "site_url": site_url, "subscription_tier": "trial"}
+    return {
+        "store_id": store_id,
+        "site_url": site_url,
+        "subscription_tier": "trial",
+        "store_name": store_name,
+        "store_type": store_type,
+    }
+
+
+ONBOARDING_STEPS_SEQUENCE = ["pending", "creating_agent", "syncing_kb", "sending_email", "complete"]
+
+
+@app.get("/api/stores/{store_id}/onboarding-status")
+async def get_onboarding_status(store_id: str, request: Request):
+    """Get current onboarding step and completion state for a store."""
+    user_id = await get_authenticated_user(request)
+
+    if not db.pool:
+        raise HTTPException(503, "Database not available")
+
+    row = await db.fetchrow(
+        """SELECT onboarding_step, onboarding_error, agent_status, store_name,
+                  elevenlabs_agent_id, owner_id
+           FROM stores WHERE id = $1::uuid""",
+        store_id,
+    )
+    if not row:
+        raise HTTPException(404, "Store not found")
+
+    # Verify ownership
+    if str(row["owner_id"]) != user_id:
+        raise HTTPException(403, "Access denied")
+
+    step = row["onboarding_step"] or "none"
+    is_failed = step == "failed"
+    is_complete = step == "complete"
+
+    # Derive completed_steps from sequence position
+    if is_failed:
+        completed_steps = []
+    elif step in ONBOARDING_STEPS_SEQUENCE:
+        idx = ONBOARDING_STEPS_SEQUENCE.index(step)
+        completed_steps = ONBOARDING_STEPS_SEQUENCE[:idx + 1]
+    else:
+        completed_steps = []
+
+    has_agent = (
+        row["elevenlabs_agent_id"] is not None
+        and row["agent_status"] == "active"
+    )
+
+    return {
+        "store_id": store_id,
+        "step": step,
+        "completed_steps": completed_steps,
+        "is_complete": is_complete,
+        "is_failed": is_failed,
+        "error": row["onboarding_error"],
+        "has_agent": has_agent,
+    }
 
 
 # ===========================
