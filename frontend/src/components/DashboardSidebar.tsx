@@ -6,8 +6,11 @@ import { usePathname } from "next/navigation";
 import {
   PieChart, MessageSquare, BarChart3, CreditCard, Database,
   Settings, HelpCircle, LogOut, Mic, Menu, X, ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 import { createSupabaseBrowser } from "@/lib/supabase/client";
+import { useStore } from "@/lib/store-context";
+import { apiFetch } from "@/lib/api";
 
 const navItems = [
   { label: "Overview", icon: PieChart, href: "/dashboard" },
@@ -38,10 +41,25 @@ export function DashboardSidebar({
 }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { storeId } = useStore();
+  const [usage, setUsage] = useState<{ minutes_used: number; minutes_limit: number; tier: string; is_trial_expired: boolean } | null>(null);
 
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!storeId) return;
+    apiFetch(`/api/stores/${storeId}/subscription`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => data && setUsage({
+        minutes_used: data.minutes_used,
+        minutes_limit: data.minutes_limit,
+        tier: data.tier,
+        is_trial_expired: data.is_trial_expired,
+      }))
+      .catch(() => {});
+  }, [storeId]);
 
   return (
     <div className="min-h-screen flex bg-canvas text-body" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
@@ -78,6 +96,27 @@ export function DashboardSidebar({
             <X className="w-4 h-4 text-muted" />
           </button>
         </div>
+
+        {/* Usage warning */}
+        {usage && (usage.minutes_used / usage.minutes_limit > 0.7 || usage.is_trial_expired) && (
+          <Link href="/dashboard/billing" className="block mx-3 mb-3 p-3 rounded-xl border border-warning/30 bg-warning/5">
+            {usage.is_trial_expired ? (
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-3.5 h-3.5 text-warning shrink-0" />
+                <p className="text-xs text-warning font-medium">Trial expired -- choose a plan</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-warning font-medium mb-1">
+                  {Math.round(usage.minutes_used / usage.minutes_limit * 100)}% usage
+                </p>
+                <div className="w-full bg-canvas rounded-full h-1.5">
+                  <div className="h-full rounded-full bg-warning" style={{ width: `${Math.min(100, usage.minutes_used / usage.minutes_limit * 100)}%` }} />
+                </div>
+              </>
+            )}
+          </Link>
+        )}
 
         {/* Main nav */}
         <nav className="flex-1 flex flex-col gap-0.5 px-1">
