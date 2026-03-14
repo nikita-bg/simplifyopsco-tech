@@ -60,7 +60,7 @@
 - [x] **CFG-05**: Language selection (28+ ElevenLabs-supported languages)
 - [x] **CFG-06**: Embed code auto-generated and copy-paste ready
 - [x] **CFG-07**: Agent personality presets (5-8 presets: Friendly, Professional, Energetic, etc.)
-- [ ] **CFG-08**: Live preview — merchant can test their agent in-dashboard before going live
+- [x] **CFG-08**: Live preview — merchant can test their agent in-dashboard before going live
 
 ### Billing (BIL)
 
@@ -199,7 +199,7 @@
 | CFG-05 | Phase 6: Agent Configuration | Complete |
 | CFG-06 | Phase 6: Agent Configuration | Complete |
 | CFG-07 | Phase 6: Agent Configuration | Complete |
-| CFG-08 | Phase 6: Agent Configuration | Pending |
+| CFG-08 | Phase 6: Agent Configuration | Complete |
 | BIL-01 | Phase 7: Billing | Pending |
 | BIL-02 | Phase 7: Billing | Pending |
 | BIL-03 | Phase 7: Billing | Pending |
