@@ -73,7 +73,7 @@ export function DashboardSidebar({
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-[260px] bg-gradient-to-b from-panel to-canvas border-r border-edge flex flex-col py-5 px-3 shrink-0 transform transition-transform duration-200 lg:translate-x-0 ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-panel to-canvas border-r border-edge flex flex-col py-5 px-3 shrink-0 transform transition-transform duration-200 lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

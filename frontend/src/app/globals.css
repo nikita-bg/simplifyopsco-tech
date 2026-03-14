@@ -80,6 +80,19 @@
   border: 1px solid oklch(100% 0 0 / 0.08);
 }
 
+@utility glass-card {
+  background: oklch(100% 0 0 / 0.05);
+  backdrop-filter: blur(24px);
+  border: 1px solid oklch(100% 0 0 / 0.10);
+  border-radius: 1rem;
+}
+
+@utility glass-surface {
+  background: oklch(100% 0 0 / 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid oklch(100% 0 0 / 0.06);
+}
+
 @utility glow-text {
   text-shadow: 0 0 20px oklch(52% 0.22 260 / 0.5);
 }
