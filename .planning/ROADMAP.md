@@ -145,12 +145,11 @@ Plans:
   3. At 80% usage, the merchant receives an automatic warning email; at 110% (soft limit with 10% buffer), the agent is disabled
   4. In-app upgrade prompts appear when usage limits are approached, and merchants can upgrade/downgrade via Stripe Customer Portal
   5. New merchants start with a 14-day free trial (no credit card required) with a clear trial-to-paid conversion flow
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
-- [ ] 07-03: TBD
+- [ ] 07-01-PLAN.md — Backend billing: fix subscription endpoint, invoice.paid billing reset, 110% usage enforcement, shared TIER_LIMITS, tests
+- [ ] 07-02-PLAN.md — Frontend billing: plan cards, usage meter, upgrade via Stripe Checkout, trial banner, sidebar usage warning
 
 ### Phase 8: Analytics
 **Goal**: Merchants can see how their AI agent performs and what their customers are asking about
@@ -200,6 +199,6 @@ Note: Phases 6, 7, 8 can potentially run in parallel after their dependencies ar
 | 4. Automation | 2/2 | Complete   | 2026-03-14 |
 | 5. Onboarding | 2/2 | Complete   | 2026-03-14 |
 | 6. Agent Configuration | 2/2 | Complete   | 2026-03-14 |
-| 7. Billing | 0/3 | Not started | - |
+| 7. Billing | 0/2 | Not started | - |
 | 8. Analytics | 0/2 | Not started | - |
 | 9. Design Polish | 0/3 | Not started | - |
