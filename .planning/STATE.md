@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-03-14T08:42:33.693Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-03-14T08:50:09.894Z"
 last_activity: 2026-03-13 — Completed 03-02 (Widget Embed Refactor)
 progress:
   total_phases: 10
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 11
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 ---
@@ -72,6 +72,7 @@ Progress: [████████░░] 78%
 
 *Updated after each plan completion*
 | Phase 04-automation P01 | 18 | 2 tasks | 6 files |
+| Phase 04-automation P02 | 4 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -109,6 +110,9 @@ Recent decisions affecting current work:
 - [Phase 04-automation]: Raw httpx for Resend API (consistent with elevenlabs_service.py, no SDK dependency)
 - [Phase 04-automation]: BackgroundTasks for per-request onboarding triggers (simpler than APScheduler jobs, no persistence needed)
 - [Phase 04-automation]: Top-level try/except in run_onboarding prevents BackgroundTasks crash; KB failure non-blocking, agent failure sets status='failed'
+- [Phase 04-automation]: register_webhook wraps update_agent — ElevenLabs webhooks live in platform_settings, no new HTTP method needed
+- [Phase 04-automation]: Tier limits use roadmap MINUTES (trial=30, starter=100, growth=400, scale=2000) not legacy session counts
+- [Phase 04-automation]: ceil(duration/60) for minute billing — partial minutes round up, standard telco convention
 
 ### Pending Todos
 
@@ -122,6 +126,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T08:42:33.689Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-03-14T08:50:09.891Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None
