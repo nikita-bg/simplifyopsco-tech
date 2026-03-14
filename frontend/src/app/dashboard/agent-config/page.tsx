@@ -256,8 +256,24 @@ export default function AgentConfigPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      <div className="max-w-[1200px] pb-10 animate-pulse">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <div className="h-7 w-48 bg-white/5 rounded-lg mb-2" />
+            <div className="h-4 w-64 bg-white/5 rounded-md" />
+          </div>
+          <div className="h-10 w-32 bg-white/5 rounded-lg" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <div className="lg:col-span-3 space-y-6">
+            <div className="bg-panel rounded-xl border border-edge p-5 h-16" />
+            <div className="bg-panel rounded-xl border border-edge p-6 h-48" />
+            <div className="bg-panel rounded-xl border border-edge p-6 h-32" />
+          </div>
+          <div className="lg:col-span-2">
+            <div className="bg-panel rounded-xl border border-edge p-6 h-96" />
+          </div>
+        </div>
       </div>
     );
   }

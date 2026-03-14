@@ -6,7 +6,7 @@ import {
     PieChart, Pie, Cell,
 } from "recharts";
 import {
-    Phone, TrendingUp, Star, Loader2, MessageSquare, ArrowUpRight, CheckCircle2,
+    Phone, TrendingUp, Star, MessageSquare, ArrowUpRight, CheckCircle2,
     XCircle, AlertCircle, PhoneIncoming, Clock,
     MoreHorizontal
 } from "lucide-react";
@@ -64,8 +64,50 @@ export function ClientDashboard({ storeId }: { storeId: string }) {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-96">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="max-w-[1200px] mx-auto animate-pulse">
+                {/* Header skeleton */}
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <div className="h-7 w-32 bg-white/5 rounded-lg mb-2" />
+                        <div className="h-4 w-16 bg-white/5 rounded-md" />
+                    </div>
+                    <div className="h-8 w-24 bg-white/5 rounded-md" />
+                </div>
+                {/* KPI skeletons */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div className="bg-panel rounded-xl p-5 border border-edge h-24">
+                        <div className="h-3 w-20 bg-white/5 rounded mb-3" />
+                        <div className="h-8 w-28 bg-white/5 rounded-lg" />
+                    </div>
+                    <div className="bg-panel rounded-xl p-5 border border-edge h-24">
+                        <div className="h-3 w-24 bg-white/5 rounded mb-3" />
+                        <div className="h-8 w-20 bg-white/5 rounded-lg" />
+                    </div>
+                </div>
+                {/* Chart + sidebar skeletons */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                    <div className="lg:col-span-2 bg-panel rounded-xl border border-edge p-5">
+                        <div className="h-4 w-24 bg-white/5 rounded mb-4" />
+                        <div className="h-64 bg-white/[0.02] rounded-lg" />
+                    </div>
+                    <div className="bg-panel rounded-xl border border-edge p-5">
+                        <div className="h-4 w-28 bg-white/5 rounded mb-4" />
+                        <div className="h-40 w-40 mx-auto bg-white/[0.02] rounded-full" />
+                    </div>
+                </div>
+                {/* Table skeleton */}
+                <div className="bg-panel rounded-xl border border-edge overflow-hidden">
+                    <div className="p-4 border-b border-edge">
+                        <div className="h-4 w-32 bg-white/5 rounded" />
+                    </div>
+                    {[...Array(3)].map((_, i) => (
+                        <div key={i} className="flex items-center gap-4 px-4 py-3 border-t border-edge/30">
+                            <div className="w-7 h-7 bg-white/5 rounded-full" />
+                            <div className="h-3 w-24 bg-white/5 rounded" />
+                            <div className="h-3 w-16 bg-white/5 rounded ml-auto" />
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }
