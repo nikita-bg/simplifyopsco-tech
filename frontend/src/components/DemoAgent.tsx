@@ -87,7 +87,7 @@ export function DemoAgent() {
 
             {/* Voice panel */}
             {panelOpen && (
-                <div className="fixed z-50 bottom-24 right-6 sm:w-80 max-sm:inset-x-4 max-sm:bottom-24 glass-card p-5 shadow-2xl">
+                <div className="fixed z-50 bottom-24 right-6 sm:w-80 max-sm:inset-x-4 max-sm:bottom-24 bg-panel rounded-xl border border-edge p-5 shadow-2xl">
                     {/* Header */}
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-sm font-semibold text-heading">Talk to our AI Assistant</h3>
@@ -131,7 +131,7 @@ export function DemoAgent() {
                                             style={
                                                 conversation.isSpeaking
                                                     ? {
-                                                          height: `${20 + Math.random() * 30}px`,
+                                                          height: `${20 + (i % 3) * 10}px`,
                                                           animationDelay: `${i * 100}ms`,
                                                       }
                                                     : undefined
@@ -187,7 +187,7 @@ export function DemoAgent() {
                                     className={`w-16 h-16 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                                         isConnecting
                                             ? "bg-primary/50 animate-pulse"
-                                            : "bg-primary hover:bg-primary-hover hover:scale-105"
+                                            : "bg-primary hover:bg-primary/90 hover:scale-105"
                                     } text-white shadow-lg shadow-primary/25`}
                                     aria-label="Start voice session"
                                 >

@@ -72,13 +72,13 @@ function charBarColor(count: number, limit: number): string {
 function statusBadge(status: KBStatus["kb_sync_status"]) {
   switch (status) {
     case "synced":
-      return { label: "Synced", color: "bg-success/20 text-success" };
+      return { label: "Synced", color: "bg-success/20 text-success border-success/30" };
     case "syncing":
-      return { label: "Syncing", color: "bg-warning/20 text-warning animate-pulse" };
+      return { label: "Syncing", color: "bg-warning/20 text-warning border-warning/30 animate-pulse" };
     case "error":
-      return { label: "Error", color: "bg-error/20 text-error" };
+      return { label: "Error", color: "bg-error/20 text-error border-error/30" };
     default:
-      return { label: "Not synced", color: "bg-white/10 text-muted" };
+      return { label: "Not synced", color: "bg-canvas text-muted border-edge" };
   }
 }
 
@@ -242,276 +242,307 @@ export default function KnowledgeBasePage() {
   /* ---------------------------------------------------------------- */
 
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-[1200px]">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-heading mb-1">Knowledge Base</h1>
-        <p className="text-sm text-muted">
-          Manage your AI agent&apos;s product knowledge
-        </p>
-      </div>
-
-      {/* ---- Sync Status Card ---- */}
-      <div className="glass-card p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-xs text-faint uppercase tracking-widest">
-            Sync Status
-          </h2>
-          <button
-            onClick={handleSync}
-            disabled={syncing || !storeId}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          >
-            <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
-            {syncing ? "Syncing..." : "Sync Now"}
-          </button>
-        </div>
-
-        {loadingStatus ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-canvas rounded-xl p-3 border border-edge animate-pulse h-16" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Status */}
-            <div className="bg-canvas rounded-xl p-3 border border-edge">
-              <p className="text-[10px] text-faint uppercase tracking-wider mb-1">Status</p>
-              <div className="flex items-center gap-2">
-                <Database className="w-3.5 h-3.5 text-muted" />
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase ${badge.color}`}>
-                  {badge.label}
-                </span>
-              </div>
-            </div>
-
-            {/* Products */}
-            <div className="bg-canvas rounded-xl p-3 border border-edge">
-              <p className="text-[10px] text-faint uppercase tracking-wider mb-1">Products</p>
-              <div className="flex items-center gap-2">
-                <Package className="w-3.5 h-3.5 text-muted" />
-                <p className="text-sm font-mono text-primary">
-                  {formatNumber(kbStatus?.kb_product_count ?? 0)}
-                </p>
-              </div>
-            </div>
-
-            {/* Last Synced */}
-            <div className="bg-canvas rounded-xl p-3 border border-edge">
-              <p className="text-[10px] text-faint uppercase tracking-wider mb-1">Last Synced</p>
-              <div className="flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-muted" />
-                <p className="text-sm font-mono text-primary">
-                  {relativeTime(kbStatus?.kb_last_synced ?? null)}
-                </p>
-              </div>
-            </div>
-
-            {/* Character Usage */}
-            <div className="bg-canvas rounded-xl p-3 border border-edge">
-              <p className="text-[10px] text-faint uppercase tracking-wider mb-1">Character Usage</p>
-              <div className="flex items-center gap-2 mb-1.5">
-                <BarChart3 className="w-3.5 h-3.5 text-muted" />
-                <p className="text-sm font-mono text-primary">
-                  {formatNumber(kbStatus?.kb_char_count ?? 0)} / {formatNumber(kbStatus?.char_limit ?? 300000)}
-                </p>
-              </div>
-              <div className="w-full h-1.5 rounded-full bg-white/5">
-                <div
-                  className={`h-full rounded-full transition-all ${charBarColor(kbStatus?.kb_char_count ?? 0, kbStatus?.char_limit ?? 300000)}`}
-                  style={{ width: `${Math.min(charPct, 100)}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ---- Character Limit Warning ---- */}
-      {kbStatus?.is_warning && (
-        <div className="flex items-start gap-3 mt-4 rounded-2xl bg-warning/10 border border-warning/20 p-4">
-          <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
-          <p className="text-sm text-warning">
-            Your knowledge base is approaching the 300,000 character limit. Consider
-            removing products with long descriptions or reducing product count.
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-heading mb-1">Knowledge Base</h1>
+          <p className="text-sm text-muted">
+            Manage your AI agent&apos;s product knowledge
           </p>
         </div>
-      )}
+        <div className="flex gap-2">
+            <button
+                onClick={handleSync}
+                disabled={syncing || !storeId}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-panel border border-edge text-heading text-sm font-semibold hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-sm"
+            >
+                <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
+                {syncing ? "Syncing..." : "Sync Now"}
+            </button>
+            <button
+                onClick={openAddForm}
+                disabled={!storeId}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer shadow-sm"
+            >
+                <Plus className="w-4 h-4" />
+                Add Product
+            </button>
+        </div>
+      </div>
 
-      {/* ---- Manual Products Card ---- */}
-      <div className="glass-card p-6 mt-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-xs text-faint uppercase tracking-widest">
-            Products
-          </h2>
-          <button
-            onClick={openAddForm}
-            disabled={!storeId}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors disabled:opacity-50 cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Add Product
-          </button>
+       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start pb-10">
+        <div className="lg:col-span-1 space-y-6">
+            {/* ---- Sync Status Card ---- */}
+            <div className="bg-panel rounded-xl border border-edge p-5">
+            <h2 className="font-semibold text-xs text-muted uppercase tracking-wider mb-4">
+                Sync Status
+            </h2>
+
+            {loadingStatus ? (
+                <div className="space-y-3">
+                {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="bg-canvas rounded-lg p-3 border border-edge animate-pulse h-16" />
+                ))}
+                </div>
+            ) : (
+                <div className="space-y-3">
+                {/* Status */}
+                <div className="bg-canvas rounded-lg p-3 border border-edge flex items-center justify-between">
+                    <div>
+                        <p className="text-[10px] font-medium text-muted uppercase tracking-wider mb-0.5">Status</p>
+                        <div className="flex items-center gap-1.5">
+                            <Database className="w-3.5 h-3.5 text-muted" />
+                            <span className="text-sm font-medium text-heading">Knowledge Base</span>
+                        </div>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${badge.color}`}>
+                        {badge.label}
+                    </span>
+                </div>
+
+                {/* Products */}
+                <div className="bg-canvas rounded-lg p-3 border border-edge flex items-center justify-between">
+                    <div>
+                        <p className="text-[10px] font-medium text-muted uppercase tracking-wider mb-0.5">Products</p>
+                        <div className="flex items-center gap-1.5">
+                            <Package className="w-3.5 h-3.5 text-muted" />
+                            <span className="text-sm font-medium text-heading">Total Indexed</span>
+                        </div>
+                    </div>
+                     <p className="text-sm font-semibold text-heading">
+                        {formatNumber(kbStatus?.kb_product_count ?? 0)}
+                    </p>
+                </div>
+
+                {/* Last Synced */}
+                <div className="bg-canvas rounded-lg p-3 border border-edge flex items-center justify-between">
+                   <div>
+                        <p className="text-[10px] font-medium text-muted uppercase tracking-wider mb-0.5">Last Synced</p>
+                        <div className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-muted" />
+                            <span className="text-sm font-medium text-heading">Time</span>
+                        </div>
+                    </div>
+                    <p className="text-sm font-medium text-heading">
+                        {relativeTime(kbStatus?.kb_last_synced ?? null)}
+                    </p>
+                </div>
+
+                {/* Character Usage */}
+                <div className="bg-canvas rounded-lg p-4 border border-edge flex flex-col gap-2">
+                     <div className="flex items-center justify-between">
+                         <div className="flex items-center gap-1.5">
+                            <BarChart3 className="w-3.5 h-3.5 text-muted" />
+                            <span className="text-sm font-medium text-heading">Character limit usage</span>
+                        </div>
+                        <p className="text-xs font-semibold text-heading">
+                            {formatNumber(kbStatus?.kb_char_count ?? 0)} <span className="text-muted font-normal">/ {formatNumber(kbStatus?.char_limit ?? 300000)}</span>
+                        </p>
+                     </div>
+                    <div className="w-full h-1.5 rounded-full bg-body overflow-hidden">
+                    <div
+                        className={`h-full rounded-full transition-all ${charBarColor(kbStatus?.kb_char_count ?? 0, kbStatus?.char_limit ?? 300000)}`}
+                        style={{ width: `${Math.min(charPct, 100)}%` }}
+                    />
+                    </div>
+                </div>
+                </div>
+            )}
+            </div>
+
+            {/* ---- Character Limit Warning ---- */}
+            {kbStatus?.is_warning && (
+            <div className="flex items-start gap-3 rounded-lg bg-warning/10 border border-warning/20 p-4 shadow-sm">
+                <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+                <p className="text-sm text-warning font-medium">
+                Your knowledge base is approaching the 300,000 character limit. Consider
+                removing products with long descriptions or reducing product count.
+                </p>
+            </div>
+            )}
         </div>
 
-        {/* ---- Inline Form ---- */}
-        {showForm && (
-          <div className="mb-5 rounded-xl bg-canvas border border-edge p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-heading">
-                {editingProductId !== null ? "Edit Product" : "Add Product"}
-              </h3>
-              <button
-                onClick={resetForm}
-                className="w-7 h-7 rounded-lg hover:bg-white/5 flex items-center justify-center cursor-pointer"
-              >
-                <X className="w-4 h-4 text-muted" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="sm:col-span-2">
-                <label className="text-[10px] text-faint uppercase tracking-wider mb-1 block">
-                  Title <span className="text-error">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formTitle}
-                  onChange={(e) => setFormTitle(e.target.value)}
-                  placeholder="Product title"
-                  className="w-full bg-canvas rounded-xl p-3 border border-edge text-sm text-body focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-colors"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="text-[10px] text-faint uppercase tracking-wider mb-1 block">
-                  Description
-                </label>
-                <textarea
-                  value={formDescription}
-                  onChange={(e) => setFormDescription(e.target.value)}
-                  placeholder="Product description (optional)"
-                  rows={3}
-                  className="w-full bg-canvas rounded-xl p-3 border border-edge text-sm text-body focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-colors resize-none"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-faint uppercase tracking-wider mb-1 block">
-                  Price <span className="text-error">*</span>
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formPrice}
-                  onChange={(e) => setFormPrice(e.target.value)}
-                  placeholder="0.00"
-                  className="w-full bg-canvas rounded-xl p-3 border border-edge text-sm text-body focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-colors"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-faint uppercase tracking-wider mb-1 block">
-                  Product URL
-                </label>
-                <input
-                  type="text"
-                  value={formUrl}
-                  onChange={(e) => setFormUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full bg-canvas rounded-xl p-3 border border-edge text-sm text-body focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-colors"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 mt-4">
-              <button
-                onClick={handleSave}
-                disabled={saving || !formTitle || !formPrice}
-                className="px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
-                {saving ? "Saving..." : editingProductId !== null ? "Update Product" : "Save Product"}
-              </button>
-              <button
-                onClick={resetForm}
-                className="px-4 py-2.5 rounded-xl bg-white/5 text-muted text-sm font-medium hover:bg-white/10 transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ---- Products List ---- */}
-        {loadingProducts ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-canvas rounded-xl p-3 border border-edge animate-pulse h-14" />
-            ))}
-          </div>
-        ) : products.length === 0 ? (
-          <div className="text-center py-10">
-            <Package className="w-10 h-10 text-faint mx-auto mb-3" />
-            <p className="text-sm text-muted">No products yet</p>
-            <p className="text-xs text-faint mt-1">
-              Add products manually or sync from Shopify
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {products.map((product) => {
-              const isManual = product.source === "manual" || (product.id < 0);
-              return (
-                <div
-                  key={product.id}
-                  className="flex items-center gap-3 bg-canvas rounded-xl p-3 border border-edge"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-heading font-medium truncate">
-                      {product.title}
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs font-mono text-primary">
-                        ${Number(product.price).toFixed(2)}
-                      </span>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase ${
-                          isManual
-                            ? "bg-primary/10 text-primary"
-                            : "bg-success/10 text-success"
-                        }`}
-                      >
-                        {isManual ? "Manual" : "Shopify"}
-                      </span>
+        <div className="lg:col-span-2 space-y-6">
+            {/* ---- Inline Add/Edit Form ---- */}
+            {showForm && (
+                 <div className="bg-panel rounded-xl border border-edge shadow-sm p-5 animation-fade-in relative overflow-hidden">
+                    <div className="flex items-center justify-between mb-4 pb-3 border-b border-edge">
+                        <h3 className="text-sm font-semibold text-heading">
+                        {editingProductId !== null ? "Edit Product" : "Add Manual Product"}
+                        </h3>
+                        <button
+                        onClick={resetForm}
+                        className="w-7 h-7 rounded-md hover:bg-white/5 flex items-center justify-center cursor-pointer transition-colors"
+                        >
+                        <X className="w-4 h-4 text-muted" />
+                        </button>
                     </div>
-                  </div>
 
-                  {isManual ? (
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        onClick={() => openEditForm(product)}
-                        className="w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center cursor-pointer"
-                        title="Edit product"
-                      >
-                        <Pencil className="w-3.5 h-3.5 text-muted" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(product.id)}
-                        className="w-8 h-8 rounded-lg hover:bg-error/10 flex items-center justify-center cursor-pointer"
-                        title="Delete product"
-                      >
-                        <Trash2 className="w-3.5 h-3.5 text-error/70" />
-                      </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="sm:col-span-2">
+                        <label className="text-xs font-medium text-muted mb-1.5 block">
+                            Title <span className="text-error">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            value={formTitle}
+                            onChange={(e) => setFormTitle(e.target.value)}
+                            placeholder="Product title"
+                            className="w-full bg-canvas rounded-lg px-3 py-2.5 border border-edge text-sm text-heading focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
+                        />
+                        </div>
+                        <div className="sm:col-span-2">
+                        <label className="text-xs font-medium text-muted mb-1.5 block">
+                            Description
+                        </label>
+                        <textarea
+                            value={formDescription}
+                            onChange={(e) => setFormDescription(e.target.value)}
+                            placeholder="Product description (optional)"
+                            rows={3}
+                            className="w-full bg-canvas rounded-lg px-3 py-2.5 border border-edge text-sm text-heading focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors resize-none placeholder-faint"
+                        />
+                        </div>
+                        <div>
+                        <label className="text-xs font-medium text-muted mb-1.5 block">
+                            Price <span className="text-error">*</span>
+                        </label>
+                        <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={formPrice}
+                            onChange={(e) => setFormPrice(e.target.value)}
+                            placeholder="0.00"
+                            className="w-full bg-canvas rounded-lg px-3 py-2.5 border border-edge text-sm text-heading focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors"
+                        />
+                        </div>
+                        <div>
+                        <label className="text-xs font-medium text-muted mb-1.5 block">
+                            Product URL
+                        </label>
+                        <input
+                            type="text"
+                            value={formUrl}
+                            onChange={(e) => setFormUrl(e.target.value)}
+                            placeholder="https://..."
+                            className="w-full bg-canvas rounded-lg px-3 py-2.5 border border-edge text-sm text-heading focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-colors placeholder-faint"
+                        />
+                        </div>
                     </div>
-                  ) : (
-                    <span className="text-[10px] text-faint uppercase tracking-wider shrink-0">
-                      Synced
-                    </span>
-                  )}
+
+                    <div className="flex items-center gap-3 mt-5 pt-4 border-t border-edge">
+                        <button
+                        onClick={handleSave}
+                        disabled={saving || !formTitle || !formPrice}
+                        className="px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-sm"
+                        >
+                        {saving ? "Saving..." : editingProductId !== null ? "Update Product" : "Save Product"}
+                        </button>
+                        <button
+                        onClick={resetForm}
+                        className="px-5 py-2.5 rounded-lg bg-transparent border text-muted border-transparent text-sm font-semibold hover:bg-white/5 transition-colors cursor-pointer"
+                        >
+                        Cancel
+                        </button>
+                    </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
+            )}
+
+            {/* ---- Manual Products Card ---- */}
+            <div className={`bg-panel rounded-xl border border-edge overflow-hidden flex flex-col ${showForm ? "opacity-50 pointer-events-none" : ""}`}>
+                 <div className="p-5 border-b border-edge">
+                     <h2 className="font-semibold text-xs text-muted uppercase tracking-wider">
+                         Products List
+                     </h2>
+                     <p className="text-xs text-muted mt-1">Manage all products currently indexed by the AI agent.</p>
+                 </div>
+
+            {/* ---- Products List ---- */}
+            {loadingProducts ? (
+                 <div className="p-5 space-y-2">
+                {[1, 2, 3].map((i) => (
+                    <div key={i} className="bg-canvas rounded-lg p-3 border border-edge animate-pulse h-16" />
+                ))}
+                </div>
+            ) : products.length === 0 ? (
+                 <div className="p-10 flex flex-col items-center justify-center text-center">
+                    <div className="w-12 h-12 rounded-full bg-canvas border border-edge flex items-center justify-center mb-3 shadow-sm">
+                        <Package className="w-5 h-5 text-muted" />
+                    </div>
+                    <p className="text-sm font-medium text-heading mb-1">No products indexed</p>
+                    <p className="text-xs text-muted max-w-sm mb-4">
+                        Sync with Shopify or add manual products to build your AI agent&apos;s knowledge base.
+                    </p>
+                    <button
+                        onClick={openAddForm}
+                        disabled={!storeId}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-canvas border border-edge text-heading text-xs font-semibold hover:bg-white/5 transition-colors disabled:opacity-50 cursor-pointer shadow-sm"
+                    >
+                        <Plus className="w-3.5 h-3.5" />
+                        Add Manually
+                    </button>
+                </div>
+            ) : (
+                <div className="divide-y divide-edge max-h-[600px] overflow-y-auto custom-scrollbar">
+                {products.map((product) => {
+                    const isManual = product.source === "manual" || (product.id < 0);
+                    return (
+                        <div
+                            key={product.id}
+                            className="flex items-center gap-4 bg-transparent p-4 hover:bg-white/5 transition-colors group"
+                        >
+                        <div className="min-w-0 flex-1">
+                            <p className="text-sm text-heading font-medium truncate mb-0.5">
+                                {product.title}
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-mono font-medium text-muted">
+                                ${Number(product.price).toFixed(2)}
+                                </span>
+                                <span className="text-[10px] text-muted">·</span>
+                                <span
+                                className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${
+                                    isManual
+                                    ? "bg-primary/10 text-primary border-primary/20"
+                                    : "bg-success/10 text-success border-success/20"
+                                }`}
+                                >
+                                {isManual ? "Manual" : "Shopify"}
+                                </span>
+                            </div>
+                        </div>
+
+                        {isManual ? (
+                        <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                            onClick={() => openEditForm(product)}
+                            className="w-8 h-8 rounded-md hover:bg-white/10 flex items-center justify-center cursor-pointer transition-colors"
+                            title="Edit product"
+                            >
+                            <Pencil className="w-4 h-4 text-muted hover:text-heading" />
+                            </button>
+                            <button
+                            onClick={() => handleDelete(product.id)}
+                            className="w-8 h-8 rounded-md hover:bg-error/10 flex items-center justify-center cursor-pointer transition-colors"
+                            title="Delete product"
+                            >
+                            <Trash2 className="w-4 h-4 text-error/70 hover:text-error" />
+                            </button>
+                        </div>
+                        ) : (
+                        <span className="text-[10px] text-faint font-medium uppercase tracking-wider shrink-0 mr-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            View Only
+                        </span>
+                        )}
+                    </div>
+                    );
+                })}
+                </div>
+            )}
+            </div>
+        </div>
       </div>
     </div>
   );

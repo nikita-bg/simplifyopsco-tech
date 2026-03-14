@@ -119,7 +119,7 @@ export function OnboardingProgress({ storeId }: OnboardingProgressProps) {
         </p>
       </div>
 
-      <div className="max-w-lg w-full rounded-2xl bg-panel border border-white/5 p-8">
+      <div className="max-w-lg w-full rounded-2xl bg-panel border border-edge shadow-sm p-8">
         {failed ? (
           <div className="text-center space-y-4">
             <div className="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center mx-auto">
@@ -128,7 +128,7 @@ export function OnboardingProgress({ storeId }: OnboardingProgressProps) {
             <p className="text-sm text-error">{errorMessage}</p>
             <button
               onClick={handleRetry}
-              className="px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold text-sm transition-all cursor-pointer"
+              className="px-6 py-3 rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold text-sm transition-all cursor-pointer shadow-sm"
             >
               Try Again
             </button>
@@ -143,7 +143,7 @@ export function OnboardingProgress({ storeId }: OnboardingProgressProps) {
                   : "pending";
 
               return (
-                <div key={step.key} className="flex items-start gap-3">
+                <div key={step.key} className="flex items-start gap-4">
                   <div className="flex flex-col items-center">
                     <div className="w-6 h-6 flex items-center justify-center">
                       {state === "completed" && (
@@ -153,20 +153,20 @@ export function OnboardingProgress({ storeId }: OnboardingProgressProps) {
                         <Loader2 className="w-5 h-5 text-primary animate-spin" />
                       )}
                       {state === "pending" && (
-                        <Circle className="w-5 h-5 text-faint" />
+                        <Circle className="w-5 h-5 text-muted/30" />
                       )}
                     </div>
                     {index < STEPS.length - 1 && (
-                      <div className="w-px h-6 border-l border-white/10" />
+                      <div className="w-px h-6 border-l border-edge my-1" />
                     )}
                   </div>
                   <span
-                    className={`text-sm pt-0.5 ${
+                    className={`text-sm pt-0.5 font-medium ${
                       state === "completed"
                         ? "text-success"
                         : state === "in_progress"
                           ? "text-primary"
-                          : "text-faint"
+                          : "text-muted"
                     }`}
                   >
                     {step.label}

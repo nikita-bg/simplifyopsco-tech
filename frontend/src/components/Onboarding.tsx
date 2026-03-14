@@ -89,20 +89,20 @@ export function Onboarding({ userId }: OnboardingProps) {
               </p>
             </div>
 
-            <div className="rounded-2xl bg-panel border border-white/5 p-8">
+            <div className="rounded-2xl bg-panel border border-edge p-8 shadow-sm">
               <div className="space-y-5">
                 <div>
                   <label className="text-xs font-medium text-muted uppercase tracking-wider mb-2 block">
                     Store Name
                   </label>
                   <div className="relative">
-                    <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-faint" />
+                    <Store className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                     <input
                       type="text"
                       placeholder="My Awesome Store"
                       value={storeName}
                       onChange={(e) => setStoreName(e.target.value)}
-                      className="w-full bg-white/[0.04] border border-edge rounded-xl pl-10 pr-4 py-3 text-sm text-heading placeholder-faint outline-none focus:border-primary/50"
+                      className="w-full bg-canvas border border-edge rounded-xl pl-10 pr-4 py-3 text-sm text-heading placeholder-faint outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                     />
                   </div>
                 </div>
@@ -112,13 +112,13 @@ export function Onboarding({ userId }: OnboardingProps) {
                     Website URL
                   </label>
                   <div className="relative">
-                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-faint" />
+                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                     <input
                       type="text"
                       placeholder="https://mywebsite.com"
                       value={siteUrl}
                       onChange={(e) => setSiteUrl(e.target.value)}
-                      className="w-full bg-white/[0.04] border border-edge rounded-xl pl-10 pr-4 py-3 text-sm text-heading placeholder-faint outline-none focus:border-primary/50"
+                      className="w-full bg-canvas border border-edge rounded-xl pl-10 pr-4 py-3 text-sm text-heading placeholder-faint outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                     />
                   </div>
                 </div>
@@ -128,25 +128,30 @@ export function Onboarding({ userId }: OnboardingProps) {
                     Store Type
                   </label>
                   <div className="relative">
-                    <Layers className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-faint" />
+                    <Layers className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                     <select
                       value={storeType}
                       onChange={(e) => setStoreType(e.target.value as StoreType)}
-                      className="w-full bg-white/[0.04] border border-edge rounded-xl pl-10 pr-4 py-3 text-sm text-heading outline-none focus:border-primary/50 appearance-none cursor-pointer"
+                      className="w-full bg-canvas border border-edge rounded-xl pl-10 pr-4 py-3 text-sm text-heading outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors appearance-none cursor-pointer"
                     >
                       <option value="online_store">Online Store</option>
                       <option value="service_business">Service Business</option>
                       <option value="lead_gen">Lead Generation</option>
                     </select>
+                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted">
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
                   </div>
                 </div>
 
-                {error && <p className="text-sm text-error">{error}</p>}
+                {error && <p className="text-sm text-error font-medium">{error}</p>}
 
                 <button
                   onClick={handleWebsiteCreate}
                   disabled={loading || !storeName || !siteUrl}
-                  className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold text-sm transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-3 mt-2 rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold text-sm transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 shadow-sm"
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -157,18 +162,18 @@ export function Onboarding({ userId }: OnboardingProps) {
                 </button>
               </div>
 
-              <div className="relative my-6">
+              <div className="relative my-8">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-white/5" />
+                  <div className="w-full border-t border-edge" />
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="px-3 bg-panel text-faint">or</span>
+                  <span className="px-3 bg-panel text-muted uppercase tracking-widest font-semibold">or</span>
                 </div>
               </div>
 
               <button
                 onClick={() => { setError(""); setView("shopify"); }}
-                className="w-full py-3 rounded-xl border border-white/10 hover:border-primary/50 text-muted hover:text-heading font-medium text-sm transition-all cursor-pointer flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-transparent border border-edge hover:bg-white/5 text-muted hover:text-heading font-semibold text-sm transition-all cursor-pointer flex items-center justify-center gap-2"
               >
                 <ShoppingBag className="w-4 h-4" />
                 Connect Shopify Instead
@@ -186,34 +191,35 @@ export function Onboarding({ userId }: OnboardingProps) {
               </p>
             </div>
 
-            <div className="rounded-2xl bg-panel border border-white/5 p-8">
+            <div className="rounded-2xl bg-panel border border-edge p-8 shadow-sm">
               <button
                 onClick={() => { setError(""); setView("form"); }}
-                className="text-sm text-muted hover:text-heading mb-6 cursor-pointer flex items-center gap-1"
+                className="text-sm font-medium text-muted hover:text-heading mb-6 cursor-pointer flex items-center gap-1.5 transition-colors"
+                aria-label="Go back"
               >
-                <ArrowLeft className="w-3 h-3" /> Back
+                <ArrowLeft className="w-4 h-4" /> Back
               </button>
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
                   <label className="text-xs font-medium text-muted uppercase tracking-wider mb-2 block">
                     Shopify Store Domain
                   </label>
                   <div className="relative">
-                    <ShoppingBag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-faint" />
+                    <ShoppingBag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                     <input
                       type="text"
                       placeholder="my-store.myshopify.com"
                       value={shopDomain}
                       onChange={(e) => setShopDomain(e.target.value)}
-                      className="w-full bg-white/[0.04] border border-edge rounded-xl pl-10 pr-4 py-3 text-sm text-heading placeholder-faint outline-none focus:border-primary/50"
+                      className="w-full bg-canvas border border-edge rounded-xl pl-10 pr-4 py-3 text-sm text-heading placeholder-faint outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                     />
                   </div>
                 </div>
-                {error && <p className="text-sm text-error">{error}</p>}
+                {error && <p className="text-sm text-error font-medium">{error}</p>}
                 <button
                   onClick={handleShopifyConnect}
                   disabled={loading || !shopDomain}
-                  className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold text-sm transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-3 mt-2 rounded-xl bg-[#96bf48] hover:bg-[#85a940] text-white font-semibold text-sm transition-all disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 shadow-sm"
                 >
                   {loading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

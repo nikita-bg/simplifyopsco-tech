@@ -94,14 +94,13 @@ export function FloatingVoiceWidget() {
             }
             const { signed_url } = await urlResponse.json();
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             await conversation.startSession({
                 signedUrl: signed_url,
                 clientTools: {
                     navigateToPricing,
                     scrollToFeatures,
                 },
-            } as any);
+            });
         } catch (err) {
             console.error("Failed to start:", err);
             alert("Failed to connect. Please allow microphone access.");

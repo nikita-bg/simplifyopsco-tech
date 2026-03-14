@@ -6,12 +6,14 @@ import {
     PieChart, Pie, Cell,
 } from "recharts";
 import {
-    Phone, TrendingUp, Star, Loader2, MessageSquare, ArrowUpRight,
+    Phone, TrendingUp, Star, Loader2, MessageSquare, ArrowUpRight, CheckCircle2,
+    XCircle, AlertCircle, PhoneIncoming, Clock,
+    MoreHorizontal
 } from "lucide-react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 
-const INTENT_COLORS = ["oklch(60% 0.2 260)", "oklch(55% 0.2 300)", "oklch(65% 0.18 160)", "oklch(75% 0.16 80)", "oklch(60% 0.22 25)"];
+const INTENT_COLORS = ["#256af4", "#8b5cf6", "#10b981", "#f59e0b", "#f43f5e"];
 
 const FALLBACK = {
     total_calls: 0,
@@ -69,102 +71,135 @@ export function ClientDashboard({ storeId }: { storeId: string }) {
     }
 
     return (
-        <>
+        <div className="max-w-[1200px] mx-auto">
             {/* Page header */}
-            <div className="mb-8">
-                <div className="flex items-center gap-3">
-                    <h1 className="text-2xl font-bold text-heading">Dashboard Overview</h1>
-                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium ${backendOnline ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${backendOnline ? "bg-success animate-pulse" : "bg-warning"}`} />
-                        {backendOnline ? "Live" : "Offline"}
+            <div className="flex items-center justify-between mb-6">
+                <div>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-2xl font-bold text-heading">Overview</h1>
+                        <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[10px] font-semibold uppercase tracking-wider ${backendOnline ? "border-success/20 bg-success/5 text-success" : "border-warning/20 bg-warning/5 text-warning"}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${backendOnline ? "bg-success animate-pulse" : "bg-warning"}`} />
+                            {backendOnline ? "Live" : "Offline"}
+                        </div>
                     </div>
                 </div>
-                <p className="text-sm text-muted mt-1">Monitor your AI voice assistant performance</p>
+                <div className="flex gap-2">
+                    <Link href="/dashboard/settings" className="px-3 py-1.5 border border-edge bg-panel rounded-md text-sm font-medium hover:bg-white/5 transition-colors">
+                        Configure
+                    </Link>
+                </div>
             </div>
 
-            {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
-                <StatCard
-                    title="Total Calls"
-                    value={(data.total_calls ?? 0).toLocaleString()}
-                    icon={<Phone className="w-5 h-5" />}
-                    color="primary"
-                />
-                <StatCard
-                    title="Avg. Lead Score"
-                    value={String(data.avg_lead_score ?? 0)}
-                    suffix="/10"
-                    icon={<Star className="w-5 h-5" />}
-                    color="warning"
-                />
-                <StatCard
-                    title="Conversion Rate"
-                    value={String(data.conversion_rate ?? 0)}
-                    suffix="%"
-                    icon={<TrendingUp className="w-5 h-5" />}
-                    color="success"
-                />
-            </div>
-
-            {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
-                {/* Call Volume Chart */}
-                <div className="glass-card p-6">
-                    <div className="mb-6">
-                        <h3 className="font-semibold text-heading text-sm mb-1">Call Volume</h3>
-                        <p className="text-xs text-faint">Sessions per day of week</p>
+            {/* KPI Cards - 2 Column Layout with inline Micro-charts */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                {/* Micro Chart 1: Volume */}
+                <div className="bg-panel rounded-xl p-5 border border-edge flex items-center justify-between relative overflow-hidden group">
+                    <div className="z-10 bg-panel/50 backdrop-blur-sm p-1 pr-4 rounded-r-xl">
+                        <p className="text-xs text-muted font-medium mb-1 flex items-center gap-1.5"><PhoneIncoming className="w-3.5 h-3.5" /> Total Calls</p>
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-3xl font-bold text-heading">{(data.total_calls ?? 0).toLocaleString()}</span>
+                            <span className="text-xs font-medium text-success bg-success/10 px-1.5 py-0.5 rounded text-[10px]">+12%</span>
+                        </div>
                     </div>
-                    <div className="h-52">
+                    <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-40 group-hover:opacity-100 transition-opacity">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={data.call_data}>
+                                <Area type="monotone" dataKey="calls" stroke="#256af4" strokeWidth={2} fillOpacity={0.1} fill="#256af4" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                {/* Micro Chart 2: Conversion */}
+                <div className="bg-panel rounded-xl p-5 border border-edge flex items-center justify-between relative overflow-hidden group">
+                    <div className="z-10">
+                        <p className="text-xs text-muted font-medium mb-1 flex items-center gap-1.5"><TrendingUp className="w-3.5 h-3.5" /> Setup Conversion</p>
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-3xl font-bold text-heading">{data.conversion_rate ?? 0}%</span>
+                            <span className="text-xs font-medium text-success bg-success/10 px-1.5 py-0.5 rounded text-[10px]">+2.4%</span>
+                        </div>
+                    </div>
+                    {/* Tiny inline donut */}
+                    <div className="w-20 h-20 -mr-2">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie data={[{value: data.conversion_rate ?? 0}, {value: 100 - (data.conversion_rate ?? 0)}]} cx="50%" cy="50%" innerRadius={25} outerRadius={35} dataKey="value" stroke="none">
+                                    <Cell fill="#10b981" />
+                                    <Cell fill="rgba(255,255,255,0.05)" />
+                                </Pie>
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                {/* Main Chart */}
+                <div className="lg:col-span-2 bg-panel rounded-xl border border-edge p-5">
+                    <div className="mb-4">
+                        <h3 className="font-semibold text-heading text-sm">Call Activity</h3>
+                    </div>
+                    <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={data.call_data} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorCalls" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="oklch(52% 0.22 260)" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="oklch(52% 0.22 260)" stopOpacity={0} />
+                                        <stop offset="5%" stopColor="#256af4" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#256af4" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="oklch(20% 0.01 270)" vertical={false} />
-                                <XAxis dataKey="name" stroke="oklch(35% 0.01 270)" tick={{ fontSize: 11 }} />
-                                <YAxis stroke="oklch(35% 0.01 270)" tick={{ fontSize: 11 }} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                <XAxis dataKey="name" stroke="#52525b" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} dy={10} />
+                                <YAxis stroke="#52525b" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} dx={-10} />
                                 <Tooltip
                                     contentStyle={{
-                                        backgroundColor: "oklch(13% 0.015 265)",
-                                        borderColor: "oklch(22% 0.01 270)",
-                                        borderRadius: 12,
+                                        backgroundColor: "#18181b",
+                                        borderColor: "rgba(255,255,255,0.06)",
+                                        borderRadius: 8,
+                                        fontSize: 12,
                                         boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
                                     }}
-                                    labelStyle={{ color: "oklch(65% 0.01 270)" }}
+                                    itemStyle={{ color: "#fafafa" }}
+                                    labelStyle={{ color: "#a1a1aa", marginBottom: 4 }}
                                 />
-                                <Area type="monotone" dataKey="calls" stroke="oklch(52% 0.22 260)" strokeWidth={2} fillOpacity={1} fill="url(#colorCalls)" />
+                                <Area type="monotone" dataKey="calls" stroke="#256af4" strokeWidth={2} fillOpacity={1} fill="url(#colorCalls)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
                 {/* Intent Breakdown */}
-                <div className="glass-card p-6">
-                    <div className="mb-6">
-                        <h3 className="font-semibold text-heading text-sm mb-1">User Intent Breakdown</h3>
-                        <p className="text-xs text-faint">Primary topics discussed</p>
-                    </div>
-                    <div className="flex items-center gap-8">
-                        <div className="h-44 w-44 shrink-0">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie data={data.intent_data} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={4} dataKey="value">
-                                        {data.intent_data.map((entry, i) => (
-                                            <Cell key={entry.name} fill={INTENT_COLORS[i % INTENT_COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                </PieChart>
-                            </ResponsiveContainer>
+                <div className="bg-panel rounded-xl border border-edge p-5 flex flex-col">
+                    <h3 className="font-semibold text-heading text-sm mb-4">Topic Breakdown</h3>
+                    <div className="flex-1 flex flex-col justify-center gap-6">
+                        <div className="h-40 w-full relative">
+                            {(!data.intent_data || data.intent_data.length === 0) ? (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-32 h-32 rounded-full border-4 border-white/5 border-dashed animate-spin-slow" />
+                                </div>
+                            ) : (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie data={data.intent_data} cx="50%" cy="50%" innerRadius={45} outerRadius={65} paddingAngle={4} dataKey="value" stroke="none">
+                                            {data.intent_data.map((entry, i) => (
+                                                <Cell key={entry.name} fill={INTENT_COLORS[i % INTENT_COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip 
+                                            contentStyle={{ backgroundColor: "#18181b", borderColor: "rgba(255,255,255,0.06)", borderRadius: 6, fontSize: 12 }}
+                                            itemStyle={{ color: "#fafafa" }}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            )}
                         </div>
-                        <div className="flex flex-col gap-3">
-                            {data.intent_data.map((entry, i) => (
-                                <div key={entry.name} className="flex items-center gap-2.5 text-sm">
-                                    <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: INTENT_COLORS[i % INTENT_COLORS.length] }} />
-                                    <span className="text-muted">{entry.name}</span>
-                                    <span className="text-heading font-semibold ml-auto">{entry.value}%</span>
+                        <div className="flex flex-col gap-2.5">
+                            {data.intent_data?.slice(0, 3).map((entry, i) => (
+                                <div key={entry.name} className="flex items-center gap-2 text-xs">
+                                    <div className="w-2 h-2 rounded-full hidden sm:block" style={{ backgroundColor: INTENT_COLORS[i % INTENT_COLORS.length] }} />
+                                    <span className="text-muted truncate flex-1" title={entry.name}>{entry.name}</span>
+                                    <span className="text-heading font-medium">{entry.value}%</span>
                                 </div>
                             ))}
                         </div>
@@ -173,59 +208,77 @@ export function ClientDashboard({ storeId }: { storeId: string }) {
             </div>
 
             {/* Recent Conversations Table */}
-            <div className="glass-card p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-semibold text-heading">Recent AI Conversations</h3>
-                    <Link href="/dashboard/conversations" className="text-xs text-primary hover:text-primary-400 font-medium flex items-center gap-1 transition-colors">
+            <div className="bg-panel rounded-xl border border-edge overflow-hidden">
+                <div className="p-4 border-b border-edge flex items-center justify-between">
+                    <h3 className="font-semibold text-heading text-sm">Recent Interactions</h3>
+                    <Link href="/dashboard/conversations" className="text-xs text-muted hover:text-primary font-medium flex items-center gap-1 transition-colors">
                         View all <ArrowUpRight className="w-3 h-3" />
                     </Link>
                 </div>
 
                 {data.recent_conversations.length === 0 ? (
                     <div className="text-center py-12">
-                        <MessageSquare className="w-10 h-10 text-faint mx-auto mb-3 opacity-40" />
-                        <p className="text-muted text-sm">No conversations yet</p>
-                        <p className="text-faint text-xs mt-1">Connect your store and start engaging visitors</p>
+                        <MessageSquare className="w-8 h-8 text-faint mx-auto mb-3 opacity-40" />
+                        <p className="text-muted text-sm font-medium">No recent activity</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full">
+                        <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="text-[11px] text-faint border-b border-edge uppercase tracking-wider">
-                                    <th className="text-left pb-3 font-medium">Caller ID</th>
-                                    <th className="text-left pb-3 font-medium">Time</th>
-                                    <th className="text-left pb-3 font-medium">Duration</th>
-                                    <th className="text-left pb-3 font-medium">Sentiment</th>
-                                    <th className="text-left pb-3 font-medium">Status</th>
-                                    <th className="text-left pb-3 font-medium">Action</th>
+                                <tr className="text-[10px] text-faint uppercase tracking-wider bg-canvas/30">
+                                    <th className="px-4 py-3 font-medium">Caller</th>
+                                    <th className="px-4 py-3 font-medium">Time / Duration</th>
+                                    <th className="px-4 py-3 font-medium text-center">Outcome</th>
+                                    <th className="px-4 py-3 font-medium"></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {data.recent_conversations.map((c, i) => (
-                                    <tr key={i} className="border-b border-edge/50 last:border-0 hover:bg-white/[0.02] transition-colors">
-                                        <td className="py-4 text-sm font-medium flex items-center gap-2 text-heading">
-                                            <Phone className="w-3.5 h-3.5 text-faint" />
-                                            {c.caller_id}
+                                    <tr key={i} className="border-t border-edge/30 hover:bg-white/[0.02] transition-colors group">
+                                        <td className="px-4 py-3">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary">
+                                                    <Phone className="w-3 h-3" />
+                                                </div>
+                                                <span className="text-sm text-heading font-medium truncate w-24 sm:w-32 block" title={c.caller_id}>{c.caller_id}</span>
+                                            </div>
                                         </td>
-                                        <td className="py-4 text-sm text-muted">{c.time_ago}</td>
-                                        <td className="py-4 text-sm text-muted">{c.duration}</td>
-                                        <td className="py-4">
-                                            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${c.sentiment === "Very Positive" ? "bg-success/10 text-success" :
-                                                    c.sentiment === "Positive" ? "bg-info/10 text-info" :
-                                                        c.sentiment === "Negative" ? "bg-error/10 text-error" :
-                                                            "bg-white/5 text-muted"
-                                                }`}>{c.sentiment}</span>
+                                        <td className="px-4 py-3">
+                                            <div className="flex flex-col">
+                                                <span className="text-[13px] text-muted">{c.time_ago}</span>
+                                                <span className="text-[11px] text-faint flex items-center gap-1"><Clock className="w-3 h-3" /> {c.duration}</span>
+                                            </div>
                                         </td>
-                                        <td className="py-4">
-                                            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${c.status === "Qualified" ? "bg-primary/10 text-primary" :
-                                                    c.status === "Rejected" ? "bg-error/10 text-error" :
-                                                        "bg-warning/10 text-warning"
-                                                }`}>{c.status}</span>
+                                        <td className="px-4 py-3 text-center">
+                                            <div className="flex items-center justify-center gap-1">
+                                                {/* Sentiment Icon Tag */}
+                                                <div className="w-6 h-6 rounded flex items-center justify-center" title={`Sentiment: ${c.sentiment}`}>
+                                                    {c.sentiment === "Very Positive" || c.sentiment === "Positive" ? (
+                                                        <span className="text-success bg-success/10 p-1 rounded-full"><TrendingUp className="w-3 h-3" /></span>
+                                                    ) : c.sentiment === "Negative" ? (
+                                                        <span className="text-error bg-error/10 p-1 rounded-full"><TrendingUp className="w-3 h-3 rotate-180" /></span>
+                                                    ) : (
+                                                        <span className="text-muted bg-white/5 p-1 rounded-full"><TrendingUp className="w-3 h-3" /></span>
+                                                    )}
+                                                </div>
+                                                {/* Status Icon Tag */}
+                                                <div className="w-6 h-6 rounded flex items-center justify-center" title={`Status: ${c.status}`}>
+                                                    {c.status === "Qualified" ? (
+                                                        <span className="text-primary bg-primary/10 p-1 rounded"><CheckCircle2 className="w-3 h-3" /></span>
+                                                    ) : c.status === "Rejected" ? (
+                                                        <span className="text-error bg-error/10 p-1 rounded"><XCircle className="w-3 h-3" /></span>
+                                                    ) : (
+                                                        <span className="text-warning bg-warning/10 p-1 rounded"><AlertCircle className="w-3 h-3" /></span>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td className="py-4">
-                                            <Link href="/dashboard/conversations" className="w-7 h-7 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors">
-                                                <MessageSquare className="w-3.5 h-3.5 text-primary" />
-                                            </Link>
+                                        <td className="px-4 py-3 text-right">
+                                            <div className="flex items-center justify-end">
+                                                <button className="p-1.5 text-faint hover:text-heading hover:bg-white/10 rounded transition-colors opacity-0 group-hover:opacity-100">
+                                                    <MoreHorizontal className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -234,30 +287,7 @@ export function ClientDashboard({ storeId }: { storeId: string }) {
                     </div>
                 )}
             </div>
-        </>
-    );
-}
-
-function StatCard({ title, value, suffix, icon, color }: {
-    title: string; value: string; suffix?: string; icon: React.ReactNode; color: "primary" | "warning" | "success";
-}) {
-    const colorMap = {
-        primary: { bg: "bg-primary/10", text: "text-primary", border: "border-primary/20" },
-        warning: { bg: "bg-warning/10", text: "text-warning", border: "border-warning/20" },
-        success: { bg: "bg-success/10", text: "text-success", border: "border-success/20" },
-    };
-    const c = colorMap[color];
-
-    return (
-        <div className={`glass-card p-6 hover:border-edge-strong transition-all group`}>
-            <div className="flex items-center justify-between mb-4">
-                <p className="text-xs text-faint font-medium uppercase tracking-wider">{title}</p>
-                <div className={`w-10 h-10 rounded-xl ${c.bg} flex items-center justify-center ${c.text}`}>{icon}</div>
-            </div>
-            <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-bold text-heading">{value}</span>
-                {suffix && <span className="text-lg text-faint">{suffix}</span>}
-            </div>
         </div>
     );
 }
+

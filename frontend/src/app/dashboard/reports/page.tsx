@@ -182,20 +182,20 @@ export default function ReportsPage() {
   const TrendArrow = ({ value }: { value: number }) => {
     if (value > 0)
       return (
-        <span className="flex items-center gap-0.5 text-xs font-medium text-green-400">
-          <ArrowUpRight className="w-3.5 h-3.5" />+{value}%
+        <span className="flex items-center gap-0.5 text-xs font-semibold text-success bg-success/10 px-1.5 py-0.5 rounded">
+          <ArrowUpRight className="w-3 h-3" />+{value}%
         </span>
       );
     if (value < 0)
       return (
-        <span className="flex items-center gap-0.5 text-xs font-medium text-red-400">
-          <ArrowDownRight className="w-3.5 h-3.5" />
+        <span className="flex items-center gap-0.5 text-xs font-semibold text-error bg-error/10 px-1.5 py-0.5 rounded">
+          <ArrowDownRight className="w-3 h-3" />
           {value}%
         </span>
       );
     return (
-      <span className="flex items-center gap-0.5 text-xs font-medium text-gray-400">
-        <Minus className="w-3.5 h-3.5" />
+      <span className="flex items-center gap-0.5 text-xs font-medium text-muted bg-white/5 px-1.5 py-0.5 rounded">
+        <Minus className="w-3 h-3" />
         0%
       </span>
     );
@@ -209,24 +209,24 @@ export default function ReportsPage() {
   const displayedQuestions = unanswered?.questions?.slice(0, 20) ?? [];
 
   return (
-    <>
+    <div className="max-w-[1200px]">
       {/* Header row */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-heading mb-1">Analytics</h1>
           <p className="text-sm text-muted">
             Insights into your voice AI performance
           </p>
         </div>
-        <div className="flex bg-canvas rounded-full border border-edge p-1">
+        <div className="flex bg-black/20 rounded-lg p-1 border border-edge">
           {PERIODS.map((p) => (
             <button
               key={p.value}
               onClick={() => setPeriod(p.value)}
-              className={`px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${
+              className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
                 period === p.value
-                  ? "bg-primary text-white"
-                  : "text-muted hover:text-heading"
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-muted hover:text-heading hover:bg-white/5"
               }`}
             >
               {p.label}
@@ -236,17 +236,17 @@ export default function ReportsPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {/* Total Conversations */}
-        <div className="glass-card p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <MessageSquare className="w-5 h-5 text-primary" />
+        <div className="bg-panel rounded-xl border border-edge p-5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-muted uppercase tracking-wider">Conversations</span>
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <MessageSquare className="w-4 h-4 text-primary" />
             </div>
-            <span className="text-sm text-muted">Total Conversations</span>
           </div>
           <div className="flex items-end justify-between">
-            <p className="text-3xl font-bold text-heading">
+            <p className="text-3xl font-bold text-heading leading-none">
               {overview?.total_conversations ?? 0}
             </p>
             <TrendArrow value={convTrend} />
@@ -254,15 +254,15 @@ export default function ReportsPage() {
         </div>
 
         {/* Avg Duration */}
-        <div className="glass-card p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-              <Clock className="w-5 h-5 text-blue-400" />
+        <div className="bg-panel rounded-xl border border-edge p-5">
+          <div className="flex items-center justify-between mb-3">
+             <span className="text-xs font-semibold text-muted uppercase tracking-wider">Avg Duration</span>
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+              <Clock className="w-4 h-4 text-blue-400" />
             </div>
-            <span className="text-sm text-muted">Avg Duration</span>
           </div>
           <div className="flex items-end justify-between">
-            <p className="text-3xl font-bold text-heading">
+            <p className="text-3xl font-bold text-heading leading-none">
               {formatDuration(overview?.avg_duration_seconds ?? 0)}
             </p>
             <TrendArrow value={durTrend} />
@@ -270,163 +270,187 @@ export default function ReportsPage() {
         </div>
 
         {/* Total Duration */}
-        <div className="glass-card p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
-              <Timer className="w-5 h-5 text-purple-400" />
+        <div className="bg-panel rounded-xl border border-edge p-5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-muted uppercase tracking-wider">Total Duration</span>
+            <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+              <Timer className="w-4 h-4 text-purple-400" />
             </div>
-            <span className="text-sm text-muted">Total Duration</span>
           </div>
-          <p className="text-3xl font-bold text-heading">
-            {formatHoursDuration(overview?.total_duration_seconds ?? 0)}
-          </p>
+          <div className="flex items-end justify-between">
+              <p className="text-3xl font-bold text-heading leading-none">
+                {formatHoursDuration(overview?.total_duration_seconds ?? 0)}
+              </p>
+          </div>
         </div>
 
         {/* Unanswered Questions */}
-        <div className="glass-card p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
-              <HelpCircle className="w-5 h-5 text-orange-400" />
+        <div className="bg-panel rounded-xl border border-edge p-5">
+          <div className="flex items-center justify-between mb-3">
+             <span className="text-xs font-semibold text-muted uppercase tracking-wider">Unanswered</span>
+            <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+              <HelpCircle className="w-4 h-4 text-orange-400" />
             </div>
-            <span className="text-sm text-muted">Unanswered Questions</span>
           </div>
-          <p className="text-3xl font-bold text-orange-400">
-            {unanswered?.total ?? 0}
-          </p>
+          <div className="flex items-end justify-between">
+              <p className="text-3xl font-bold text-orange-400 leading-none">
+                {unanswered?.total ?? 0}
+              </p>
+          </div>
         </div>
       </div>
 
       {/* Two-column: Peak Hours + Top Intents */}
-      <div className="grid lg:grid-cols-2 gap-6 mb-6">
+      <div className="grid lg:grid-cols-2 gap-4 mb-4">
         {/* Peak Hours Chart */}
-        <div className="glass-card p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <BarChart3 className="w-5 h-5 text-primary" />
-            <h2 className="text-base font-semibold text-heading">
-              Peak Usage Hours
+        <div className="bg-panel rounded-xl border border-edge overflow-hidden flex flex-col">
+          <div className="p-5 border-b border-edge flex items-center justify-between bg-canvas/30">
+            <h2 className="font-semibold text-sm text-heading flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-primary" />
+                Peak Usage Hours
             </h2>
           </div>
-          {peakHours?.hours && peakHours.hours.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={peakHours.hours}>
-                <XAxis
-                  dataKey="hour"
-                  tick={{ fill: "#6b7280", fontSize: 12 }}
-                  tickFormatter={(h: number) => `${h}:00`}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fill: "#6b7280", fontSize: 12 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#181b21",
-                    border: "1px solid #2a2d35",
-                    borderRadius: 8,
-                    color: "#e5e7eb",
-                  }}
-                  labelFormatter={(h) => `${h}:00 - ${Number(h) + 1}:00`}
-                  cursor={{ fill: "rgba(37, 106, 244, 0.1)" }}
-                />
-                <Bar dataKey="count" fill="#256af4" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-faint text-sm">No peak hours data available</p>
-          )}
+          <div className="p-5 flex-1 min-h-[300px]">
+              {peakHours?.hours && peakHours.hours.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={peakHours.hours} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <XAxis
+                      dataKey="hour"
+                      tick={{ fill: "#6b7280", fontSize: 11 }}
+                      tickFormatter={(h: number) => `${h}:00`}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fill: "#6b7280", fontSize: 11 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#181b21",
+                        border: "1px solid #2a2d35",
+                        borderRadius: 8,
+                        color: "#e5e7eb",
+                        fontSize: '12px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                      }}
+                      labelFormatter={(h) => `${h}:00 - ${Number(h) + 1}:00`}
+                      cursor={{ fill: "rgba(37, 106, 244, 0.1)" }}
+                    />
+                    <Bar dataKey="count" fill="#256af4" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-muted text-sm border border-dashed border-edge rounded-lg">No peak hours data available</div>
+              )}
+          </div>
         </div>
 
         {/* Top Intents */}
-        <div className="glass-card p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <BarChart3 className="w-5 h-5 text-primary" />
-            <h2 className="text-base font-semibold text-heading">
-              Top Customer Intents
+        <div className="bg-panel rounded-xl border border-edge overflow-hidden flex flex-col">
+           <div className="p-5 border-b border-edge flex items-center justify-between bg-canvas/30">
+            <h2 className="font-semibold text-sm text-heading flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-primary" />
+                Top Customer Intents
             </h2>
           </div>
-          {intents?.intents && intents.intents.length > 0 ? (
-            <div className="space-y-4">
-              {intents.intents.slice(0, 10).map((item, idx) => {
-                const percentage = (item.count / maxIntentCount) * 100;
-                return (
-                  <div key={idx}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-heading">
-                        {item.intent || "Unknown"}
-                      </span>
-                      <span className="text-xs text-faint">
-                        {item.count} conversations
-                      </span>
-                    </div>
-                    <div className="w-full bg-canvas rounded-full h-2 overflow-hidden">
-                      <div
-                        className="bg-primary h-full rounded-full transition-all"
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-faint text-sm">No intent data available</p>
-          )}
+          <div className="p-5 flex-1">
+              {intents?.intents && intents.intents.length > 0 ? (
+                <div className="space-y-5">
+                  {intents.intents.slice(0, 8).map((item, idx) => {
+                    const percentage = (item.count / maxIntentCount) * 100;
+                    return (
+                      <div key={idx}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-sm font-medium text-heading">
+                            {item.intent || "Unknown"}
+                          </span>
+                          <span className="text-xs font-semibold text-muted">
+                            {item.count}
+                          </span>
+                        </div>
+                        <div className="w-full bg-black/20 rounded-full h-1.5 overflow-hidden">
+                          <div
+                            className="bg-primary h-full rounded-full transition-all"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="h-full min-h-[250px] flex items-center justify-center text-muted text-sm border border-dashed border-edge rounded-lg">No intent data available</div>
+              )}
+          </div>
         </div>
       </div>
 
       {/* Unanswered Questions Section */}
-      <div className="glass-card p-6">
-        <div className="flex items-center gap-2 mb-6">
-          <HelpCircle className="w-5 h-5 text-orange-400" />
-          <h2 className="text-base font-semibold text-heading">
+      <div className="bg-panel rounded-xl border border-edge overflow-hidden">
+        <div className="p-5 border-b border-edge flex items-center gap-2 bg-canvas/30">
+          <HelpCircle className="w-4 h-4 text-orange-400" />
+          <h2 className="font-semibold text-sm text-heading">
             Unanswered Questions
           </h2>
           {(unanswered?.total ?? 0) > 0 && (
-            <span className="ml-2 px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-500/10 text-orange-400">
+            <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20">
               {unanswered?.total}
             </span>
           )}
         </div>
 
         {displayedQuestions.length === 0 ? (
-          <div className="flex items-center gap-3 py-8 justify-center">
-            <CheckCircle className="w-5 h-5 text-green-400" />
-            <p className="text-sm text-muted">
-              No unanswered questions — your agent is handling everything!
-            </p>
+          <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center mb-3">
+                <CheckCircle className="w-6 h-6 text-success" />
+            </div>
+            <p className="text-sm font-medium text-heading">All questions answered!</p>
+            <p className="text-xs text-muted mt-1">Your agent is handling everything flawlessly.</p>
           </div>
         ) : (
-          <>
-            <div className="divide-y divide-edge">
-              {displayedQuestions.map((q, idx) => (
-                <div key={idx} className="py-3 first:pt-0 last:pb-0">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-heading">
-                        {q.intent || "Unknown Intent"}
-                      </p>
-                      <p className="text-sm text-muted mt-0.5 truncate">
-                        {q.summary}
-                      </p>
-                    </div>
-                    <span className="text-xs text-faint whitespace-nowrap">
-                      {timeAgo(q.date)}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="overflow-x-auto">
+             <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-edge bg-canvas/10 text-xs text-muted">
+                    <th className="p-4 font-medium">Intent</th>
+                    <th className="p-4 font-medium">Summary</th>
+                    <th className="p-4 font-medium text-right">Time</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-edge">
+                  {displayedQuestions.map((q, idx) => (
+                    <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
+                        <td className="p-4 align-top">
+                            <span className="inline-flex items-center px-2 py-1 rounded bg-white/5 text-xs font-medium text-heading border border-edge">
+                            {q.intent || "Unknown"}
+                            </span>
+                        </td>
+                        <td className="p-4 w-full">
+                             <p className="text-sm text-muted line-clamp-2 leading-relaxed">
+                                {q.summary}
+                            </p>
+                        </td>
+                        <td className="p-4 align-top text-right">
+                             <span className="text-xs text-faint whitespace-nowrap">
+                                {timeAgo(q.date)}
+                            </span>
+                        </td>
+                    </tr>
+                  ))}
+               </tbody>
+             </table>
             {(unanswered?.total ?? 0) > 20 && (
-              <p className="text-xs text-faint mt-4 text-center">
-                Showing 20 of {unanswered?.total}
-              </p>
+              <div className="p-4 border-t border-edge text-center bg-canvas/10">
+                  <p className="text-xs font-medium text-muted">
+                    Showing 20 of {unanswered?.total} questions
+                  </p>
+              </div>
             )}
-          </>
+          </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
