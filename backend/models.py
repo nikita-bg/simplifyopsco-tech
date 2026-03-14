@@ -285,3 +285,61 @@ class WidgetConfigResponse(BaseModel):
     greeting_message: Optional[str] = None
     status: str = "unknown"
 
+
+# ==========================================
+# Agent Configuration Models
+# ==========================================
+
+class VoiceOption(BaseModel):
+    """Curated ElevenLabs voice option."""
+    id: str
+    name: str
+    preview_url: str
+    gender: str
+    accent: str
+    description: str
+
+
+class PersonalityPreset(BaseModel):
+    """Personality preset with system prompt template."""
+    id: str
+    name: str
+    description: str
+    system_prompt: str
+
+
+class LanguageOption(BaseModel):
+    """Supported language for voice agent."""
+    code: str
+    name: str
+
+
+class AgentConfigResponse(BaseModel):
+    """Full agent configuration response."""
+    voice_id: Optional[str] = None
+    voice_name: Optional[str] = None
+    greeting: str
+    widget_color: str
+    widget_position: str
+    enabled: bool
+    language: str
+    personality_preset: Optional[str] = None
+    agent_status: str
+
+
+class AgentConfigUpdate(BaseModel):
+    """Partial agent configuration update (all fields optional)."""
+    voice_id: Optional[str] = None
+    greeting: Optional[str] = None
+    widget_color: Optional[str] = None
+    widget_position: Optional[str] = None
+    enabled: Optional[bool] = None
+    language: Optional[str] = None
+    personality_preset: Optional[str] = None
+
+
+class EmbedCodeResponse(BaseModel):
+    """Embed code snippet response."""
+    embed_code: str
+    store_id: str
+
