@@ -198,7 +198,7 @@ Note: Phases 6, 7, 8 can potentially run in parallel after their dependencies ar
 | 1. Agent Infrastructure | 2/2 | Complete | 2026-03-13 |
 | 2. Knowledge Base | 2/3 | In Progress|  |
 | 3. Widget | 0/2 | Not started | - |
-| 4. Automation | 0/2 | Not started | - |
+| 4. Automation | 1/2 | In Progress|  |
 | 5. Onboarding | 0/2 | Not started | - |
 | 6. Agent Configuration | 0/3 | Not started | - |
 | 7. Billing | 0/3 | Not started | - |

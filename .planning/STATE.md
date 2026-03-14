@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-03-13T21:04:17.717Z"
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-14T08:42:33.693Z"
 last_activity: 2026-03-13 — Completed 03-02 (Widget Embed Refactor)
 progress:
   total_phases: 10
   completed_phases: 3
-  total_plans: 9
-  completed_plans: 7
+  total_plans: 11
+  completed_plans: 8
 ---
 
 ---
@@ -71,6 +71,7 @@ Progress: [████████░░] 78%
 - Trend: Steady
 
 *Updated after each plan completion*
+| Phase 04-automation P01 | 18 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,9 @@ Recent decisions affecting current work:
 - [Phase 03]: CSS custom properties (--avsa-color) replace template literal color injection for runtime theming
 - [Phase 03]: Mic permission errors keep panel open with retry instead of auto-closing
 - [Phase 03]: All widget console.error replaced with console.warn for merchant storefronts
+- [Phase 04-automation]: Raw httpx for Resend API (consistent with elevenlabs_service.py, no SDK dependency)
+- [Phase 04-automation]: BackgroundTasks for per-request onboarding triggers (simpler than APScheduler jobs, no persistence needed)
+- [Phase 04-automation]: Top-level try/except in run_onboarding prevents BackgroundTasks crash; KB failure non-blocking, agent failure sets status='failed'
 
 ### Pending Todos
 
@@ -118,6 +122,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T21:00:13.056Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-03-14T08:42:33.689Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None

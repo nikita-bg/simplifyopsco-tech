@@ -76,12 +76,12 @@
 
 ### Automation (AUT)
 
-- [ ] **AUT-01**: n8n deployed on Railway alongside backend
-- [ ] **AUT-02**: Onboarding workflow: signup → create agent → sync products → send email
+- [x] **AUT-01**: n8n deployed on Railway alongside backend
+- [x] **AUT-02**: Onboarding workflow: signup → create agent → sync products → send email
 - [ ] **AUT-03**: Product sync workflow: Shopify webhook → rebuild KB document
 - [ ] **AUT-04**: Usage alert workflow: daily check → email at 80% threshold
 - [ ] **AUT-05**: Post-call analysis: ElevenLabs webhook → conversation analysis → analytics update
-- [ ] **AUT-06**: Error handler workflow for failed pipelines (prevents half-configured state)
+- [x] **AUT-06**: Error handler workflow for failed pipelines (prevents half-configured state)
 
 ### Analytics (ANL)
 
@@ -179,12 +179,12 @@
 | WDG-05 | Phase 3: Widget | Complete |
 | WDG-06 | Phase 3: Widget | Complete |
 | WDG-07 | Phase 3: Widget | Complete |
-| AUT-01 | Phase 4: Automation | Pending |
-| AUT-02 | Phase 4: Automation | Pending |
+| AUT-01 | Phase 4: Automation | Complete |
+| AUT-02 | Phase 4: Automation | Complete |
 | AUT-03 | Phase 4: Automation | Pending |
 | AUT-04 | Phase 4: Automation | Pending |
 | AUT-05 | Phase 4: Automation | Pending |
-| AUT-06 | Phase 4: Automation | Pending |
+| AUT-06 | Phase 4: Automation | Complete |
 | ONB-01 | Phase 5: Onboarding | Pending |
 | ONB-02 | Phase 5: Onboarding | Pending |
 | ONB-03 | Phase 5: Onboarding | Pending |
