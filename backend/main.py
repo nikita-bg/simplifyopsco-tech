@@ -54,6 +54,7 @@ from backend.auth_middleware import (  # type: ignore[import]
     verify_store_ownership,
     require_store_owner,
 )
+from backend.automation_service import automation_service  # type: ignore[import]
 try:
     import stripe  # type: ignore[import-not-found]
 except ImportError:
@@ -69,6 +70,7 @@ async def lifespan(app: FastAPI):  # type: ignore[no-untyped-def]
     """Startup and shutdown events"""
     # Startup
     await db.connect()
+    await automation_service.start()
 
     print("=" * 60)
     print("   SimplifyOps API v1.0")
@@ -79,11 +81,13 @@ async def lifespan(app: FastAPI):  # type: ignore[no-untyped-def]
     print(f"   ElevenLabs Key: {'[OK]' if settings.ELEVENLABS_API_KEY else '[MISSING]'}")
     print(f"   Shopify API Key: {'[OK]' if settings.SHOPIFY_API_KEY else '[MISSING]'}")
     print(f"   Encryption Key: {'[OK]' if settings.ENCRYPTION_KEY else '[MISSING]'}")
+    print(f"   Scheduler: [OK]")
     print("=" * 60)
 
     yield
 
     # Shutdown
+    await automation_service.stop()
     await db.disconnect()
 
 
@@ -1679,9 +1683,10 @@ async def get_current_user(request: Request):
 
 
 @app.post("/api/stores/create")
-async def create_store(request: Request):
+async def create_store(request: Request, background_tasks: BackgroundTasks):
     """
     Create a store for non-Shopify users (manual website entry).
+    Triggers onboarding workflow (agent creation, KB sync, welcome email) in background.
     """
     user_id = await get_authenticated_user(request)
 
@@ -1706,6 +1711,14 @@ async def create_store(request: Request):
         except Exception as e:
             SecurityLogger.log_error("Create store error", e)
             raise HTTPException(500, "Failed to create store")
+
+    # Trigger onboarding workflow in background (fire-and-forget)
+    # owner_email=None: the workflow resolves it from DB using owner_id
+    background_tasks.add_task(
+        automation_service.run_onboarding,
+        store_id,
+        None,
+    )
 
     return {"store_id": store_id, "site_url": site_url, "subscription_tier": "trial"}
 
