@@ -12,6 +12,13 @@ from backend.security_middleware import SecurityLogger  # type: ignore[import]
 if settings.STRIPE_SECRET_KEY:
     stripe.api_key = settings.STRIPE_SECRET_KEY
 
+TIER_LIMITS: dict[str, int] = {
+    "trial": 30,
+    "starter": 100,
+    "growth": 400,
+    "scale": 2000,
+}
+
 PLAN_MAP = {
     "starter": settings.STRIPE_STARTER_PRICE_ID,
     "growth": settings.STRIPE_PRO_PRICE_ID,  # Growth plan uses the Pro price ID
@@ -115,6 +122,35 @@ async def handle_webhook_event(payload: bytes, sig_header: str) -> bool:
                        WHERE stripe_subscription_id = $2""",
                     tier, subscription_id,
                 )
+
+        elif event_type == "invoice.paid":
+            subscription_id = data.get("subscription")
+            if subscription_id and db.pool:
+                # Find store by subscription ID
+                store_row = await db.fetchrow(
+                    "SELECT id, agent_status FROM stores WHERE stripe_subscription_id = $1",
+                    subscription_id,
+                )
+                if store_row:
+                    store_id = store_row["id"]
+                    # Reset minutes_used for new billing cycle
+                    await db.execute(
+                        """UPDATE stores
+                           SET minutes_used = 0,
+                               billing_period_start = NOW(),
+                               updated_at = NOW()
+                           WHERE id = $1::uuid""",
+                        str(store_id),
+                    )
+                    # Restore agent if it was disabled due to usage limit
+                    if store_row["agent_status"] == "limit_reached":
+                        await db.execute(
+                            "UPDATE stores SET agent_status = 'active' WHERE id = $1::uuid",
+                            str(store_id),
+                        )
+                    SecurityLogger.log(
+                        f"Billing cycle reset: sub={subscription_id}", "INFO"
+                    )
 
         elif event_type == "customer.subscription.deleted":
             subscription_id = data.get("id")

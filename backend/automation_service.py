@@ -17,6 +17,7 @@ from backend.database import db  # type: ignore[import]
 from backend.elevenlabs_service import elevenlabs_service  # type: ignore[import]
 from backend.kb_service import kb_service  # type: ignore[import]
 from backend.email_service import email_service  # type: ignore[import]
+from backend.stripe_service import TIER_LIMITS  # type: ignore[import]
 
 logger = logging.getLogger("simplifyops.automation")
 
@@ -27,13 +28,8 @@ class AutomationService:
     def __init__(self) -> None:
         self.scheduler: AsyncIOScheduler = AsyncIOScheduler()
 
-    # Tier limits in minutes (roadmap values, not legacy session counts)
-    TIER_LIMITS: dict[str, int] = {
-        "trial": 30,
-        "starter": 100,
-        "growth": 400,
-        "scale": 2000,
-    }
+    # Shared tier limits imported from stripe_service (single source of truth)
+    TIER_LIMITS = TIER_LIMITS
 
     async def start(self) -> None:
         """Start the APScheduler and register scheduled jobs. Call from FastAPI lifespan startup."""
@@ -138,6 +134,27 @@ class AutomationService:
             owner_id: Optional[str] = row["owner_id"]
 
             limit = self.TIER_LIMITS.get(tier, self.TIER_LIMITS["trial"])
+
+            # Belt-and-suspenders: enforce 110% hard limit (also done in post-call webhook)
+            if minutes_used * 10 >= limit * 11:
+                try:
+                    await db.execute(
+                        "UPDATE stores SET agent_status = 'limit_reached' WHERE id = $1::uuid AND agent_status = 'active'",
+                        store_id,
+                    )
+                    logger.warning(
+                        "daily_usage_check: usage limit reached for store %s: %d/%d minutes",
+                        store_id,
+                        minutes_used,
+                        limit,
+                    )
+                except Exception as exc:
+                    logger.error(
+                        "daily_usage_check: limit enforcement failed for store %s: %s",
+                        store_id,
+                        exc,
+                    )
+
             if minutes_used < limit * 0.8:
                 continue
 

@@ -59,6 +59,7 @@ from backend.stripe_service import (  # type: ignore[import]
     create_checkout_session,
     create_portal_session,
     handle_webhook_event,
+    TIER_LIMITS,
 )
 from backend.auth_middleware import (  # type: ignore[import]
     get_authenticated_user,
@@ -456,6 +457,26 @@ async def post_call_webhook(
                     )
             except Exception as e:
                 SecurityLogger.log(f"minutes_used update error: {e}", "WARNING")
+
+            # Enforce 110% usage limit
+            try:
+                usage_row = await db.fetchrow(
+                    "SELECT subscription_tier, minutes_used FROM stores WHERE id = $1::uuid",
+                    store_id,
+                )
+                if usage_row:
+                    tier_limit = TIER_LIMITS.get(usage_row["subscription_tier"] or "trial", 30)
+                    if (usage_row["minutes_used"] or 0) * 10 >= tier_limit * 11:
+                        await db.execute(
+                            "UPDATE stores SET agent_status = 'limit_reached' WHERE id = $1::uuid AND agent_status = 'active'",
+                            store_id,
+                        )
+                        SecurityLogger.log(
+                            f"Usage limit reached: store={store_id} minutes={usage_row['minutes_used']}/{tier_limit}",
+                            "WARNING",
+                        )
+            except Exception as e:
+                SecurityLogger.log(f"Usage enforcement error: {e}", "WARNING")
 
         SecurityLogger.log(
             f"Shopping call recorded: {call_id} | Intent: {analysis.get('intent')} | "
@@ -1554,8 +1575,8 @@ async def install_widget(request: Request):
     if db.pool:
         try:
             await db.execute(
-                """INSERT INTO stores (id, shop_domain, subscription_tier, created_at)
-                   VALUES ($1, $2, 'trial', NOW())
+                """INSERT INTO stores (id, shop_domain, subscription_tier, created_at, trial_ends_at)
+                   VALUES ($1, $2, 'trial', NOW(), NOW() + INTERVAL '14 days')
                    ON CONFLICT (id) DO NOTHING""",
                 store_id, site_url,
             )
@@ -1750,8 +1771,8 @@ async def create_store(request: Request, background_tasks: BackgroundTasks):
     if db.pool:
         try:
             await db.execute(
-                """INSERT INTO stores (id, shop_domain, owner_id, subscription_tier, settings, created_at, store_name, onboarding_step)
-                   VALUES ($1, $2, $3::uuid, 'trial', '{}', NOW(), $4, 'pending')
+                """INSERT INTO stores (id, shop_domain, owner_id, subscription_tier, settings, created_at, store_name, onboarding_step, trial_ends_at)
+                   VALUES ($1, $2, $3::uuid, 'trial', '{}', NOW(), $4, 'pending', NOW() + INTERVAL '14 days')
                    ON CONFLICT (shop_domain) DO UPDATE SET owner_id = $3::uuid, store_name = $4, onboarding_step = 'pending'
                    RETURNING id""",
                 store_id, site_url, user_id, store_name,
@@ -1840,11 +1861,12 @@ async def get_store_subscription(store_id: str, request: Request):
     """Get real subscription info from Stripe for a store."""
     await require_store_owner(request, store_id)
     if not db.pool:
-        return {"tier": "trial", "status": "active", "sessions_used": 0, "sessions_limit": 30}
+        return {"tier": "trial", "status": "active", "minutes_used": 0, "minutes_limit": 30, "is_trial_expired": False, "trial_ends_at": None}
 
     try:
         row = await db.fetchrow(
-            """SELECT subscription_tier, stripe_customer_id, stripe_subscription_id
+            """SELECT subscription_tier, stripe_customer_id, stripe_subscription_id,
+                      minutes_used, trial_ends_at
                FROM stores WHERE id = $1::uuid""",
             store_id,
         )
@@ -1852,23 +1874,27 @@ async def get_store_subscription(store_id: str, request: Request):
             raise HTTPException(404, "Store not found")
 
         tier = row["subscription_tier"] or "trial"
+        minutes_used = row["minutes_used"] or 0
+        trial_ends_at = row["trial_ends_at"]
+
+        # Determine trial expiry
+        is_trial_expired = False
+        if tier == "trial" and trial_ends_at is not None:
+            if hasattr(trial_ends_at, 'tzinfo') and trial_ends_at.tzinfo is None:
+                from datetime import timezone
+                trial_ends_at = trial_ends_at.replace(tzinfo=timezone.utc)
+            is_trial_expired = trial_ends_at < datetime.now(UTC)
+
         result: dict[str, Any] = {
             "tier": tier,
             "status": "active",
-            "sessions_used": 0,
-            "sessions_limit": {"trial": 30, "starter": 100, "growth": 300, "scale": 1000}.get(tier, 30),
+            "minutes_used": minutes_used,
+            "minutes_limit": TIER_LIMITS.get(tier, 30),
             "current_period_end": None,
             "payment_method_last4": None,
+            "trial_ends_at": trial_ends_at.isoformat() if trial_ends_at else None,
+            "is_trial_expired": is_trial_expired,
         }
-
-        # Count sessions used this billing period
-        sessions_used = await db.fetchval(
-            """SELECT COUNT(*) FROM conversations
-               WHERE store_id = $1::uuid
-               AND started_at >= date_trunc('month', NOW())""",
-            store_id,
-        )
-        result["sessions_used"] = int(sessions_used or 0)
 
         # Get Stripe details if available
         if row["stripe_subscription_id"] and settings.STRIPE_SECRET_KEY:
@@ -1894,7 +1920,7 @@ async def get_store_subscription(store_id: str, request: Request):
         raise
     except Exception as e:
         SecurityLogger.log_error("Subscription fetch error", e)
-        return {"tier": "trial", "status": "active", "sessions_used": 0, "sessions_limit": 30}
+        return {"tier": "trial", "status": "active", "minutes_used": 0, "minutes_limit": 30, "is_trial_expired": False, "trial_ends_at": None}
 
 
 @app.get("/api/stores/{store_id}/reports/insights")
