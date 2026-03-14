@@ -199,7 +199,7 @@ Note: Phases 6, 7, 8 can potentially run in parallel after their dependencies ar
 | 2. Knowledge Base | 2/3 | In Progress|  |
 | 3. Widget | 0/2 | Not started | - |
 | 4. Automation | 2/2 | Complete   | 2026-03-14 |
-| 5. Onboarding | 0/2 | Not started | - |
+| 5. Onboarding | 1/2 | In Progress|  |
 | 6. Agent Configuration | 0/3 | Not started | - |
 | 7. Billing | 0/3 | Not started | - |
 | 8. Analytics | 0/2 | Not started | - |

@@ -43,13 +43,13 @@
 
 ### Onboarding (ONB)
 
-- [ ] **ONB-01**: Single-page signup form (store name, website URL, store type)
-- [ ] **ONB-02**: Agent auto-created within 30 seconds of signup (n8n workflow)
+- [x] **ONB-01**: Single-page signup form (store name, website URL, store type)
+- [x] **ONB-02**: Agent auto-created within 30 seconds of signup (n8n workflow)
 - [ ] **ONB-03**: Shopify 1-click connect via OAuth install flow
-- [ ] **ONB-04**: Progress indicator during async agent creation ("Creating agent... Syncing products...")
-- [ ] **ONB-05**: Welcome email with embed code snippet sent automatically
-- [ ] **ONB-06**: Default sensible agent config (friendly voice, blue widget, bottom-right, English)
-- [ ] **ONB-07**: Time to "aha moment" under 5 minutes from signup
+- [x] **ONB-04**: Progress indicator during async agent creation ("Creating agent... Syncing products...")
+- [x] **ONB-05**: Welcome email with embed code snippet sent automatically
+- [x] **ONB-06**: Default sensible agent config (friendly voice, blue widget, bottom-right, English)
+- [x] **ONB-07**: Time to "aha moment" under 5 minutes from signup
 
 ### Agent Configuration (CFG)
 
@@ -185,13 +185,13 @@
 | AUT-04 | Phase 4: Automation | Complete |
 | AUT-05 | Phase 4: Automation | Complete |
 | AUT-06 | Phase 4: Automation | Complete |
-| ONB-01 | Phase 5: Onboarding | Pending |
-| ONB-02 | Phase 5: Onboarding | Pending |
+| ONB-01 | Phase 5: Onboarding | Complete |
+| ONB-02 | Phase 5: Onboarding | Complete |
 | ONB-03 | Phase 5: Onboarding | Pending |
-| ONB-04 | Phase 5: Onboarding | Pending |
-| ONB-05 | Phase 5: Onboarding | Pending |
-| ONB-06 | Phase 5: Onboarding | Pending |
-| ONB-07 | Phase 5: Onboarding | Pending |
+| ONB-04 | Phase 5: Onboarding | Complete |
+| ONB-05 | Phase 5: Onboarding | Complete |
+| ONB-06 | Phase 5: Onboarding | Complete |
+| ONB-07 | Phase 5: Onboarding | Complete |
 | CFG-01 | Phase 6: Agent Configuration | Pending |
 | CFG-02 | Phase 6: Agent Configuration | Pending |
 | CFG-03 | Phase 6: Agent Configuration | Pending |

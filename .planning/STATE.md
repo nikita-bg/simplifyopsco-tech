@@ -36,16 +36,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-13)
 
 **Core value:** Any merchant can have a working, personalized AI voice sales assistant live on their website in under 10 minutes — no code, no technical help needed.
-**Current focus:** Phase 3 - Widget (COMPLETE)
+**Current focus:** Phase 5 - Onboarding
 
 ## Current Position
 
-Phase: 3 of 10 (Widget) - COMPLETE
-Plan: 2 of 2 in current phase (03-02 complete)
+Phase: 5 of 10 (Onboarding)
+Plan: 1 of 2 in current phase (05-01 complete)
 Status: Executing
-Last activity: 2026-03-13 — Completed 03-02 (Widget Embed Refactor)
+Last activity: 2026-03-14 — Completed 05-01 (Backend Onboarding Status)
 
-Progress: [████████░░] 78%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Progress: [████████░░] 78%
 *Updated after each plan completion*
 | Phase 04-automation P01 | 18 | 2 tasks | 6 files |
 | Phase 04-automation P02 | 4 | 2 tasks | 4 files |
+| Phase 05-onboarding P01 | 4 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,9 @@ Recent decisions affecting current work:
 - [Phase 04-automation]: register_webhook wraps update_agent — ElevenLabs webhooks live in platform_settings, no new HTTP method needed
 - [Phase 04-automation]: Tier limits use roadmap MINUTES (trial=30, starter=100, growth=400, scale=2000) not legacy session counts
 - [Phase 04-automation]: ceil(duration/60) for minute billing — partial minutes round up, standard telco convention
+- [Phase 05-onboarding]: Onboarding step tracked via DB column (onboarding_step TEXT) for polling simplicity
+- [Phase 05-onboarding]: Three valid store_types: online_store, service_business, lead_gen
+- [Phase 05-onboarding]: completed_steps derived from sequence position rather than stored separately
 
 ### Pending Todos
 
@@ -126,6 +130,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T08:50:09.891Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-03-14T09:52:12Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
