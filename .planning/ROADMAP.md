@@ -113,11 +113,11 @@ Plans:
   3. Shopify merchants can connect their store via 1-click OAuth install flow without leaving the onboarding experience
   4. A welcome email with the embed code snippet is sent automatically on successful agent creation
   5. Default agent config (friendly voice, blue widget, bottom-right position, English) means the agent works immediately with zero configuration
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md — Backend: enhanced store creation (store_name, store_type), onboarding status tracking, status polling endpoint
+- [ ] 05-02-PLAN.md — Frontend: enhanced onboarding form with all fields, Shopify connect, and real-time progress indicator
 
 ### Phase 6: Agent Configuration
 **Goal**: Merchants can fully customize their AI agent's voice, personality, and appearance without technical knowledge
