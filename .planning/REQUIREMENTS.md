@@ -85,12 +85,12 @@
 
 ### Analytics (ANL)
 
-- [ ] **ANL-01**: Total conversations with trend vs previous period
-- [ ] **ANL-02**: Average conversation duration
-- [ ] **ANL-03**: Top intents / what customers asked about (readable format)
+- [x] **ANL-01**: Total conversations with trend vs previous period
+- [x] **ANL-02**: Average conversation duration
+- [x] **ANL-03**: Top intents / what customers asked about (readable format)
 - [ ] **ANL-04**: Recent conversations list with full transcript click-through
-- [ ] **ANL-05**: Peak usage hours visualization
-- [ ] **ANL-06**: Unanswered questions log ("Your agent couldn't answer these 23 questions")
+- [x] **ANL-05**: Peak usage hours visualization
+- [x] **ANL-06**: Unanswered questions log ("Your agent couldn't answer these 23 questions")
 
 ### Design (DSN)
 
@@ -209,12 +209,12 @@
 | BIL-07 | Phase 7: Billing | Complete |
 | BIL-08 | Phase 7: Billing | Complete |
 | BIL-09 | Phase 7: Billing | Complete |
-| ANL-01 | Phase 8: Analytics | Pending |
-| ANL-02 | Phase 8: Analytics | Pending |
-| ANL-03 | Phase 8: Analytics | Pending |
+| ANL-01 | Phase 8: Analytics | Complete |
+| ANL-02 | Phase 8: Analytics | Complete |
+| ANL-03 | Phase 8: Analytics | Complete |
 | ANL-04 | Phase 8: Analytics | Pending |
-| ANL-05 | Phase 8: Analytics | Pending |
-| ANL-06 | Phase 8: Analytics | Pending |
+| ANL-05 | Phase 8: Analytics | Complete |
+| ANL-06 | Phase 8: Analytics | Complete |
 | DSN-01 | Phase 9: Design Polish | Pending |
 | DSN-02 | Phase 9: Design Polish | Pending |
 | DSN-03 | Phase 9: Design Polish | Pending |
