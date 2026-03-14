@@ -3,11 +3,27 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-03-14T10:02:33.926Z"
+last_activity: 2026-03-14 — Completed 05-01 (Backend Onboarding Status)
+progress:
+  total_phases: 10
+  completed_phases: 5
+  total_plans: 13
+  completed_plans: 11
+  percent: 85
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: executing
 stopped_at: Completed 04-02-PLAN.md
 last_updated: "2026-03-14T08:53:26.190Z"
 last_activity: 2026-03-13 — Completed 03-02 (Widget Embed Refactor)
 progress:
-  total_phases: 10
+  [█████████░] 85%
   completed_phases: 4
   total_plans: 11
   completed_plans: 9
@@ -74,6 +90,7 @@ Progress: [████████░░] 80%
 | Phase 04-automation P01 | 18 | 2 tasks | 6 files |
 | Phase 04-automation P02 | 4 | 2 tasks | 4 files |
 | Phase 05-onboarding P01 | 4 | 2 tasks | 3 files |
+| Phase 05-onboarding P02 | 5 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -117,6 +134,8 @@ Recent decisions affecting current work:
 - [Phase 05-onboarding]: Onboarding step tracked via DB column (onboarding_step TEXT) for polling simplicity
 - [Phase 05-onboarding]: Three valid store_types: online_store, service_business, lead_gen
 - [Phase 05-onboarding]: completed_steps derived from sequence position rather than stored separately
+- [Phase 05-onboarding]: Unified view state (form/progress/shopify) replaces choose/shopify/website mode
+- [Phase 05-onboarding]: OnboardingProgress polls every 2s with 1.5s redirect delay on completion
 
 ### Pending Todos
 
@@ -130,6 +149,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-14T09:52:12Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-03-14T10:02:33.919Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
