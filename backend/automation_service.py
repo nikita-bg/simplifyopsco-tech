@@ -27,8 +27,30 @@ class AutomationService:
     def __init__(self) -> None:
         self.scheduler: AsyncIOScheduler = AsyncIOScheduler()
 
+    # Tier limits in minutes (roadmap values, not legacy session counts)
+    TIER_LIMITS: dict[str, int] = {
+        "trial": 30,
+        "starter": 100,
+        "growth": 400,
+        "scale": 2000,
+    }
+
     async def start(self) -> None:
-        """Start the APScheduler. Call from FastAPI lifespan startup."""
+        """Start the APScheduler and register scheduled jobs. Call from FastAPI lifespan startup."""
+        self.scheduler.add_job(
+            self.daily_kb_resync,
+            "cron",
+            hour=3,
+            minute=0,
+            id="daily_kb_resync",
+        )
+        self.scheduler.add_job(
+            self.daily_usage_check,
+            "cron",
+            hour=9,
+            minute=0,
+            id="daily_usage_check",
+        )
         self.scheduler.start()
         logger.info("AutomationService scheduler started")
 
@@ -37,6 +59,112 @@ class AutomationService:
         if self.scheduler.running:
             self.scheduler.shutdown()
             logger.info("AutomationService scheduler stopped")
+
+    async def daily_kb_resync(self) -> None:
+        """Scheduled job: rebuild knowledge base for all active stores.
+
+        Runs at 3 AM UTC. Per-store errors are isolated — one failure never
+        prevents other stores from syncing.
+        """
+        logger.info("Starting daily KB resync")
+        try:
+            rows = await db.fetch(
+                "SELECT id FROM stores WHERE agent_status = 'active' AND elevenlabs_agent_id IS NOT NULL"
+            )
+        except Exception as exc:
+            logger.error("daily_kb_resync: DB query failed: %s", exc)
+            return
+
+        total = len(rows)
+        success = 0
+        for row in rows:
+            store_id: str = row["id"]
+            try:
+                await kb_service.trigger_kb_rebuild(store_id)
+                success += 1
+            except Exception as exc:
+                logger.error(
+                    "daily_kb_resync: KB sync failed for store %s: %s",
+                    store_id,
+                    exc,
+                )
+
+        logger.info("KB resync complete: %d/%d stores", success, total)
+
+    async def daily_usage_check(self) -> None:
+        """Scheduled job: send usage alert emails to stores >= 80% of their minute limit.
+
+        Runs at 9 AM UTC. Uses roadmap minute limits: trial=30, starter=100, growth=400, scale=2000.
+        """
+        logger.info("Starting daily usage check")
+        try:
+            rows = await db.fetch(
+                """SELECT s.id, s.shop_domain, s.minutes_used, s.subscription_tier, s.owner_id
+                   FROM stores s
+                   WHERE s.agent_status = 'active'"""
+            )
+        except Exception as exc:
+            logger.error("daily_usage_check: DB query failed: %s", exc)
+            return
+
+        alerts_sent = 0
+        for row in rows:
+            store_id: str = row["id"]
+            shop_domain: str = row["shop_domain"]
+            minutes_used: int = row["minutes_used"] or 0
+            tier: str = row["subscription_tier"] or "trial"
+            owner_id: Optional[str] = row["owner_id"]
+
+            limit = self.TIER_LIMITS.get(tier, self.TIER_LIMITS["trial"])
+            if minutes_used < limit * 0.8:
+                continue
+
+            # Resolve owner email
+            if not owner_id:
+                logger.warning(
+                    "daily_usage_check: store %s has no owner_id, skipping alert",
+                    store_id,
+                )
+                continue
+
+            try:
+                email_row = await db.fetchrow(
+                    "SELECT email FROM neon_auth.users_sync WHERE id = $1::uuid",
+                    owner_id,
+                )
+            except Exception as exc:
+                logger.warning(
+                    "daily_usage_check: email lookup failed for store %s: %s",
+                    store_id,
+                    exc,
+                )
+                continue
+
+            if not email_row:
+                logger.warning(
+                    "daily_usage_check: no email found for owner %s (store %s), skipping",
+                    owner_id,
+                    store_id,
+                )
+                continue
+
+            owner_email: str = email_row["email"]
+            try:
+                await email_service.send_usage_alert(
+                    to_email=owner_email,
+                    store_domain=shop_domain,
+                    minutes_used=minutes_used,
+                    minutes_limit=limit,
+                )
+                alerts_sent += 1
+            except Exception as exc:
+                logger.error(
+                    "daily_usage_check: alert email failed for store %s: %s",
+                    store_id,
+                    exc,
+                )
+
+        logger.info("Usage check complete: %d alerts sent", alerts_sent)
 
     async def run_onboarding(
         self,
