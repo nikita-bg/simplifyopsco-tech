@@ -1,29 +1,9 @@
 import { useState, useEffect } from 'react';
-import type { AgentConfig, ChatMode } from './lib/types';
-
-function ChatPlaceholder() {
-  return (
-    <div className="so-view so-chat-view">
-      <p>Chat mode — coming in Task 20</p>
-    </div>
-  );
-}
-
-function HybridPlaceholder() {
-  return (
-    <div className="so-view so-hybrid-view">
-      <p>Hybrid mode — coming in Task 21</p>
-    </div>
-  );
-}
-
-function VoicePlaceholder() {
-  return (
-    <div className="so-view so-voice-view">
-      <p>Voice mode — coming in Task 21</p>
-    </div>
-  );
-}
+import { WidgetHeader } from './components/WidgetHeader';
+import { ChatView } from './components/ChatView';
+import { useSession } from './hooks/useSession';
+import { getAgentConfig } from './lib/api';
+import type { AgentConfig, ChatMode, PageContext } from './lib/types';
 
 export default function App() {
   const params = new URLSearchParams(window.location.search);
@@ -32,15 +12,34 @@ export default function App() {
 
   const [mode, setMode] = useState<ChatMode>(initialMode);
   const [config, setConfig] = useState<AgentConfig | null>(null);
-  const [ready, setReady] = useState(false);
+  const [pageContext, setPageContext] = useState<PageContext | null>(null);
 
-  // Notify parent window that widget is ready and listen for pageContext
+  const { session, isReady, error } = useSession(agentId);
+
+  // Load agent config (public endpoint, no auth needed)
+  useEffect(() => {
+    if (!agentId) return;
+    getAgentConfig(agentId)
+      .then(setConfig)
+      .catch(() => {
+        // Fallback config if backend unreachable
+        setConfig({
+          agentId,
+          businessName: 'AI Assistant',
+          primaryColor: '#6366f1',
+          defaultMode: initialMode,
+          welcomeMessage: 'Hi! How can I help you today?',
+        });
+      });
+  }, [agentId, initialMode]);
+
+  // Notify parent window of readiness and listen for pageContext
   useEffect(() => {
     window.parent.postMessage({ type: 'so:ready' }, '*');
 
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'so:pageContext') {
-        // pageContext stored in session hook (Task 20)
+        setPageContext(event.data.context as PageContext);
       }
     };
 
@@ -48,51 +47,44 @@ export default function App() {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  // Load agent config (backend call wired in Task 20 via useSession)
-  useEffect(() => {
-    if (!agentId) return;
-
-    setConfig({
-      agentId,
-      businessName: 'SimplifyOps',
-      primaryColor: '#6366f1',
-      defaultMode: initialMode,
-      welcomeMessage: 'Hi! How can I help you today?',
-    });
-    setReady(true);
-  }, [agentId, initialMode]);
-
   if (!agentId) {
     return <div className="so-error">Missing ?agent= parameter</div>;
   }
 
-  if (!ready) {
-    return <div className="so-loading">Loading...</div>;
+  if (!isReady && !error) {
+    return <div className="so-loading">Connecting...</div>;
+  }
+
+  if (error) {
+    return <div className="so-error">Failed to connect: {error}</div>;
   }
 
   return (
     <div
       className="so-widget"
-      style={{ '--so-primary': config?.primaryColor } as React.CSSProperties}
+      style={
+        { '--so-primary': config?.primaryColor ?? '#6366f1' } as React.CSSProperties
+      }
     >
-      <header className="so-header">
-        <span className="so-business-name">{config?.businessName}</span>
-        <div className="so-mode-toggle">
-          {(['chat', 'hybrid', 'voice'] as ChatMode[]).map((m) => (
-            <button
-              key={m}
-              className={`so-mode-btn${mode === m ? ' so-mode-btn--active' : ''}`}
-              onClick={() => setMode(m)}
-            >
-              {m}
-            </button>
-          ))}
-        </div>
-      </header>
+      <WidgetHeader config={config} mode={mode} onModeChange={setMode} />
       <main className="so-content">
-        {mode === 'chat' && <ChatPlaceholder />}
-        {mode === 'hybrid' && <HybridPlaceholder />}
-        {mode === 'voice' && <VoicePlaceholder />}
+        {mode === 'chat' && (
+          <ChatView
+            session={session!}
+            pageContext={pageContext ?? undefined}
+            welcomeMessage={config?.welcomeMessage}
+          />
+        )}
+        {mode === 'hybrid' && (
+          <div className="so-view">
+            <p>Voice responses — coming in Task 21</p>
+          </div>
+        )}
+        {mode === 'voice' && (
+          <div className="so-view">
+            <p>Live voice — coming in Task 21</p>
+          </div>
+        )}
       </main>
     </div>
   );
