@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { WidgetHeader } from './components/WidgetHeader';
 import { ChatView } from './components/ChatView';
+import { HybridView } from './components/HybridView';
+import { VoiceView } from './components/VoiceView';
 import { useSession } from './hooks/useSession';
 import { getAgentConfig } from './lib/api';
 import type { AgentConfig, ChatMode, PageContext } from './lib/types';
@@ -76,14 +78,18 @@ export default function App() {
           />
         )}
         {mode === 'hybrid' && (
-          <div className="so-view">
-            <p>Voice responses — coming in Task 21</p>
-          </div>
+          <HybridView
+            session={session!}
+            pageContext={pageContext ?? undefined}
+            welcomeMessage={config?.welcomeMessage}
+          />
         )}
         {mode === 'voice' && (
-          <div className="so-view">
-            <p>Live voice — coming in Task 21</p>
-          </div>
+          <VoiceView
+            session={session!}
+            pageContext={pageContext ?? undefined}
+            primaryColor={config?.primaryColor}
+          />
         )}
       </main>
     </div>

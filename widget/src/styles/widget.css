@@ -344,6 +344,144 @@ body {
 }
 
 /* ============================================
+   Hybrid — audio playback indicator
+   ============================================ */
+
+.so-audio-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 16px;
+  background: var(--so-bg-secondary);
+  border-top: 1px solid var(--so-border);
+  flex-shrink: 0;
+}
+
+.so-audio-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--so-primary);
+  animation: so-bounce 1.2s ease-in-out infinite;
+}
+
+.so-audio-dot:nth-child(2) { animation-delay: 0.15s; }
+.so-audio-dot:nth-child(3) { animation-delay: 0.3s; }
+
+.so-audio-label {
+  font-size: 12px;
+  color: var(--so-text-muted);
+  margin-left: 4px;
+}
+
+/* ============================================
+   Voice view
+   ============================================ */
+
+.so-voice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  height: 100%;
+  padding: 24px;
+}
+
+/* Waveform canvas */
+.so-waveform {
+  width: 100%;
+  max-width: 280px;
+  height: 64px;
+  display: block;
+}
+
+/* Microphone button */
+.so-mic-btn {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: none;
+  background: var(--so-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+}
+
+.so-mic-btn:hover:not(:disabled) {
+  background: var(--so-primary-dark);
+  transform: scale(1.05);
+}
+
+.so-mic-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.so-mic-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.so-mic-btn--active {
+  background: #ef4444;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.35);
+}
+
+.so-mic-btn--loading {
+  animation: so-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes so-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Ripple rings while listening/speaking */
+.so-mic-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  opacity: 0;
+  animation: so-ripple 2s ease-out infinite;
+}
+
+.so-mic-ring--2 {
+  animation-delay: 0.7s;
+}
+
+@keyframes so-ripple {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* Status label */
+.so-voice-label {
+  font-size: 14px;
+  color: var(--so-text-muted);
+  text-align: center;
+}
+
+.so-voice-error {
+  font-size: 13px;
+  color: #ef4444;
+  text-align: center;
+}
+
+.so-voice-hint {
+  font-size: 12px;
+  color: var(--so-text-muted);
+  text-align: center;
+  max-width: 220px;
+}
+
+/* ============================================
    Scrollbar (webkit)
    ============================================ */
 
