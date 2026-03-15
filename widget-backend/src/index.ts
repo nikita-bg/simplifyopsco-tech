@@ -1,6 +1,7 @@
 import express from 'express';
 import helmet from 'helmet';
 import healthRouter from './routes/health.js';
+import configRouter from './routes/config.js';
 import { config } from './config.js';
 
 export function createApp() {
@@ -8,6 +9,7 @@ export function createApp() {
   app.use(helmet());
   app.use(express.json({ limit: '100kb' }));
   app.use(healthRouter);
+  app.use(configRouter);
   return app;
 }
 
