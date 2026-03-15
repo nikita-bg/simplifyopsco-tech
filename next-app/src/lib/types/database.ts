@@ -260,6 +260,141 @@ export interface Database {
                     created_at?: string
                 }
             }
+            businesses: {
+                Row: {
+                    id: string
+                    owner_id: string
+                    name: string
+                    api_key_hash: string
+                    api_key_prefix: string
+                    agent_id: string
+                    voice_id: string | null
+                    system_prompt: string | null
+                    branding: Json | null
+                    working_hours: Json | null
+                    allowed_domains: Json | null
+                    plan_tier: 'free' | 'starter' | 'pro' | 'business' | 'enterprise'
+                    conversation_count: number
+                    conversation_limit: number
+                    billing_period_start: string | null
+                    stripe_customer_id: string | null
+                    stripe_subscription_id: string | null
+                    is_active: boolean
+                    status: 'active' | 'suspended' | 'cancelled'
+                    default_mode: 'chat' | 'hybrid' | 'voice'
+                    welcome_message: string
+                    metadata: Json
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    owner_id: string
+                    name: string
+                    api_key_hash: string
+                    api_key_prefix: string
+                    agent_id: string
+                    voice_id?: string | null
+                    system_prompt?: string | null
+                    branding?: Json | null
+                    working_hours?: Json | null
+                    allowed_domains?: Json | null
+                    plan_tier?: 'free' | 'starter' | 'pro' | 'business' | 'enterprise'
+                    conversation_count?: number
+                    conversation_limit?: number
+                    billing_period_start?: string | null
+                    stripe_customer_id?: string | null
+                    stripe_subscription_id?: string | null
+                    is_active?: boolean
+                    status?: 'active' | 'suspended' | 'cancelled'
+                    default_mode?: 'chat' | 'hybrid' | 'voice'
+                    welcome_message?: string
+                    metadata?: Json
+                }
+                Update: {
+                    name?: string
+                    agent_id?: string
+                    voice_id?: string | null
+                    system_prompt?: string | null
+                    branding?: Json | null
+                    working_hours?: Json | null
+                    allowed_domains?: Json | null
+                    plan_tier?: 'free' | 'starter' | 'pro' | 'business' | 'enterprise'
+                    conversation_count?: number
+                    conversation_limit?: number
+                    billing_period_start?: string | null
+                    stripe_customer_id?: string | null
+                    stripe_subscription_id?: string | null
+                    is_active?: boolean
+                    status?: 'active' | 'suspended' | 'cancelled'
+                    default_mode?: 'chat' | 'hybrid' | 'voice'
+                    welcome_message?: string
+                    metadata?: Json
+                }
+            }
+            site_data: {
+                Row: {
+                    id: string
+                    business_id: string
+                    url: string
+                    page_title: string | null
+                    products: Json
+                    sections: Json
+                    raw_context: Json | null
+                    source: 'runtime' | 'crawl'
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    business_id: string
+                    url: string
+                    page_title?: string | null
+                    products?: Json
+                    sections?: Json
+                    raw_context?: Json | null
+                    source: 'runtime' | 'crawl'
+                    created_at?: string
+                    updated_at?: string
+                }
+                Update: {
+                    page_title?: string | null
+                    products?: Json
+                    sections?: Json
+                    raw_context?: Json | null
+                    updated_at?: string
+                }
+            }
+            agent_prompts: {
+                Row: {
+                    id: string
+                    business_id: string | null
+                    name: string
+                    template_type: 'sales' | 'support' | 'booking' | 'custom'
+                    system_prompt: string
+                    is_base_template: boolean
+                    version: number
+                    is_active: boolean
+                    created_at: string
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    business_id?: string | null
+                    name: string
+                    template_type: 'sales' | 'support' | 'booking' | 'custom'
+                    system_prompt: string
+                    is_base_template?: boolean
+                    version?: number
+                    is_active?: boolean
+                }
+                Update: {
+                    name?: string
+                    system_prompt?: string
+                    is_active?: boolean
+                    version?: number
+                }
+            }
         }
         Functions: {
             match_documents: {
