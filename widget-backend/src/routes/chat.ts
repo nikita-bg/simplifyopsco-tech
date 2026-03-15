@@ -4,6 +4,7 @@ import { createSessionAuth } from '../middleware/sessionAuth.js';
 import { streamChat } from '../services/gemini.js';
 import { buildSystemPrompt } from '../services/promptBuilder.js';
 import { supabase } from '../services/db.js';
+import { canStartConversation, startConversation } from '../services/conversation.js';
 import type { SessionStore } from '../services/sessionStore.js';
 import type { SessionData } from '../types/index.js';
 
@@ -22,37 +23,16 @@ export function createChatRouter(sessionStore: SessionStore) {
 
     // Check conversation limit (only on first message of new conversation)
     if (!session.conversationId) {
-      const { data: biz } = await supabase
-        .from('businesses')
-        .select('conversation_count, conversation_limit')
-        .eq('id', session.businessId)
-        .single();
-
-      if (biz && biz.conversation_count >= biz.conversation_limit) {
+      const allowed = await canStartConversation(session.businessId);
+      if (!allowed) {
         res.status(429).json({ error: 'conversation_limit_reached' });
         return;
       }
 
-      // Start new conversation
-      const { data: conv } = await supabase
-        .from('conversations')
-        .insert({
-          business_id: session.businessId,
-          session_id: (req as any).sessionToken,
-          status: 'active',
-          started_at: new Date().toISOString(),
-        })
-        .select('id')
-        .single();
-
+      const conv = await startConversation(session.businessId, (req as any).sessionToken);
       if (conv) {
-        session.conversationId = conv.id;
-        sessionStore.update((req as any).sessionToken, { conversationId: conv.id });
-
-        // Increment conversation count
-        await supabase.rpc('increment_business_conversation_count', {
-          business_uuid: session.businessId,
-        });
+        session.conversationId = conv.conversationId;
+        sessionStore.update((req as any).sessionToken, { conversationId: conv.conversationId });
       }
     }
 
