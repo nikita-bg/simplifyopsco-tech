@@ -9,7 +9,7 @@ import {
 } from './api';
 import type { PageContext } from './types';
 
-const BACKEND = 'https://widget-backend.simplifyops.co';
+const BACKEND = 'https://widget-backend.simplifyopsco.tech';
 
 const mockPageContext: PageContext = {
   url: 'https://example.com',

@@ -32,7 +32,7 @@ export async function* streamChat(
     contents,
     config: {
       systemInstruction: systemPrompt,
-      tools: [{ functionDeclarations: SITE_CONTROL_FUNCTIONS }],
+      tools: [{ functionDeclarations: SITE_CONTROL_FUNCTIONS as any }],
     },
   });
 

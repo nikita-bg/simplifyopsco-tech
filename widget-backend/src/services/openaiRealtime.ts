@@ -92,7 +92,7 @@ export async function createRealtimeSession(
 
   return {
     ephemeralKey: response.client_secret.value,
-    sessionId: response.id,
+    sessionId: (response as any).id ?? 'session',
     expiresAt: response.client_secret.expires_at,
   };
 }

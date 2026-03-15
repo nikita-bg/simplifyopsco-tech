@@ -5,7 +5,7 @@ const openai = new OpenAI({ apiKey: config.openaiApiKey });
 
 // Sentence boundary detector — splits text into TTS-ready chunks
 function splitIntoSentences(text: string): string[] {
-  const sentences = text.match(/[^.!?]+[.!?]+[\s]*/g) || [];
+  const sentences: string[] = text.match(/[^.!?]+[.!?]+[\s]*/g) || [];
   const remainder = text.replace(/[^.!?]+[.!?]+[\s]*/g, '').trim();
   if (remainder) sentences.push(remainder);
   return sentences.filter(s => s.trim().length > 0);

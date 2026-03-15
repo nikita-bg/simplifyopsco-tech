@@ -14,8 +14,8 @@ import {
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-const WIDGET_ORIGIN = 'https://widget.simplifyops.co';
-const BACKEND_URL = 'https://widget-backend.simplifyops.co';
+const WIDGET_ORIGIN = 'https://widget.simplifyopsco.tech';
+const BACKEND_URL = 'https://widget-backend.simplifyopsco.tech';
 
 const defaultConfig = {
   agentId: 'agent_test123',

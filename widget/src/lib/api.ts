@@ -1,6 +1,6 @@
 import type { AgentConfig, PageContext, Session, VoiceToken } from './types';
 
-const BACKEND_URL = 'https://widget-backend.simplifyops.co';
+const BACKEND_URL = 'https://widget-backend.simplifyopsco.tech';
 
 export async function getAgentConfig(agentId: string): Promise<AgentConfig> {
   const res = await fetch(`${BACKEND_URL}/api/config/${agentId}`);

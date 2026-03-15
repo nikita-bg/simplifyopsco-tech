@@ -37,8 +37,8 @@ interface AgentConfig {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const BACKEND_URL = 'https://widget-backend.simplifyops.co';
-const WIDGET_ORIGIN = 'https://widget.simplifyops.co';
+const BACKEND_URL = 'https://widget-backend.simplifyopsco.tech';
+const WIDGET_ORIGIN = 'https://widget.simplifyopsco.tech';
 const CONFIG_CACHE_TTL = 5 * 60 * 1000; // 5 min
 
 // ─── State ────────────────────────────────────────────────────────────────────
