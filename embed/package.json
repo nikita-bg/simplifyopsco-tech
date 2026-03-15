@@ -1,0 +1,17 @@
+{
+  "name": "simplifyops-embed",
+  "private": true,
+  "scripts": {
+    "build": "rollup -c",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "rollup": "^4.30.0",
+    "@rollup/plugin-typescript": "^12.1.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "typescript": "^5.7.0",
+    "vitest": "^3.1.0",
+    "jsdom": "^26.0.0",
+    "@vitest/ui": "^3.1.0"
+  }
+}
