@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SimplifyOps Widget — E2E Test Page</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f8fafc; color: #1e293b; }
+    header { background: #6366f1; color: white; padding: 20px 40px; }
+    header h1 { margin: 0; font-size: 24px; }
+    header p  { margin: 4px 0 0; opacity: .8; font-size: 14px; }
+    main { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
+    h2 { font-size: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-top: 40px; }
+    .products { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 16px; }
+    .product-card {
+      background: white; border: 1px solid #e2e8f0; border-radius: 12px;
+      padding: 20px; cursor: pointer;
+    }
+    .product-card img { width: 100%; height: 140px; object-fit: cover; border-radius: 8px; }
+    .product-card h3 { margin: 12px 0 4px; font-size: 16px; }
+    .product-card .price { color: #6366f1; font-weight: 700; font-size: 18px; }
+    section#contact { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 32px; margin-top: 40px; }
+    form { display: flex; flex-direction: column; gap: 12px; max-width: 400px; }
+    input, textarea { padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-family: inherit; font-size: 14px; }
+    button.submit { background: #6366f1; color: white; border: none; border-radius: 8px; padding: 10px 24px; font-size: 14px; cursor: pointer; }
+
+    /* ── Test Console ─────────────────────────────────── */
+    #test-console {
+      position: fixed; top: 0; left: 0; width: 340px; height: 100vh;
+      background: #0f172a; color: #94a3b8; font-family: monospace; font-size: 12px;
+      overflow-y: auto; z-index: 9999999; padding: 12px;
+      border-right: 2px solid #6366f1;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    #test-console .tc-header {
+      color: #6366f1; font-weight: bold; font-size: 13px;
+      border-bottom: 1px solid #1e293b; padding-bottom: 8px; margin-bottom: 8px;
+    }
+    #test-console .tc-entry { padding: 3px 0; border-bottom: 1px solid #1e293b10; }
+    #test-console .tc-entry.pass  { color: #4ade80; }
+    #test-console .tc-entry.fail  { color: #f87171; }
+    #test-console .tc-entry.info  { color: #94a3b8; }
+    #test-console .tc-entry.msg   { color: #f0abfc; }
+    #test-console .tc-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    #test-console button {
+      background: #1e293b; border: 1px solid #334155; color: #94a3b8;
+      border-radius: 4px; padding: 4px 8px; font-size: 11px; cursor: pointer;
+    }
+    #test-console button:hover { background: #334155; color: white; }
+    body { padding-left: 340px; }
+
+    /* ── Section markers ─── */
+    #hero    { background: white; padding: 60px 40px; text-align: center; }
+    #pricing { padding: 40px; }
+    #features{ padding: 40px; }
+  </style>
+</head>
+<body>
+
+<!-- ──────────────────────── TEST CONSOLE ──────────────────────── -->
+<div id="test-console">
+  <div class="tc-header">SimplifyOps E2E Test Console</div>
+  <div id="tc-log"></div>
+  <hr style="border-color:#1e293b;margin:8px 0">
+  <div style="color:#6366f1;font-size:11px;margin-bottom:4px">Trigger bridge actions:</div>
+  <div class="tc-actions">
+    <button onclick="triggerScroll('product-1')">scrollTo product-1</button>
+    <button onclick="triggerHighlight('hero')">highlight hero</button>
+    <button onclick="triggerNavigate('/pricing')">navigateTo /pricing</button>
+    <button onclick="triggerProductCard()">showProductCard</button>
+    <button onclick="triggerComparison()">showComparison</button>
+    <button onclick="triggerContact()">openContactForm</button>
+  </div>
+  <hr style="border-color:#1e293b;margin:8px 0">
+  <div style="color:#6366f1;font-size:11px;margin-bottom:4px">Manual checks:</div>
+  <div class="tc-actions">
+    <button onclick="checkLauncher()">✓ Launcher visible</button>
+    <button onclick="checkIframe()">✓ Iframe present</button>
+    <button onclick="checkPageContext()">✓ Page context</button>
+    <button onclick="clearLog()">Clear log</button>
+  </div>
+</div>
+
+<!-- ──────────────────────── PAGE CONTENT ──────────────────────── -->
+<section id="hero" data-section="hero">
+  <h1>AI Sales Demo Store</h1>
+  <p>Test page for SimplifyOps Widget E2E integration.</p>
+</section>
+
+<main>
+  <section id="pricing" data-section="pricing">
+    <h2>Pricing</h2>
+    <div class="products">
+      <div class="product-card" data-product-id="product-1">
+        <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=280&fit=crop" alt="Starter" />
+        <h3 class="product-title">Starter Plan</h3>
+        <div class="price product-price">$29/mo</div>
+        <p>Perfect for small teams.</p>
+      </div>
+      <div class="product-card" data-product-id="product-2">
+        <img src="https://images.unsplash.com/photo-1567581935884-3349723552ca?w=400&h=280&fit=crop" alt="Pro" />
+        <h3 class="product-title">Pro Plan</h3>
+        <div class="price product-price">$79/mo</div>
+        <p>For growing businesses.</p>
+      </div>
+      <div class="product-card" data-product-id="product-3">
+        <img src="https://images.unsplash.com/photo-1493723843671-1d655e66ac1c?w=400&h=280&fit=crop" alt="Enterprise" />
+        <h3 class="product-title">Enterprise</h3>
+        <div class="price product-price">Custom</div>
+        <p>Tailored to your scale.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" data-section="features">
+    <h2>Features</h2>
+    <p>This section tests that the bridge can scan and scroll to page sections.</p>
+  </section>
+
+  <section id="contact">
+    <h2>Contact Us</h2>
+    <form id="contact-form">
+      <input type="text"  placeholder="Your name"  />
+      <input type="email" placeholder="Email address" />
+      <textarea rows="4"  placeholder="Your message"></textarea>
+      <button class="submit" type="submit">Send message</button>
+    </form>
+  </section>
+</main>
+
+<!-- ──────────────────────── EMBED SCRIPT ──────────────────────── -->
+<!--
+  In production: <script src="https://cdn.simplifyops.co/widget/embed.js" data-agent="YOUR_AGENT_ID"></script>
+  For local testing: uses the built embed.js and intercepts config fetch.
+-->
+<script>
+// ─── Test helpers ─────────────────────────────────────────────────────────────
+
+function tcLog(msg, type = 'info') {
+  const log = document.getElementById('tc-log');
+  const entry = document.createElement('div');
+  entry.className = `tc-entry ${type}`;
+  entry.textContent = `[${new Date().toISOString().substr(11,8)}] ${msg}`;
+  log.appendChild(entry);
+  log.scrollTop = log.scrollHeight;
+}
+
+function clearLog() {
+  document.getElementById('tc-log').innerHTML = '';
+}
+
+// ─── Monitor all postMessages ──────────────────────────────────────────────────
+
+window.addEventListener('message', (e) => {
+  if (!e.data?.type) return;
+  tcLog(`← postMsg: ${e.data.type}`, 'msg');
+  if (e.data.type === 'so:ready') {
+    tcLog('PASS: widget sent so:ready', 'pass');
+  }
+  if (e.data.type === 'so:pageContext') {
+    tcLog(`PASS: pageContext received (${e.data.context?.products?.length ?? 0} products)`, 'pass');
+  }
+});
+
+// ─── Manual check functions ────────────────────────────────────────────────────
+
+function checkLauncher() {
+  const btn = document.getElementById('so-widget-launcher');
+  if (btn) {
+    tcLog('PASS: launcher button present', 'pass');
+  } else {
+    tcLog('FAIL: launcher button NOT found', 'fail');
+  }
+}
+
+function checkIframe() {
+  const iframe = document.getElementById('so-widget-iframe');
+  if (iframe) {
+    tcLog(`PASS: iframe present, src="${iframe.src}"`, 'pass');
+  } else {
+    tcLog('FAIL: iframe NOT found', 'fail');
+  }
+}
+
+function checkPageContext() {
+  // Use bridge helper — reads page products/sections
+  const products = document.querySelectorAll('[data-product-id]');
+  const sections = document.querySelectorAll('[data-section]');
+  tcLog(`INFO: ${products.length} products, ${sections.length} sections found`, 'pass');
+}
+
+// ─── Trigger bridge actions by sending postMessages to the widget iframe ───────
+
+function getIframe() {
+  const iframe = document.getElementById('so-widget-iframe');
+  if (!iframe || iframe.style.display === 'none') {
+    tcLog('FAIL: Open widget first before triggering actions', 'fail');
+    return null;
+  }
+  return iframe;
+}
+
+function triggerScroll(ref) {
+  tcLog(`→ Simulating so:scrollToElement ref="${ref}"`, 'info');
+  // Simulate the iframe sending a bridge command
+  window.postMessage({ type: 'so:scrollToElement', ref }, '*');
+}
+
+function triggerHighlight(ref) {
+  tcLog(`→ Simulating so:highlightElement ref="${ref}"`, 'info');
+  window.postMessage({ type: 'so:highlightElement', ref }, '*');
+}
+
+function triggerNavigate(url) {
+  tcLog(`→ Simulating so:navigateTo url="${url}"`, 'info');
+  // Note: navigateTo checks same-origin — this will navigate the page
+  if (!confirm(`navigateTo will navigate to "${url}". Continue?`)) return;
+  window.postMessage({ type: 'so:navigateTo', url }, '*');
+}
+
+function triggerProductCard() {
+  tcLog('→ Simulating so:showProductCard', 'info');
+  window.postMessage({
+    type: 'so:showProductCard',
+    data: { name: 'Pro Plan', price: '$79/mo', ctaUrl: '/buy/pro', ctaText: 'Buy Now' }
+  }, '*');
+}
+
+function triggerComparison() {
+  tcLog('→ Simulating so:showComparison', 'info');
+  window.postMessage({
+    type: 'so:showComparison',
+    products: [
+      { name: 'Starter', price: '$29/mo' },
+      { name: 'Pro',     price: '$79/mo' },
+      { name: 'Enterprise', price: 'Custom' },
+    ]
+  }, '*');
+}
+
+function triggerContact() {
+  tcLog('→ Simulating so:openContactForm', 'info');
+  window.postMessage({ type: 'so:openContactForm' }, '*');
+}
+
+// ─── Mock backend config (avoids CORS errors when backend isn't deployed yet) ──
+
+const MOCK_AGENT_ID = 'test-agent-123';
+const MOCK_CONFIG = {
+  agentId: MOCK_AGENT_ID,
+  primaryColor: '#6366f1',
+  welcomeMessage: 'Hi! How can I help you today?',
+  defaultMode: 'chat',
+  position: 'bottom-right',
+  allowedDomains: ['localhost'],
+};
+
+// Intercept fetch calls to backend config endpoint
+const _origFetch = window.fetch.bind(window);
+window.fetch = function(input, init) {
+  const url = typeof input === 'string' ? input : input.url;
+  if (url && url.includes('/api/config/')) {
+    tcLog(`INFO: Intercepted config fetch for ${url}`, 'info');
+    return Promise.resolve(new Response(JSON.stringify(MOCK_CONFIG), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }));
+  }
+  return _origFetch(input, init);
+};
+
+tcLog('Test console ready', 'pass');
+tcLog(`Mock config: agent="${MOCK_AGENT_ID}"`, 'info');
+</script>
+
+<!--
+  Load the built embed.js.
+  For local dev: run `cd embed && npm run build` first.
+  For production: replace src with the CDN URL.
+-->
+<script src="../embed/dist/embed.js" data-agent="test-agent-123"></script>
+
+<script>
+// Post-load checks (runs after embed.js initialises)
+setTimeout(() => {
+  checkLauncher();
+  checkIframe();
+}, 500);
+</script>
+
+</body>
+</html>
