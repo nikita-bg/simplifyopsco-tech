@@ -4,6 +4,7 @@ import healthRouter from './routes/health.js';
 import configRouter from './routes/config.js';
 import { createSessionRouter } from './routes/session.js';
 import { createChatRouter } from './routes/chat.js';
+import { createHybridRouter } from './routes/hybrid.js';
 import { createContextRouter } from './routes/context.js';
 import { SessionStore } from './services/sessionStore.js';
 import { config } from './config.js';
@@ -18,6 +19,7 @@ export function createApp() {
   app.use(configRouter);
   app.use(createSessionRouter(sessionStore));
   app.use(createChatRouter(sessionStore));
+  app.use(createHybridRouter(sessionStore));
   app.use(createContextRouter(sessionStore));
 
   // Expose sessionStore for routes that need it
