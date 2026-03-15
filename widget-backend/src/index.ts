@@ -1,0 +1,21 @@
+import express from 'express';
+import helmet from 'helmet';
+import healthRouter from './routes/health.js';
+import { config } from './config.js';
+
+export function createApp() {
+  const app = express();
+  app.use(helmet());
+  app.use(express.json({ limit: '100kb' }));
+  app.use(healthRouter);
+  return app;
+}
+
+// Only start server if this file is run directly (not imported in tests)
+const isMainModule = import.meta.url === `file://${process.argv[1]?.replace(/\\/g, '/')}`;
+if (isMainModule) {
+  const app = createApp();
+  app.listen(config.port, () => {
+    console.log(`Widget backend running on port ${config.port}`);
+  });
+}
