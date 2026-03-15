@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageBubble } from './MessageBubble';
+import { ProductCard } from './ProductCard';
+import { ComparisonView } from './ComparisonView';
 import { useChat } from '../hooks/useChat';
 import { useBridge } from '../hooks/useBridge';
-import type { PageContext, Session } from '../lib/types';
+import type { PageContext, ProductCardData, Session, SiteAction } from '../lib/types';
 
 interface Props {
   session: Session;
@@ -17,12 +19,26 @@ export function ChatView({ session, pageContext, welcomeMessage }: Props) {
     pageContext
   );
   const [input, setInput] = useState('');
+  const [productCard, setProductCard] = useState<ProductCardData | null>(null);
+  const [comparison, setComparison] = useState<ProductCardData[] | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Wire bridge actions handler once
+  // Wire bridge actions — intercept widget-internal overlay actions
   useEffect(() => {
-    setActionsHandler(executeActions);
+    setActionsHandler((actions: SiteAction[]) => {
+      const external: SiteAction[] = [];
+      for (const action of actions) {
+        if (action.type === 'showProductCard' && action.product) {
+          setProductCard(action.product);
+        } else if (action.type === 'showComparison' && action.products) {
+          setComparison(action.products);
+        } else {
+          external.push(action);
+        }
+      }
+      if (external.length) executeActions(external);
+    });
   }, [executeActions, setActionsHandler]);
 
   // Auto-scroll to latest message
@@ -34,7 +50,6 @@ export function ChatView({ session, pageContext, welcomeMessage }: Props) {
     const text = input.trim();
     if (!text || isStreaming) return;
     setInput('');
-    // Reset textarea height
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
     sendMessage(text);
   }, [input, isStreaming, sendMessage]);
@@ -46,7 +61,6 @@ export function ChatView({ session, pageContext, welcomeMessage }: Props) {
     }
   };
 
-  // Auto-grow textarea
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
     const el = e.target;
@@ -67,6 +81,14 @@ export function ChatView({ session, pageContext, welcomeMessage }: Props) {
         ))}
         <div ref={messagesEndRef} />
       </div>
+
+      {productCard && (
+        <ProductCard product={productCard} onClose={() => setProductCard(null)} />
+      )}
+
+      {comparison && (
+        <ComparisonView products={comparison} onClose={() => setComparison(null)} />
+      )}
 
       <div className="so-input-area">
         <textarea
