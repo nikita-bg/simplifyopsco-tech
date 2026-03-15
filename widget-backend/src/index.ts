@@ -2,14 +2,23 @@ import express from 'express';
 import helmet from 'helmet';
 import healthRouter from './routes/health.js';
 import configRouter from './routes/config.js';
+import { createSessionRouter } from './routes/session.js';
+import { SessionStore } from './services/sessionStore.js';
 import { config } from './config.js';
 
 export function createApp() {
   const app = express();
+  const sessionStore = new SessionStore();
+
   app.use(helmet());
   app.use(express.json({ limit: '100kb' }));
   app.use(healthRouter);
   app.use(configRouter);
+  app.use(createSessionRouter(sessionStore));
+
+  // Expose sessionStore for routes that need it
+  (app as any).sessionStore = sessionStore;
+
   return app;
 }
 
