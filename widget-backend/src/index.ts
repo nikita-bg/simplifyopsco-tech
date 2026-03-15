@@ -24,7 +24,7 @@ export function createApp() {
   app.use(createVoiceRouter(sessionStore));
   app.use(createContextRouter(sessionStore));
 
-  // Expose sessionStore for routes that need it
+  // Expose sessionStore for test helpers
   (app as any).sessionStore = sessionStore;
 
   return app;

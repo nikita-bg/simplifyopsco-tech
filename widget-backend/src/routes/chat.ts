@@ -5,6 +5,7 @@ import { streamChat } from '../services/gemini.js';
 import { buildSystemPrompt } from '../services/promptBuilder.js';
 import { supabase } from '../services/db.js';
 import { canStartConversation, startConversation } from '../services/conversation.js';
+import { rateLimiter } from '../middleware/rateLimiter.js';
 import type { SessionStore } from '../services/sessionStore.js';
 import type { SessionData } from '../types/index.js';
 
@@ -12,7 +13,7 @@ export function createChatRouter(sessionStore: SessionStore) {
   const router = Router();
   const auth = createSessionAuth(sessionStore);
 
-  router.post('/api/chat', widgetCors, auth, async (req, res) => {
+  router.post('/api/chat', widgetCors, auth, rateLimiter, async (req, res) => {
     const session: SessionData = (req as any).session;
     const { message, pageContext, history = [] } = req.body;
 

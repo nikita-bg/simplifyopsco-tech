@@ -4,6 +4,7 @@ import { createSessionAuth } from '../middleware/sessionAuth.js';
 import { createRealtimeSession } from '../services/openaiRealtime.js';
 import { buildSystemPrompt } from '../services/promptBuilder.js';
 import { supabase } from '../services/db.js';
+import { rateLimiter } from '../middleware/rateLimiter.js';
 import type { SessionStore } from '../services/sessionStore.js';
 import type { SessionData } from '../types/index.js';
 
@@ -14,7 +15,7 @@ export function createVoiceRouter(sessionStore: SessionStore) {
   // POST /api/voice/token
   // Returns an OpenAI Realtime ephemeral key for WebRTC voice session.
   // The widget uses this key to connect directly to OpenAI Realtime API.
-  router.post('/api/voice/token', widgetCors, auth, async (req, res) => {
+  router.post('/api/voice/token', widgetCors, auth, rateLimiter, async (req, res) => {
     const session: SessionData = (req as any).session;
     const { pageContext, voice = 'verse' } = req.body;
 
