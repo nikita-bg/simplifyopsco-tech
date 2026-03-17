@@ -13,7 +13,7 @@
 
 import { useEffect, useState } from 'react';
 
-type TabId = 'widget' | 'voice' | 'hours' | 'knowledge' | 'api';
+type TabId = 'widget' | 'voice' | 'hours' | 'knowledge' | 'api' | 'integrations';
 
 interface BusinessSettings {
   id: string;
@@ -209,6 +209,12 @@ export default function SettingsPageNew() {
             label="Knowledge Base"
           />
           <TabButton
+            active={activeTab === 'integrations'}
+            onClick={() => setActiveTab('integrations')}
+            icon="extension"
+            label="Integrations"
+          />
+          <TabButton
             active={activeTab === 'api'}
             onClick={() => setActiveTab('api')}
             icon="key"
@@ -251,6 +257,8 @@ export default function SettingsPageNew() {
         )}
 
         {activeTab === 'knowledge' && <KnowledgeBaseTab />}
+
+        {activeTab === 'integrations' && <IntegrationsTab />}
 
         {activeTab === 'api' && <APIKeysTab apiKeyPrefix={settings.apiKeyPrefix} />}
       </div>
@@ -648,6 +656,288 @@ function WorkingHoursTab({
                 </div>
               </div>
             </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Integrations Tab
+function IntegrationsTab() {
+  const [status, setStatus] = useState<{
+    connected: boolean;
+    platform: string | null;
+    shopDomain: string | null;
+    productCount: number;
+    orderCount: number;
+    lastSync: { completedAt: string; productsSynced: number; ordersSynced: number } | null;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+  const [shopDomain, setShopDomain] = useState('');
+  const [wooUrl, setWooUrl] = useState('');
+  const [wooKey, setWooKey] = useState('');
+  const [wooSecret, setWooSecret] = useState('');
+  const [wooConnecting, setWooConnecting] = useState(false);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  useEffect(() => {
+    fetchStatus();
+  }, []);
+
+  async function fetchStatus() {
+    try {
+      const res = await fetch('/api/integrations/status');
+      const data = await res.json();
+      setStatus(data);
+    } catch {
+      console.error('Failed to fetch integration status');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSync() {
+    setSyncing(true);
+    setFeedback(null);
+    try {
+      const res = await fetch('/api/integrations/sync', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        setFeedback({
+          type: 'success',
+          text: `Synced ${data.productsSynced} products, ${data.ordersSynced} orders.`,
+        });
+        fetchStatus();
+      } else {
+        setFeedback({ type: 'error', text: data.error || 'Sync failed.' });
+      }
+    } catch {
+      setFeedback({ type: 'error', text: 'Network error during sync.' });
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  async function handleDisconnect() {
+    if (!confirm('Disconnect your store? All synced products and orders will be deleted.')) return;
+    setDisconnecting(true);
+    try {
+      await fetch('/api/integrations/disconnect', { method: 'POST' });
+      setFeedback({ type: 'success', text: 'Store disconnected.' });
+      fetchStatus();
+    } catch {
+      setFeedback({ type: 'error', text: 'Failed to disconnect.' });
+    } finally {
+      setDisconnecting(false);
+    }
+  }
+
+  async function handleWooConnect(e: React.FormEvent) {
+    e.preventDefault();
+    setWooConnecting(true);
+    setFeedback(null);
+    try {
+      const res = await fetch('/api/integrations/woocommerce/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteUrl: wooUrl, consumerKey: wooKey, consumerSecret: wooSecret }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFeedback({ type: 'success', text: 'WooCommerce connected!' });
+        setWooUrl('');
+        setWooKey('');
+        setWooSecret('');
+        fetchStatus();
+      } else {
+        setFeedback({ type: 'error', text: data.error || 'Connection failed.' });
+      }
+    } catch {
+      setFeedback({ type: 'error', text: 'Network error.' });
+    } finally {
+      setWooConnecting(false);
+    }
+  }
+
+  if (loading) {
+    return <div className="text-center py-12 text-slate-500">Loading integration status...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {feedback && (
+        <div className={`px-4 py-3 rounded-lg text-sm ${
+          feedback.type === 'success'
+            ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+            : 'bg-red-500/10 text-red-400 border border-red-500/20'
+        }`}>
+          {feedback.text}
+        </div>
+      )}
+
+      {status?.connected ? (
+        <>
+          {/* Connected Status */}
+          <div className="rounded-2xl border border-green-500/20 bg-green-500/5 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-green-400">check_circle</span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white capitalize">{status.platform} Connected</p>
+                  <p className="text-xs text-slate-400">{status.shopDomain}</p>
+                </div>
+              </div>
+              <button
+                onClick={handleDisconnect}
+                disabled={disconnecting}
+                className="px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-lg text-xs hover:bg-red-500/20 transition-colors disabled:opacity-50"
+              >
+                {disconnecting ? 'Disconnecting...' : 'Disconnect'}
+              </button>
+            </div>
+          </div>
+
+          {/* Sync Status */}
+          <div className="rounded-2xl border border-white/10 bg-surface-dark p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-white">Sync Status</h3>
+              <button
+                onClick={handleSync}
+                disabled={syncing}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                <span className={`material-symbols-outlined text-lg ${syncing ? 'animate-spin' : ''}`}>
+                  sync
+                </span>
+                {syncing ? 'Syncing...' : 'Sync Now'}
+              </button>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-white/5 rounded-xl p-4">
+                <p className="text-2xl font-bold text-white">{status.productCount}</p>
+                <p className="text-xs text-slate-500 mt-1">Products</p>
+              </div>
+              <div className="bg-white/5 rounded-xl p-4">
+                <p className="text-2xl font-bold text-white">{status.orderCount}</p>
+                <p className="text-xs text-slate-500 mt-1">Orders</p>
+              </div>
+              <div className="bg-white/5 rounded-xl p-4">
+                <p className="text-sm font-medium text-white">
+                  {status.lastSync
+                    ? new Date(status.lastSync.completedAt).toLocaleString()
+                    : 'Never'}
+                </p>
+                <p className="text-xs text-slate-500 mt-1">Last Sync</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-600">
+              Auto-sync runs every 6 hours. Use "Sync Now" to update immediately.
+            </p>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Connect Shopify */}
+          <div className="rounded-2xl border border-white/10 bg-surface-dark p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-[#95BF47]/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[#95BF47]">shopping_bag</span>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-white">Connect Shopify</h3>
+                <p className="text-xs text-slate-500">Sync products and orders from your Shopify store</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={shopDomain}
+                onChange={(e) => setShopDomain(e.target.value)}
+                placeholder="mystore.myshopify.com"
+                className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+              <a
+                href={shopDomain ? `/api/integrations/shopify/install?shop=${encodeURIComponent(shopDomain)}` : '#'}
+                className={`px-4 py-2 bg-[#95BF47] text-white rounded-lg text-sm font-medium hover:bg-[#7ea83a] transition-colors ${
+                  !shopDomain ? 'opacity-50 pointer-events-none' : ''
+                }`}
+              >
+                Install App
+              </a>
+            </div>
+          </div>
+
+          {/* Connect WooCommerce */}
+          <form onSubmit={handleWooConnect} className="rounded-2xl border border-white/10 bg-surface-dark p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-[#9B5C8F]/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[#9B5C8F]">storefront</span>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-white">Connect WooCommerce</h3>
+                <p className="text-xs text-slate-500">Sync products and orders from your WooCommerce store</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <input
+                type="url"
+                value={wooUrl}
+                onChange={(e) => setWooUrl(e.target.value)}
+                placeholder="https://mystore.com"
+                required
+                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  value={wooKey}
+                  onChange={(e) => setWooKey(e.target.value)}
+                  placeholder="Consumer Key"
+                  required
+                  className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+                <input
+                  type="password"
+                  value={wooSecret}
+                  onChange={(e) => setWooSecret(e.target.value)}
+                  placeholder="Consumer Secret"
+                  required
+                  className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={wooConnecting}
+              className="px-4 py-2 bg-[#9B5C8F] text-white rounded-lg text-sm font-medium hover:bg-[#845075] transition-colors disabled:opacity-50"
+            >
+              {wooConnecting ? 'Connecting...' : 'Connect WooCommerce'}
+            </button>
+          </form>
+
+          {/* Manual Products */}
+          <div className="rounded-2xl border border-white/10 bg-surface-dark p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-primary">edit_note</span>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-white">Manual Products</h3>
+                <p className="text-xs text-slate-500">Add products manually without connecting a store</p>
+              </div>
+            </div>
+            <a
+              href="/dashboard/products"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+            >
+              <span className="material-symbols-outlined text-lg">add</span>
+              Go to Products
+            </a>
           </div>
         </>
       )}

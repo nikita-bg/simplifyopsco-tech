@@ -17,6 +17,8 @@ const navItems = [
         href: "/dashboard/knowledge",
         icon: "menu_book",
     },
+    { label: "Products", href: "/dashboard/products", icon: "inventory_2" },
+    { label: "Orders", href: "/dashboard/orders", icon: "receipt_long" },
     {
         label: "Bookings",
         href: "/dashboard/bookings",
